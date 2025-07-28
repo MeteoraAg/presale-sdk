@@ -1,0 +1,28 @@
+{
+  "name": "@meteora-ag/presale",
+  "veresion": "0.0.1",
+  "description": "Presale client for Meteora AG",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "source": "./src/index.ts",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**"
+  ],
+  "devDependencies": {
+    "@types/bn.js": "^5.2.0",
+    "@types/node": "^24.1.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.31.1",
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.98.2",
+    "bn.js": "^5.2.2",
+    "decimal.js": "^10.6.0",
+    "invariant": "^2.2.4",
+    "js-sha256": "^0.11.1",
+    "tiny-invariant": "^1.3.3"
+  }
+}
