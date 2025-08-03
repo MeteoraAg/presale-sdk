@@ -1,5 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
+import { METAPLEX_PROGRAM_ID } from ".";
 
 export function derivePresale(
   mint: PublicKey,
@@ -62,7 +63,7 @@ export function deriveMerkleRootConfig(
 ): PublicKey {
   return PublicKey.findProgramAddressSync(
     [
-      Buffer.from("merkle_root_config"),
+      Buffer.from("merkle_root"),
       presale.toBuffer(),
       version.toArrayLike(Buffer, "le", 8),
     ],
@@ -92,12 +93,19 @@ export function deriveOperator(
   )[0];
 }
 
-export function deriveMerkleProofMetadata(
+export function derivePermissionedServerMetadata(
   presale: PublicKey,
   programId: PublicKey
 ): PublicKey {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from("merkle_proof"), presale.toBuffer()],
+    [Buffer.from("server_metadata"), presale.toBuffer()],
     programId
+  )[0];
+}
+
+export function deriveMetaplexMetadata(mint: PublicKey) {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("metadata"), METAPLEX_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+    METAPLEX_PROGRAM_ID
   )[0];
 }

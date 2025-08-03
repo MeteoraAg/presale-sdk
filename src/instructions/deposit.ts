@@ -1,12 +1,18 @@
 import {
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
+  NATIVE_MINT,
 } from "@solana/spl-token";
-import { AccountMeta, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { deriveEscrow } from "../pda";
 import { getTokenProgramIdFromFlag } from "../token2022";
-import { PresaleAccount, PresaleProgram, RemainingAccountInfo } from "../type";
+import {
+  PresaleAccount,
+  PresaleProgram,
+  TransferHookAccountInfo,
+} from "../type";
+import { wrapSOLInstruction } from "../token";
 
 export interface IDepositParams {
   presaleProgram: PresaleProgram;
@@ -14,8 +20,7 @@ export interface IDepositParams {
   presaleAccount: PresaleAccount;
   owner: PublicKey;
   amount: BN;
-  transferHookRemainingAccountInfo: RemainingAccountInfo;
-  transferHookRemainingAccounts: AccountMeta[];
+  transferHookAccountInfo: TransferHookAccountInfo;
 }
 
 export async function createDepositIx(params: IDepositParams) {
@@ -25,9 +30,10 @@ export async function createDepositIx(params: IDepositParams) {
     presaleAccount,
     owner,
     amount,
-    transferHookRemainingAccountInfo,
-    transferHookRemainingAccounts,
+    transferHookAccountInfo,
   } = params;
+
+  const { slices, extraAccountMetas } = transferHookAccountInfo;
 
   const escrow = deriveEscrow(presaleAddress, owner, presaleProgram.programId);
 
@@ -52,7 +58,9 @@ export async function createDepositIx(params: IDepositParams) {
     );
 
   const depositIx = await presaleProgram.methods
-    .deposit(amount, transferHookRemainingAccountInfo)
+    .deposit(amount, {
+      slices,
+    })
     .accountsPartial({
       presale: presaleAddress,
       payer: owner,
@@ -61,8 +69,17 @@ export async function createDepositIx(params: IDepositParams) {
       quoteMint: presaleAccount.quoteMint,
       tokenProgram: quoteTokenProgram,
     })
-    .remainingAccounts(transferHookRemainingAccounts)
+    .remainingAccounts(extraAccountMetas)
     .instruction();
 
-  return [createOwnerQuoteTokenIx, depositIx];
+  if (presaleAccount.quoteMint.equals(NATIVE_MINT)) {
+    const wrapSolIx = await wrapSOLInstruction(
+      owner,
+      ownerQuoteToken,
+      BigInt(amount.toString())
+    );
+    return [createOwnerQuoteTokenIx, ...wrapSolIx, depositIx];
+  } else {
+    return [createOwnerQuoteTokenIx, depositIx];
+  }
 }

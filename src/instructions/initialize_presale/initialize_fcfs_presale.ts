@@ -8,8 +8,8 @@ import {
   derivePresaleVault,
   deriveQuoteTokenVault,
 } from "../../pda";
-import { getSlicesAndExtraAccountMetasForTransferHook } from "../../token2022";
-import { PresaleMode } from "../../type";
+import { getSliceAndExtraAccountMetasForTransferHook } from "../../token2022";
+import { AccountsType, PresaleMode } from "../../type";
 
 /**
  * Creates a transaction instruction to initialize a First-Come-First-Serve (FCFS) presale on the Solana blockchain.
@@ -74,16 +74,11 @@ export async function createInitializeFcfsPresaleIx(
   );
 
   const { slices, extraAccountMetas } =
-    await getSlicesAndExtraAccountMetasForTransferHook(
+    await getSliceAndExtraAccountMetasForTransferHook(
       program.provider.connection,
-      {
-        mintAddress: baseMintPubkey,
-        mintAccountInfo: baseMintAccount,
-      },
-      {
-        mintAddress: quoteMintPubkey,
-        mintAccountInfo: quoteMintAccount,
-      }
+      baseMintPubkey,
+      baseMintAccount,
+      AccountsType.TransferHookBase
     );
 
   const initializePresaleIx = await program.methods
@@ -99,11 +94,16 @@ export async function createInitializeFcfsPresaleIx(
           presaleMode: PresaleMode.Fcfs,
           padding: new Array(4).fill(new BN(0)),
         },
-        lockedVestingParams: lockedVestingArgs ?? {
-          ...lockedVestingArgs,
-          padding: new Array(4).fill(new BN(0)),
-        },
-        padding: new Array(4).fill(new BN(0)),
+        lockedVestingParams: lockedVestingArgs
+          ? {
+              ...lockedVestingArgs,
+              padding: new Array(4).fill(new BN(0)),
+            }
+          : {
+              lockDuration: new BN(0),
+              vestDuration: new BN(0),
+              padding: new Array(4).fill(new BN(0)),
+            },
       },
       {
         slices,

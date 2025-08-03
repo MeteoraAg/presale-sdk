@@ -1,15 +1,10 @@
+import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
-import {
-  PresaleMode,
-  PresaleProgram,
-  RemainingAccountInfo,
-  WhitelistMode,
-} from "../../type";
-import { AccountMeta, PublicKey } from "@solana/web3.js";
+import { PresaleMode, PresaleProgram, WhitelistMode } from "../../type";
 
+export * from "./initialize_fcfs_presale";
 export * from "./initialize_fixed_price_presale";
 export * from "./initialize_prorata_presale";
-export * from "./initialize_fcfs_presale";
 
 export interface ITokenomicArgs {
   presalePoolSupply: BN;

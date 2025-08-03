@@ -1,15 +1,23 @@
-import { getAssociatedTokenAddressSync } from "@solana/spl-token";
-import { SystemProgram, TransactionInstruction } from "@solana/web3.js";
+import {
+  getAssociatedTokenAddressSync,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import {
+  AccountMeta,
+  SystemProgram,
+  TransactionInstruction,
+} from "@solana/web3.js";
 import BN from "bn.js";
 import { ICreateInitializePresaleIxParams } from ".";
 import {
+  deriveMetaplexMetadata,
   derivePresale,
   derivePresaleAuthority,
   derivePresaleVault,
   deriveQuoteTokenVault,
 } from "../../pda";
-import { getSlicesAndExtraAccountMetasForTransferHook } from "../../token2022";
-import { PresaleMode } from "../../type";
+import { getSliceAndExtraAccountMetasForTransferHook } from "../../token2022";
+import { AccountsType, PresaleMode } from "../../type";
 
 /**
  * Creates a transaction instruction to initialize a prorata presale on the Solana blockchain.
@@ -72,17 +80,23 @@ export async function createInitializeProrataPresaleIx(
     baseTokenProgram
   );
 
+  const remainingAccounts: AccountMeta[] = [];
+
+  if (baseTokenProgram.equals(TOKEN_PROGRAM_ID)) {
+    const mpxMetadata = deriveMetaplexMetadata(baseMintPubkey);
+    remainingAccounts.push({
+      pubkey: mpxMetadata,
+      isWritable: false,
+      isSigner: false,
+    });
+  }
+
   const { slices, extraAccountMetas } =
-    await getSlicesAndExtraAccountMetasForTransferHook(
+    await getSliceAndExtraAccountMetasForTransferHook(
       program.provider.connection,
-      {
-        mintAddress: baseMintPubkey,
-        mintAccountInfo: baseMintAccount,
-      },
-      {
-        mintAddress: quoteMintPubkey,
-        mintAccountInfo: quoteMintAccount,
-      }
+      baseMintPubkey,
+      baseMintAccount,
+      AccountsType.TransferHookBase
     );
 
   const initializePresaleIx = await program.methods
@@ -98,11 +112,16 @@ export async function createInitializeProrataPresaleIx(
           presaleMode: PresaleMode.Prorata,
           padding: new Array(4).fill(new BN(0)),
         },
-        lockedVestingParams: lockedVestingArgs ?? {
-          ...lockedVestingArgs,
-          padding: new Array(4).fill(new BN(0)),
-        },
-        padding: new Array(4).fill(new BN(0)),
+        lockedVestingParams: lockedVestingArgs
+          ? {
+              ...lockedVestingArgs,
+              padding: new Array(4).fill(new BN(0)),
+            }
+          : {
+              lockDuration: new BN(0),
+              vestDuration: new BN(0),
+              padding: new Array(4).fill(new BN(0)),
+            },
       },
       {
         slices,
@@ -123,7 +142,7 @@ export async function createInitializeProrataPresaleIx(
       presaleAuthority,
       systemProgram: SystemProgram.programId,
     })
-    .remainingAccounts(extraAccountMetas)
+    .remainingAccounts([...remainingAccounts, ...extraAccountMetas])
     .instruction();
 
   return initializePresaleIx;

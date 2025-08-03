@@ -1,11 +1,13 @@
-import { IdlAccounts, IdlTypes, Program, BN } from "@coral-xyz/anchor";
-import type { Presale as PresaleTypes } from "./idl/presale";
+import { IdlAccounts, IdlTypes, Program } from "@coral-xyz/anchor";
 import { AccountMeta } from "@solana/web3.js";
+import type { Presale as PresaleTypes } from "./idl/presale";
+import { BN } from "bn.js";
 
 export type PresaleProgram = Program<PresaleTypes>;
+export type RemainingAccountsSlice =
+  IdlTypes<PresaleTypes>["remainingAccountsSlice"];
 export type PresaleAccount = IdlAccounts<PresaleTypes>["presale"];
-export type RemainingAccountInfo =
-  IdlTypes<PresaleTypes>["remainingAccountsInfo"];
+export type EscrowAccount = IdlAccounts<PresaleTypes>["escrow"];
 
 export enum UnsoldTokenAction {
   Refund = 0,
@@ -39,6 +41,10 @@ export interface MerkleProofResponse {
   proof: number[][];
 }
 
+export interface PartialSignedTransactionResponse {
+  serialized_transaction: number[];
+}
+
 export enum PresaleProgress {
   NotStarted,
   Ongoing,
@@ -47,6 +53,8 @@ export enum PresaleProgress {
 }
 
 export interface TransferHookAccountInfo {
-  slices: { accountTypes: AccountsType; length: number }[];
+  slices: RemainingAccountsSlice[];
   extraAccountMetas: AccountMeta[];
 }
+
+export const U64_MAX = new BN("18446744073709551615");

@@ -12,66 +12,34 @@ import {
   TransferFee,
   unpackMint,
 } from "@solana/spl-token";
-import {
-  AccountInfo,
-  AccountMeta,
-  Connection,
-  PublicKey,
-} from "@solana/web3.js";
+import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
-import { AccountsType } from "./type";
+import { AccountsType, TransferHookAccountInfo } from "./type";
 
-interface MintAddressWithAccountInfo {
-  mintAddress: PublicKey;
-  mintAccountInfo: AccountInfo<Buffer>;
-}
-
-interface GetSlicesAndExtraAccountMetasForTransferHookResponse {
-  slices: { accountTypes: AccountsType; length: number }[];
-  extraAccountMetas: AccountMeta[];
-}
-
-export async function getSlicesAndExtraAccountMetasForTransferHook(
+export async function getSliceAndExtraAccountMetasForTransferHook(
   connection: Connection,
-  baseMintAddressWithAccountInfo: MintAddressWithAccountInfo,
-  quoteMintAddressWithAccountInfo: MintAddressWithAccountInfo
-): Promise<GetSlicesAndExtraAccountMetasForTransferHookResponse> {
+  mintAddress: PublicKey,
+  mintAccountInfo: AccountInfo<Buffer>,
+  accountType: AccountsType
+): Promise<TransferHookAccountInfo> {
+  const transferHookAccounts = await getExtraAccountMetasForTransferHook(
+    connection,
+    mintAddress,
+    mintAccountInfo
+  );
+
   const slices = [];
-  const extraAccountMetas = [];
 
-  const [baseMintTransferHookAccounts, quoteMintTransferHookAccounts] =
-    await Promise.all([
-      getExtraAccountMetasForTransferHook(
-        connection,
-        baseMintAddressWithAccountInfo.mintAddress,
-        baseMintAddressWithAccountInfo.mintAccountInfo
-      ),
-      getExtraAccountMetasForTransferHook(
-        connection,
-        quoteMintAddressWithAccountInfo.mintAddress,
-        quoteMintAddressWithAccountInfo.mintAccountInfo
-      ),
-    ]);
-
-  if (baseMintTransferHookAccounts.length > 0) {
+  if (transferHookAccounts.length > 0) {
     slices.push({
-      accountTypes: AccountsType.TransferHookBase,
-      length: baseMintTransferHookAccounts.length,
+      accountTypes: accountType,
+      length: transferHookAccounts.length,
     });
-    extraAccountMetas.push(...baseMintTransferHookAccounts);
-  }
-
-  if (quoteMintTransferHookAccounts.length > 0) {
-    slices.push({
-      accountTypes: AccountsType.TransferHookQuote,
-      length: quoteMintTransferHookAccounts.length,
-    });
-    extraAccountMetas.push(...quoteMintTransferHookAccounts);
   }
 
   return {
     slices,
-    extraAccountMetas,
+    extraAccountMetas: transferHookAccounts,
   };
 }
 

@@ -154,15 +154,15 @@
       "args": []
     },
     {
-      "name": "close_merkle_proof_metadata",
-      "discriminator": [23, 52, 170, 30, 252, 47, 100, 129],
+      "name": "close_permissioned_server_metadata",
+      "discriminator": [226, 2, 147, 220, 38, 247, 138, 95],
       "accounts": [
         {
           "name": "presale",
-          "relations": ["merkle_proof_metadata"]
+          "relations": ["permissioned_server_metadata"]
         },
         {
-          "name": "merkle_proof_metadata",
+          "name": "permissioned_server_metadata",
           "writable": true
         },
         {
@@ -193,66 +193,6 @@
         }
       ],
       "args": []
-    },
-    {
-      "name": "create_merkle_proof_metadata",
-      "discriminator": [151, 46, 163, 52, 181, 178, 47, 227],
-      "accounts": [
-        {
-          "name": "presale"
-        },
-        {
-          "name": "merkle_proof_metadata",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  109, 101, 114, 107, 108, 101, 95, 112, 114, 111, 111, 102
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "presale"
-              }
-            ]
-          }
-        },
-        {
-          "name": "owner",
-          "writable": true,
-          "signer": true,
-          "relations": ["presale"]
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        },
-        {
-          "name": "event_authority",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  95, 95, 101, 118, 101, 110, 116, 95, 97, 117, 116, 104, 111,
-                  114, 105, 116, 121
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "program"
-        }
-      ],
-      "args": [
-        {
-          "name": "proof_url",
-          "type": "string"
-        }
-      ]
     },
     {
       "name": "create_merkle_root_config",
@@ -512,6 +452,67 @@
               "array": ["u8", 32]
             }
           }
+        }
+      ]
+    },
+    {
+      "name": "create_permissioned_server_metadata",
+      "discriminator": [139, 13, 120, 145, 18, 209, 185, 180],
+      "accounts": [
+        {
+          "name": "presale"
+        },
+        {
+          "name": "permissioned_server_metadata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115, 101, 114, 118, 101, 114, 95, 109, 101, 116, 97, 100, 97,
+                  116, 97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "presale"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": ["presale"]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  95, 95, 101, 118, 101, 110, 116, 95, 97, 117, 116, 104, 111,
+                  114, 105, 116, 121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "server_url",
+          "type": "string"
         }
       ]
     },
@@ -1206,16 +1207,16 @@
       "discriminator": [75, 139, 198, 148, 132, 54, 191, 83]
     },
     {
-      "name": "MerkleProofMetadata",
-      "discriminator": [133, 24, 30, 217, 240, 20, 222, 100]
-    },
-    {
       "name": "MerkleRootConfig",
       "discriminator": [103, 2, 222, 217, 73, 50, 187, 39]
     },
     {
       "name": "Operator",
       "discriminator": [219, 31, 188, 145, 69, 139, 204, 117]
+    },
+    {
+      "name": "PermissionedServerMetadata",
+      "discriminator": [130, 242, 96, 20, 147, 138, 75, 246]
     },
     {
       "name": "Presale",
@@ -1256,14 +1257,6 @@
       "discriminator": [150, 2, 196, 99, 99, 233, 14, 134]
     },
     {
-      "name": "EvtMerkleProofMetadataClose",
-      "discriminator": [89, 204, 254, 22, 230, 127, 117, 103]
-    },
-    {
-      "name": "EvtMerkleProofMetadataCreate",
-      "discriminator": [58, 148, 90, 56, 95, 57, 98, 175]
-    },
-    {
       "name": "EvtMerkleRootConfigCreate",
       "discriminator": [124, 71, 226, 147, 30, 112, 202, 20]
     },
@@ -1274,6 +1267,14 @@
     {
       "name": "EvtPerformUnsoldBaseTokenAction",
       "discriminator": [101, 134, 249, 143, 220, 171, 228, 130]
+    },
+    {
+      "name": "EvtPermissionedServerMetadataClose",
+      "discriminator": [205, 49, 203, 99, 89, 22, 127, 111]
+    },
+    {
+      "name": "EvtPermissionedServerMetadataCreate",
+      "discriminator": [103, 183, 81, 175, 100, 254, 206, 232]
     },
     {
       "name": "EvtPresaleVaultCreate",
@@ -1561,6 +1562,12 @@
           {
             "name": "last_refreshed_at",
             "type": "u64"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": ["u64", 8]
+            }
           }
         ]
       }
@@ -1770,42 +1777,6 @@
       }
     },
     {
-      "name": "EvtMerkleProofMetadataClose",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "presale",
-            "type": "pubkey"
-          },
-          {
-            "name": "merkle_proof_metadata",
-            "type": "pubkey"
-          }
-        ]
-      }
-    },
-    {
-      "name": "EvtMerkleProofMetadataCreate",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "presale",
-            "type": "pubkey"
-          },
-          {
-            "name": "merkle_proof_metadata",
-            "type": "pubkey"
-          },
-          {
-            "name": "proof_url",
-            "type": "string"
-          }
-        ]
-      }
-    },
-    {
       "name": "EvtMerkleRootConfigCreate",
       "type": {
         "kind": "struct",
@@ -1871,6 +1842,42 @@
           {
             "name": "unsold_base_token_action",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EvtPermissionedServerMetadataClose",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "presale",
+            "type": "pubkey"
+          },
+          {
+            "name": "permissioned_server_metadata",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EvtPermissionedServerMetadataCreate",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "presale",
+            "type": "pubkey"
+          },
+          {
+            "name": "permissioned_server_metadata",
+            "type": "pubkey"
+          },
+          {
+            "name": "server_url",
+            "type": "string"
           }
         ]
       }
@@ -2051,7 +2058,7 @@
           {
             "name": "padding",
             "type": {
-              "array": ["u64", 4]
+              "array": ["u64", 8]
             }
           }
         ]
@@ -2081,10 +2088,8 @@
           {
             "name": "locked_vesting_params",
             "type": {
-              "option": {
-                "defined": {
-                  "name": "LockedVestingArgs"
-                }
+              "defined": {
+                "name": "LockedVestingArgs"
               }
             }
           },
@@ -2123,30 +2128,6 @@
       }
     },
     {
-      "name": "MerkleProofMetadata",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "presale",
-            "docs": ["Presale address"],
-            "type": "pubkey"
-          },
-          {
-            "name": "padding",
-            "type": {
-              "array": ["u64", 16]
-            }
-          },
-          {
-            "name": "proof_url",
-            "docs": ["Merkle root proof URL"],
-            "type": "string"
-          }
-        ]
-      }
-    },
-    {
       "name": "MerkleRootConfig",
       "serialization": "bytemuck",
       "repr": {
@@ -2178,7 +2159,7 @@
             "type": "u64"
           },
           {
-            "name": "_padding",
+            "name": "padding1",
             "docs": ["Padding for further use"],
             "type": {
               "array": ["u128", 4]
@@ -2207,8 +2188,34 @@
           {
             "name": "padding",
             "type": {
-              "array": ["u64", 4]
+              "array": ["u64", 8]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PermissionedServerMetadata",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "presale",
+            "docs": ["Presale address"],
+            "type": "pubkey"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": ["u64", 16]
+            }
+          },
+          {
+            "name": "server_url",
+            "docs": [
+              "Server URL to retrieve the merkle proof or partially signed transaction by the operator"
+            ],
+            "type": "string"
           }
         ]
       }
@@ -2404,6 +2411,12 @@
               "Presale rate. Only applicable for fixed price presale mode"
             ],
             "type": "u128"
+          },
+          {
+            "name": "padding3",
+            "type": {
+              "array": ["u128", 6]
+            }
           }
         ]
       }

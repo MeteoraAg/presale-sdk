@@ -52,7 +52,7 @@ export class BalanceTree {
     return this._tree.getRoot();
   }
 
-  getProof(account: web3.PublicKey, maxCap: BN): Buffer[] {
+  getProof(account: web3.PublicKey): Buffer[] {
     return this._tree.getProof(BalanceTree.toNode(account));
   }
 }
