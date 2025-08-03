@@ -1,6 +1,6 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { deriveEscrow, deriveMerkleProofMetadata } from "../pda";
-import { MerkleProofResponse, PresaleProgram } from "../type";
+import { deriveEscrow, derivePermissionedServerMetadata } from "../../pda";
+import { MerkleProofResponse, PresaleProgram } from "../../type";
 
 export interface ICreatePermissionedEscrowWithMerkleProofParams {
   presaleProgram: PresaleProgram;
@@ -46,19 +46,21 @@ export async function autoFetchProofAndCreatePermissionedEscrowWithMerkleProofIx
   >
 ) {
   const { owner, payer, presaleProgram, presaleAddress } = params;
-  const merkleProofMetadata = deriveMerkleProofMetadata(
-    this.presaleAddress,
-    this.program.programId
+  const permissionedServerMetadata = derivePermissionedServerMetadata(
+    presaleAddress,
+    presaleProgram.programId
   );
 
-  const merkleProofMetadataState =
-    await this.program.account.merkleProofMetadata.fetch(merkleProofMetadata);
+  const permissionedServerMetadataState =
+    await presaleProgram.account.permissionedServerMetadata.fetch(
+      permissionedServerMetadata
+    );
 
-  let baseUrl = merkleProofMetadataState.proofUrl;
+  let baseUrl = permissionedServerMetadataState.serverUrl;
   if (baseUrl.endsWith("/")) {
     baseUrl = baseUrl.slice(0, baseUrl.length - 1);
   }
-  const fullUrl = `${baseUrl}/${this.presaleAddress.toBase58()}/${owner.toBase58()}`;
+  const fullUrl = `${baseUrl}/${presaleAddress.toBase58()}/${owner.toBase58()}`;
 
   const response = await fetch(fullUrl);
 

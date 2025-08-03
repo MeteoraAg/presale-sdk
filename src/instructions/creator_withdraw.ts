@@ -9,13 +9,14 @@ import {
 } from "@solana/web3.js";
 import invariant from "tiny-invariant";
 import { derivePresaleAuthority, MEMO_PROGRAM_ID } from "..";
-import { getPresaleProgressState } from "../info_processor";
+import { getPresaleProgressState } from "../accounts/presale_wrapper";
 import { getTokenProgramIdFromFlag } from "../token2022";
 import {
   PresaleAccount,
   PresaleProgram,
   PresaleProgress,
-  RemainingAccountInfo,
+  RemainingAccountsSlice,
+  TransferHookAccountInfo,
 } from "../type";
 
 export interface ICreatorWithdrawParams {
@@ -23,8 +24,8 @@ export interface ICreatorWithdrawParams {
   presaleAddress: PublicKey;
   presaleAccount: PresaleAccount;
   creator: PublicKey;
-  transferHookRemainingAccountInfo: RemainingAccountInfo;
-  transferHookRemainingAccounts: AccountMeta[];
+  baseTransferHookAccountInfo: TransferHookAccountInfo;
+  quoteTransferHookAccountInfo: TransferHookAccountInfo;
 }
 
 export async function createCreatorWithdrawIx(params: ICreatorWithdrawParams) {
@@ -33,8 +34,8 @@ export async function createCreatorWithdrawIx(params: ICreatorWithdrawParams) {
     presaleAddress,
     creator,
     presaleAccount,
-    transferHookRemainingAccounts,
-    transferHookRemainingAccountInfo,
+    baseTransferHookAccountInfo,
+    quoteTransferHookAccountInfo,
   } = params;
 
   const presaleProgress = getPresaleProgressState(presaleAccount);
@@ -48,6 +49,8 @@ export async function createCreatorWithdrawIx(params: ICreatorWithdrawParams) {
   let tokenProgramId: PublicKey;
   let ownerToken: PublicKey;
   let initOwnerTokenAtaIx: TransactionInstruction;
+  let slices: RemainingAccountsSlice[] = [];
+  let extraAccountMetas: AccountMeta[] = [];
 
   const remainingAccounts: AccountMeta[] = [];
 
@@ -86,6 +89,9 @@ export async function createCreatorWithdrawIx(params: ICreatorWithdrawParams) {
         isWritable: false,
         isSigner: false,
       });
+
+      slices = quoteTransferHookAccountInfo.slices;
+      extraAccountMetas = quoteTransferHookAccountInfo.extraAccountMetas;
       break;
     }
     case PresaleProgress.Failed: {
@@ -117,12 +123,15 @@ export async function createCreatorWithdrawIx(params: ICreatorWithdrawParams) {
         isWritable: false,
         isSigner: false,
       });
+
+      slices = baseTransferHookAccountInfo.slices;
+      extraAccountMetas = baseTransferHookAccountInfo.extraAccountMetas;
       break;
     }
   }
 
   const withdrawIx = await presaleProgram.methods
-    .creatorWithdraw(transferHookRemainingAccountInfo)
+    .creatorWithdraw({ slices })
     .accountsPartial({
       presale: presaleAddress,
       owner: creator,
@@ -131,7 +140,7 @@ export async function createCreatorWithdrawIx(params: ICreatorWithdrawParams) {
       memoProgram: MEMO_PROGRAM_ID,
       presaleAuthority: derivePresaleAuthority(presaleProgram.programId),
     })
-    .remainingAccounts([...remainingAccounts, ...transferHookRemainingAccounts])
+    .remainingAccounts([...remainingAccounts, ...extraAccountMetas])
     .instruction();
 
   return [initOwnerTokenAtaIx, withdrawIx];

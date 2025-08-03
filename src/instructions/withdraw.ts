@@ -2,12 +2,16 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
-import { AccountMeta, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { MEMO_PROGRAM_ID } from "..";
 import { deriveEscrow } from "../pda";
 import { getTokenProgramIdFromFlag } from "../token2022";
-import { PresaleAccount, PresaleProgram, RemainingAccountInfo } from "../type";
+import {
+  PresaleAccount,
+  PresaleProgram,
+  TransferHookAccountInfo,
+} from "../type";
 
 export interface IWithdrawParams {
   presaleProgram: PresaleProgram;
@@ -15,8 +19,7 @@ export interface IWithdrawParams {
   presaleAccount: PresaleAccount;
   owner: PublicKey;
   amount: BN;
-  transferHookRemainingAccountInfo: RemainingAccountInfo;
-  transferHookRemainingAccounts: AccountMeta[];
+  transferHookAccountInfo: TransferHookAccountInfo;
 }
 
 export async function createWithdrawIx(params: IWithdrawParams) {
@@ -26,9 +29,10 @@ export async function createWithdrawIx(params: IWithdrawParams) {
     presaleAccount,
     owner,
     amount,
-    transferHookRemainingAccountInfo,
-    transferHookRemainingAccounts,
+    transferHookAccountInfo,
   } = params;
+
+  const { slices, extraAccountMetas } = transferHookAccountInfo;
 
   const escrow = deriveEscrow(presaleAddress, owner, presaleProgram.programId);
   const quoteTokenProgram = getTokenProgramIdFromFlag(
@@ -52,7 +56,7 @@ export async function createWithdrawIx(params: IWithdrawParams) {
     );
 
   const withdrawIx = await presaleProgram.methods
-    .withdraw(amount, transferHookRemainingAccountInfo)
+    .withdraw(amount, { slices })
     .accountsPartial({
       presale: presaleAddress,
       owner: owner,
@@ -63,7 +67,7 @@ export async function createWithdrawIx(params: IWithdrawParams) {
       tokenProgram: quoteTokenProgram,
       memoProgram: MEMO_PROGRAM_ID,
     })
-    .remainingAccounts(transferHookRemainingAccounts)
+    .remainingAccounts([...extraAccountMetas])
     .instruction();
 
   return [createOwnerQuoteAtaIx, withdrawIx];

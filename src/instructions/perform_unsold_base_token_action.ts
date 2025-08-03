@@ -2,19 +2,22 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
-import { AccountMeta, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { MEMO_PROGRAM_ID } from "..";
 import { derivePresaleAuthority } from "../pda";
 import { getTokenProgramIdFromFlag } from "../token2022";
-import { PresaleAccount, PresaleProgram, RemainingAccountInfo } from "../type";
+import {
+  PresaleAccount,
+  PresaleProgram,
+  TransferHookAccountInfo,
+} from "../type";
 
 export interface IPerformUnsoldBaseTokenActionParams {
   presaleProgram: PresaleProgram;
   presaleAddress: PublicKey;
   presaleAccount: PresaleAccount;
   creator: PublicKey;
-  transferHookRemainingAccountInfo: RemainingAccountInfo;
-  transferHookRemainingAccounts: AccountMeta[];
+  transferHookAccountInfo: TransferHookAccountInfo;
 }
 
 export async function createPerformUnsoldBaseTokenActionIx(
@@ -25,9 +28,10 @@ export async function createPerformUnsoldBaseTokenActionIx(
     presaleAddress,
     presaleAccount,
     creator,
-    transferHookRemainingAccountInfo,
-    transferHookRemainingAccounts,
+    transferHookAccountInfo,
   } = params;
+
+  const { slices, extraAccountMetas } = transferHookAccountInfo;
 
   const baseTokenProgram = getTokenProgramIdFromFlag(
     presaleAccount.baseTokenProgramFlag
@@ -50,7 +54,7 @@ export async function createPerformUnsoldBaseTokenActionIx(
     );
 
   const performUnsoldBaseTokenActionIx = await presaleProgram.methods
-    .performUnsoldBaseTokenAction(transferHookRemainingAccountInfo)
+    .performUnsoldBaseTokenAction({ slices })
     .accountsPartial({
       presale: presaleAddress,
       baseTokenVault: presaleAccount.baseTokenVault,
@@ -60,7 +64,7 @@ export async function createPerformUnsoldBaseTokenActionIx(
       tokenProgram: baseTokenProgram,
       memoProgram: MEMO_PROGRAM_ID,
     })
-    .remainingAccounts(transferHookRemainingAccounts)
+    .remainingAccounts([...extraAccountMetas])
     .instruction();
 
   return [createCreatorBaseTokenAtaIx, performUnsoldBaseTokenActionIx];

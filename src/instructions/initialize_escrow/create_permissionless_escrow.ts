@@ -1,29 +1,27 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { PresaleProgram } from "../type";
-import { deriveEscrow } from "../pda";
+import { deriveEscrow } from "../../pda";
+import { PresaleProgram } from "../../type";
 
-export interface ICreatePermissionedEscrowWithCreatorParams {
+export interface ICreatePermissionlessEscrowParams {
   presaleProgram: PresaleProgram;
   presaleAddress: PublicKey;
   owner: PublicKey;
-  operator: PublicKey;
   payer: PublicKey;
 }
 
-export async function createPermissionedEscrowWithCreatorIx(
-  params: ICreatePermissionedEscrowWithCreatorParams
+export async function createPermissionlessEscrowIx(
+  params: ICreatePermissionlessEscrowParams
 ) {
-  const { presaleProgram, presaleAddress, owner, operator, payer } = params;
+  const { presaleProgram, presaleAddress, owner, payer } = params;
 
   const escrow = deriveEscrow(presaleAddress, owner, presaleProgram.programId);
 
   const initEscrowIx = await presaleProgram.methods
-    .createPermissionedEscrowWithCreator()
+    .createPermissionlessEscrow()
     .accountsPartial({
       escrow,
       presale: presaleAddress,
       owner,
-      operator,
       payer,
     })
     .instruction();
@@ -31,8 +29,8 @@ export async function createPermissionedEscrowWithCreatorIx(
   return initEscrowIx;
 }
 
-export async function getOrCreatePermissionedEscrowWithCreatorIx(
-  params: ICreatePermissionedEscrowWithCreatorParams
+export async function getOrCreatePermissionlessEscrowIx(
+  params: ICreatePermissionlessEscrowParams
 ): Promise<TransactionInstruction | null> {
   const { presaleProgram, presaleAddress, owner } = params;
 
@@ -40,6 +38,6 @@ export async function getOrCreatePermissionedEscrowWithCreatorIx(
   const escrowState = await presaleProgram.account.escrow.fetchNullable(escrow);
 
   if (!escrowState) {
-    return createPermissionedEscrowWithCreatorIx(params);
+    return createPermissionlessEscrowIx(params);
   }
 }

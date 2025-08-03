@@ -1,22 +1,16 @@
-import {
-  clusterApiUrl,
-  Connection,
-  Keypair,
-  PublicKey,
-  TransactionInstruction,
-} from "@solana/web3.js";
+import { NATIVE_MINT } from "@solana/spl-token";
+import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { BN } from "bn.js";
 import fs from "fs";
 import os from "os";
-import { PRESALE_PROGRAM_ID } from "../src";
+import { derivePresale, PRESALE_PROGRAM_ID } from "../../src";
 import {
   ILockedVestingArgs,
   IPresaleArgs,
   ITokenomicArgs,
-} from "../src/instructions";
-import Presale from "../src/presale";
-import { WhitelistMode } from "../src/type";
-import { createMintAndMintTo } from "./helper";
+} from "../../src/instructions";
+import Presale from "../../src/presale";
+import { WhitelistMode } from "../../src/type";
 
 const connection = new Connection(clusterApiUrl("devnet"));
 
@@ -25,13 +19,10 @@ async function initializeProrataPresale(
   baseMintPubkey: PublicKey,
   quoteMintPubkey: PublicKey,
   keypair: Keypair,
+  baseKeypair: Keypair,
   tokenomicArgs: ITokenomicArgs,
   presaleArgs: Omit<IPresaleArgs, "presaleMode">,
-  lockedVestingArgs?: ILockedVestingArgs,
-  initMintAndKeypairs?: {
-    instructions: TransactionInstruction[];
-    mintKeypair: Keypair;
-  }[]
+  lockedVestingArgs?: ILockedVestingArgs
 ) {
   const initializeProrataPresaleTx = await Presale.createProrataPresale(
     connection,
@@ -39,7 +30,7 @@ async function initializeProrataPresale(
     {
       baseMintPubkey,
       quoteMintPubkey,
-      basePubkey: keypair.publicKey,
+      basePubkey: baseKeypair.publicKey,
       creatorPubkey: keypair.publicKey,
       feePayerPubkey: keypair.publicKey,
       tokenomicArgs,
@@ -48,49 +39,37 @@ async function initializeProrataPresale(
     }
   );
 
-  initializeProrataPresaleTx.sign(keypair);
+  initializeProrataPresaleTx.sign(keypair, baseKeypair);
 
   const txSig = await connection.sendRawTransaction(
     initializeProrataPresaleTx.serialize()
   );
 
-  await connection.confirmTransaction({
-    signature: txSig,
-    lastValidBlockHeight: initializeProrataPresaleTx.lastValidBlockHeight,
-    blockhash: initializeProrataPresaleTx.recentBlockhash,
-  });
-}
+  console.log("Initialize presale transaction sent:", txSig);
 
-async function main(
-  connection: Connection,
-  keypair: Keypair,
-  tokenomicArgs: ITokenomicArgs,
-  presaleArgs: Omit<IPresaleArgs, "presaleMode">,
-  lockedVestingArgs?: ILockedVestingArgs
-) {
-  const presaleSupply = new BN(1000000);
-  const quoteTokenSupply = new BN(1000000);
-  const baseMintPubkey = await createMintAndMintTo(
-    connection,
-    keypair,
-    6,
-    presaleSupply.toNumber()
+  await connection.confirmTransaction(
+    {
+      signature: txSig,
+      lastValidBlockHeight: initializeProrataPresaleTx.lastValidBlockHeight,
+      blockhash: initializeProrataPresaleTx.recentBlockhash,
+    },
+    "finalized"
   );
-  const quoteMintPubkey = await createMintAndMintTo(
-    connection,
-    keypair,
-    9,
-    quoteTokenSupply.toNumber()
-  );
-  await initializeProrataPresale(
-    connection,
+
+  const presaleAddress = derivePresale(
     baseMintPubkey,
     quoteMintPubkey,
-    keypair,
-    tokenomicArgs,
-    presaleArgs,
-    lockedVestingArgs
+    baseKeypair.publicKey,
+    PRESALE_PROGRAM_ID
   );
+
+  const presaleInstance = await Presale.create(
+    connection,
+    presaleAddress,
+    PRESALE_PROGRAM_ID
+  );
+
+  console.log("Presale state: ", presaleInstance.presaleAccount);
 }
 
 const keypairFilepath = `${os.homedir()}/.config/solana/id.json`;
@@ -106,7 +85,7 @@ const presaleArgs: Omit<IPresaleArgs, "presaleMode"> = {
   buyerMaximumDepositCap: new BN(1000000000),
   buyerMinimumDepositCap: new BN(10000000),
   presaleStartTime: new BN(0),
-  presaleEndTime: new BN(Date.now() / 1000 + 86400),
+  presaleEndTime: new BN(Math.floor(Date.now() / 1000 + 300)),
   whitelistMode: WhitelistMode.Permissionless,
 };
 
@@ -115,4 +94,21 @@ const lockedVestingArgs: ILockedVestingArgs = {
   vestDuration: new BN(3600),
 };
 
-main(connection, keypair, tokenomicArgs, presaleArgs, lockedVestingArgs);
+const baseMintPubkey = new PublicKey(
+  "Bn3KEckvpzxD5qxPArYPQMX9PGswZd6QypXqWPob79S"
+);
+
+const quoteMintPubkey = NATIVE_MINT;
+
+const baseKeypair = Keypair.generate();
+
+initializeProrataPresale(
+  connection,
+  baseMintPubkey,
+  quoteMintPubkey,
+  keypair,
+  baseKeypair,
+  tokenomicArgs,
+  presaleArgs,
+  lockedVestingArgs
+);

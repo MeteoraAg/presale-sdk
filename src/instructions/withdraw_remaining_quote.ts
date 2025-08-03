@@ -2,19 +2,22 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
-import { AccountMeta, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { MEMO_PROGRAM_ID } from "..";
 import { deriveEscrow } from "../pda";
 import { getTokenProgramIdFromFlag } from "../token2022";
-import { PresaleAccount, PresaleProgram, RemainingAccountInfo } from "../type";
+import {
+  PresaleAccount,
+  PresaleProgram,
+  TransferHookAccountInfo,
+} from "../type";
 
 export interface IWithdrawRemainingQuoteParams {
   presaleProgram: PresaleProgram;
   presaleAddress: PublicKey;
   presaleAccount: PresaleAccount;
   owner: PublicKey;
-  transferHookRemainingAccountInfo: RemainingAccountInfo;
-  transferHookRemainingAccounts: AccountMeta[];
+  transferHookAccountInfo: TransferHookAccountInfo;
 }
 
 export async function createWithdrawRemainingQuoteIx(
@@ -25,9 +28,10 @@ export async function createWithdrawRemainingQuoteIx(
     presaleAddress,
     presaleAccount,
     owner,
-    transferHookRemainingAccountInfo,
-    transferHookRemainingAccounts,
+    transferHookAccountInfo,
   } = params;
+
+  const { slices, extraAccountMetas } = transferHookAccountInfo;
 
   const quoteTokenProgram = getTokenProgramIdFromFlag(
     presaleAccount.quoteTokenProgramFlag
@@ -52,7 +56,7 @@ export async function createWithdrawRemainingQuoteIx(
   const escrow = deriveEscrow(presaleAddress, owner, presaleProgram.programId);
 
   const withdrawRemainingQuoteIx = await presaleProgram.methods
-    .withdrawRemainingQuote(transferHookRemainingAccountInfo)
+    .withdrawRemainingQuote({ slices })
     .accountsPartial({
       presale: presaleAddress,
       owner: owner,
@@ -63,7 +67,7 @@ export async function createWithdrawRemainingQuoteIx(
       escrow,
       memoProgram: MEMO_PROGRAM_ID,
     })
-    .remainingAccounts(transferHookRemainingAccounts)
+    .remainingAccounts([...extraAccountMetas])
     .instruction();
 
   return [createOwnerQuoteAtaIx, withdrawRemainingQuoteIx];

@@ -1,24 +1,29 @@
 import { Program } from "@coral-xyz/anchor";
 import {
+  AccountInfo,
   Connection,
   PublicKey,
   Transaction,
   TransactionInstruction,
 } from "@solana/web3.js";
 import {
+  AccountsType,
+  EscrowAccount,
+  MerkleProofResponse,
   PresaleAccount,
   PresaleProgram,
-  PresaleProgress,
   Rounding,
   TransferHookAccountInfo,
   UnsoldTokenAction,
   WhitelistMode,
 } from "./type";
 
-import { unpackMint } from "@solana/spl-token";
+import { Mint, unpackMint } from "@solana/spl-token";
 import { BN } from "bn.js";
 import Decimal from "decimal.js";
+import { PRESALE_PROGRAM_ID } from ".";
 import { BalanceTree } from "../libs/merkle_tree";
+import { PresaleWrapper } from "./accounts/presale_wrapper";
 import type { Presale as PresaleTypes } from "./idl/presale";
 import PresaleIDL from "./idl/presale.json";
 import {
@@ -26,7 +31,7 @@ import {
   createClaimIx,
   createCloseEscrowIx,
   createCloseFixedPriceArgsIx,
-  createCloseMerkleProofMetadataIx,
+  createClosePermissionedServerMetadataIx,
   createCreatorWithdrawIx,
   createInitializeFcfsPresaleIx,
   createInitializeFixedPricePresaleIx,
@@ -41,11 +46,12 @@ import {
   createRevokeOperatorIx,
   createWithdrawIx,
   createWithdrawRemainingQuoteIx,
+  fetchPartialSignedInitEscrowAndDepositTransactionFromOperator,
   getOrCreatePermissionedEscrowWithMerkleProofIx,
   getOrCreatePermissionlessEscrowIx,
   IClaimParams,
   ICloseEscrowParams,
-  ICloseMerkleProofMetadataParams,
+  IClosePermissionedServerMetadataParams,
   ICreateCloseFixedPriceArgsParams,
   ICreateInitializePresaleIxParams,
   ICreateMerkleRootConfigParams,
@@ -60,10 +66,21 @@ import {
   IWithdrawParams,
   IWithdrawRemainingQuoteParams,
 } from "./instructions";
+import {
+  createInitializePermissionedServerMetadataIx,
+  ICreatePermissionedServerMetadataParams,
+} from "./instructions/create_permissioned_server_metadata";
 import { createDepositIx, IDepositParams } from "./instructions/deposit";
 import { uiPriceToQPrice } from "./math";
-import { getSlicesAndExtraAccountMetasForTransferHook } from "./token2022";
-import { getPresaleProgressState } from "./info_processor";
+import { deriveEscrow, deriveMerkleRootConfig } from "./pda";
+import { getSliceAndExtraAccountMetasForTransferHook } from "./token2022";
+import { EscrowWrapper, IEscrowWrapper } from "./accounts/escrow_wrapper";
+import {
+  getEscrowFilter,
+  getEscrowPresaleFilter,
+  getPresaleFilter,
+} from "./accounts";
+import { fetchMultipleAccountsAutoChunk } from "./rpc";
 
 /**
  * Creates and returns an instance of the Presale program.
@@ -100,7 +117,13 @@ function createPresaleProgram(connection: Connection, programId: PublicKey) {
 async function fetchAccountsForCache(
   presaleProgram: PresaleProgram,
   presaleAddress: PublicKey
-) {
+): Promise<{
+  presaleAccount: PresaleAccount;
+  baseMintSliceAndTransferHookAccounts: TransferHookAccountInfo;
+  quoteMintSliceAndTransferHookAccounts: TransferHookAccountInfo;
+  baseMint: Mint;
+  quoteMint: Mint;
+}> {
   const connection = presaleProgram.provider.connection;
 
   const presaleAccount = await presaleProgram.account.presale.fetch(
@@ -113,25 +136,49 @@ async function fetchAccountsForCache(
       presaleAccount.quoteMint,
     ]);
 
-  const { slices, extraAccountMetas } =
-    await getSlicesAndExtraAccountMetasForTransferHook(
+  const [
+    baseMintSliceAndTransferHookAccounts,
+    quoteMintSliceAndTransferHookAccounts,
+  ] = await Promise.all([
+    getSliceAndExtraAccountMetasForTransferHook(
       connection,
-      {
-        mintAddress: presaleAccount.baseMint,
-        mintAccountInfo: baseMintAccount,
-      },
-      {
-        mintAddress: presaleAccount.quoteMint,
-        mintAccountInfo: quoteMintAccount,
-      }
-    );
+      presaleAccount.baseMint,
+      baseMintAccount,
+      AccountsType.TransferHookBase
+    ),
+    getSliceAndExtraAccountMetasForTransferHook(
+      connection,
+      presaleAccount.quoteMint,
+      quoteMintAccount,
+      AccountsType.TransferHookQuote
+    ),
+  ]);
+
+  const baseMint = unpackMint(
+    presaleAccount.baseMint,
+    baseMintAccount,
+    baseMintAccount.owner
+  );
+
+  const quoteMint = unpackMint(
+    presaleAccount.quoteMint,
+    quoteMintAccount,
+    quoteMintAccount.owner
+  );
 
   return {
     presaleAccount,
-    transferHookAccountInfo: {
-      slices,
-      extraAccountMetas,
+    baseMintSliceAndTransferHookAccounts: {
+      slices: baseMintSliceAndTransferHookAccounts.slices,
+      extraAccountMetas: baseMintSliceAndTransferHookAccounts.extraAccountMetas,
     },
+    quoteMintSliceAndTransferHookAccounts: {
+      slices: quoteMintSliceAndTransferHookAccounts.slices,
+      extraAccountMetas:
+        quoteMintSliceAndTransferHookAccounts.extraAccountMetas,
+    },
+    baseMint,
+    quoteMint,
   };
 }
 
@@ -152,7 +199,10 @@ class Presale {
     public program: PresaleProgram,
     public presaleAddress: PublicKey,
     public presaleAccount: PresaleAccount,
-    public transferHookAccountInfo: TransferHookAccountInfo
+    public baseMint: Mint,
+    public quoteMint: Mint,
+    public baseTransferHookAccountInfo: TransferHookAccountInfo,
+    public quoteTransferHookAccountInfo: TransferHookAccountInfo
   ) {}
 
   /**
@@ -168,17 +218,28 @@ class Presale {
   static async create(
     connection: Connection,
     presaleAddress: PublicKey,
-    programId: PublicKey
+    programId?: PublicKey
   ) {
-    const presaleProgram = createPresaleProgram(connection, programId);
-    const { presaleAccount, transferHookAccountInfo } =
-      await fetchAccountsForCache(presaleProgram, presaleAddress);
+    const presaleProgram = createPresaleProgram(
+      connection,
+      programId ?? PRESALE_PROGRAM_ID
+    );
+    const {
+      presaleAccount,
+      baseMintSliceAndTransferHookAccounts,
+      quoteMintSliceAndTransferHookAccounts,
+      baseMint,
+      quoteMint,
+    } = await fetchAccountsForCache(presaleProgram, presaleAddress);
 
     return new Presale(
       presaleProgram,
       presaleAddress,
       presaleAccount,
-      transferHookAccountInfo
+      baseMint,
+      quoteMint,
+      baseMintSliceAndTransferHookAccounts,
+      quoteMintSliceAndTransferHookAccounts
     );
   }
 
@@ -275,7 +336,7 @@ class Presale {
     );
 
     const program = createPresaleProgram(connection, programId);
-    const initializePresaleIx = await createInitializeFixedPricePresaleIx(
+    const initializePresaleIxs = await createInitializeFixedPricePresaleIx(
       {
         ...presaleParams,
         program,
@@ -299,7 +360,7 @@ class Presale {
 
     return buildTransaction(
       connection,
-      [initializePresaleIx],
+      initializePresaleIxs,
       presaleParams.feePayerPubkey
     );
   }
@@ -386,7 +447,7 @@ class Presale {
   async createMerkleRootConfigFromAddresses(
     params: Omit<
       ICreateMerkleRootConfigParams,
-      "presaleProgram" | "presaleAddress"
+      "presaleProgram" | "presaleAddress" | "version" | "root"
     > & {
       addresses: PublicKey[];
       addressPerTree?: number;
@@ -429,6 +490,67 @@ class Presale {
         feePayer: creator,
       }).add(ix);
     });
+  }
+
+  /**
+   * Generates Merkle proof responses for a list of addresses, chunked by a specified size per Merkle tree.
+   *
+   * This method splits the provided addresses into chunks (default size: 10,000), constructs a Merkle tree for each chunk,
+   * and derives a Merkle root configuration for each tree version. For every address, it generates a Merkle proof and
+   * returns an object mapping each address (as a base58 string) to its corresponding Merkle proof response.
+   *
+   * @param params - The configuration parameters for generating Merkle proofs.
+   * @param params.addresses - The list of public keys for which to generate Merkle proofs.
+   * @param params.addressPerTree - Optional. The number of addresses per Merkle tree chunk. Defaults to 10,000.
+   * @param params.creator - The creator's public key.
+   * @returns A promise that resolves to an object mapping each address (base58 string) to its Merkle proof response.
+   */
+  async createMerkleProofResponse(
+    params: Omit<
+      ICreateMerkleRootConfigParams,
+      "presaleProgram" | "presaleAddress" | "version" | "root"
+    > & {
+      addresses: PublicKey[];
+      addressPerTree?: number;
+    }
+  ): Promise<{
+    [address: string]: MerkleProofResponse;
+  }> {
+    let { addresses, addressPerTree, creator } = params;
+    addressPerTree = addressPerTree || 10_000;
+
+    let merkleProofs: {
+      [address: string]: MerkleProofResponse;
+    } = {};
+
+    let version = 0;
+
+    while (addresses.length > 0) {
+      const chunkedAddress = addresses.splice(0, addressPerTree);
+      const balanceTree = new BalanceTree(
+        chunkedAddress.map((address) => ({
+          account: address,
+        }))
+      );
+
+      const merkleRootConfig = deriveMerkleRootConfig(
+        this.presaleAddress,
+        this.program.programId,
+        new BN(version)
+      );
+
+      for (const address of chunkedAddress) {
+        const proof = balanceTree.getProof(address);
+        merkleProofs[address.toBase58()] = {
+          merkle_root_config: merkleRootConfig.toBase58(),
+          proof: proof.map((p) => Array.from(p)),
+        };
+      }
+
+      version++;
+    }
+
+    return merkleProofs;
   }
 
   /**
@@ -582,17 +704,26 @@ class Presale {
    * @param creator - The public key of the creator initiating the revocation and paying the transaction fee.
    * @returns A `Transaction` object containing the revoke operator instruction.
    */
-  async revokeOperator(params: Omit<IRevokeOperatorParams, "presaleProgram">) {
-    const { operator, creator } = params;
+  static async revokeOperator(
+    params: Omit<IRevokeOperatorParams, "presaleProgram"> & {
+      connection: Connection;
+      programId?: PublicKey;
+    }
+  ) {
+    const { operator, creator, connection, programId } = params;
+    const program = createPresaleProgram(
+      connection,
+      programId ?? PRESALE_PROGRAM_ID
+    );
 
     const revokeOperatorIx = await createRevokeOperatorIx({
-      presaleProgram: this.program,
+      presaleProgram: program,
       operator,
       creator,
     });
 
     return buildTransaction(
-      this.program.provider.connection,
+      program.provider.connection,
       [revokeOperatorIx],
       creator
     );
@@ -608,11 +739,15 @@ class Presale {
    * @returns {Promise<void>} Resolves when the state has been successfully refetched and updated.
    */
   async refetchState() {
-    const { presaleAccount, transferHookAccountInfo } =
-      await fetchAccountsForCache(this.program, this.presaleAddress);
+    const {
+      presaleAccount,
+      baseMintSliceAndTransferHookAccounts,
+      quoteMintSliceAndTransferHookAccounts,
+    } = await fetchAccountsForCache(this.program, this.presaleAddress);
 
     this.presaleAccount = presaleAccount;
-    this.transferHookAccountInfo = transferHookAccountInfo;
+    this.baseTransferHookAccountInfo = baseMintSliceAndTransferHookAccounts;
+    this.quoteTransferHookAccountInfo = quoteMintSliceAndTransferHookAccounts;
   }
 
   /**
@@ -668,15 +803,34 @@ class Presale {
         }
         break;
       }
+      case WhitelistMode.PermissionWithAuthority: {
+        const escrow = deriveEscrow(
+          this.presaleAddress,
+          params.owner,
+          this.program.programId
+        );
+        const escrowState = await this.program.account.escrow.fetchNullable(
+          escrow
+        );
+
+        if (!escrowState) {
+          // Request partial signed transaction from server
+          return fetchPartialSignedInitEscrowAndDepositTransactionFromOperator({
+            presaleAddress: this.presaleAddress,
+            presaleProgram: this.program,
+            presaleAccount: this.presaleAccount,
+            amount: params.amount,
+            owner: params.owner,
+          });
+        }
+      }
     }
 
     const depositIx = await createDepositIx({
       presaleAccount: this.presaleAccount,
       presaleProgram: this.program,
       presaleAddress: this.presaleAddress,
-      transferHookRemainingAccountInfo: this.transferHookAccountInfo,
-      transferHookRemainingAccounts:
-        this.transferHookAccountInfo.extraAccountMetas,
+      transferHookAccountInfo: this.quoteTransferHookAccountInfo,
       ...params,
     });
 
@@ -712,9 +866,7 @@ class Presale {
       presaleAccount: this.presaleAccount,
       presaleProgram: this.program,
       presaleAddress: this.presaleAddress,
-      transferHookRemainingAccountInfo: this.transferHookAccountInfo,
-      transferHookRemainingAccounts:
-        this.transferHookAccountInfo.extraAccountMetas,
+      transferHookAccountInfo: this.quoteTransferHookAccountInfo,
       ...params,
     });
 
@@ -749,9 +901,7 @@ class Presale {
       presaleProgram: this.program,
       presaleAddress: this.presaleAddress,
       presaleAccount: this.presaleAccount,
-      transferHookRemainingAccountInfo: this.transferHookAccountInfo,
-      transferHookRemainingAccounts:
-        this.transferHookAccountInfo.extraAccountMetas,
+      transferHookAccountInfo: this.baseTransferHookAccountInfo,
       ...params,
     });
 
@@ -788,9 +938,7 @@ class Presale {
       presaleProgram: this.program,
       presaleAddress: this.presaleAddress,
       presaleAccount: this.presaleAccount,
-      transferHookRemainingAccountInfo: this.transferHookAccountInfo,
-      transferHookRemainingAccounts:
-        this.transferHookAccountInfo.extraAccountMetas,
+      transferHookAccountInfo: this.quoteTransferHookAccountInfo,
       ...params,
     });
 
@@ -808,36 +956,22 @@ class Presale {
    * using the provided parameters and internal presale state. It omits several internal fields
    * from the input parameters, which are supplied automatically from the instance.
    *
-   * @param params - The parameters required to perform the unsold base token action, excluding
-   *                 `presaleProgram`, `presaleAddress`, `presaleAccount`, `transferHookAccountInfo`,
-   *                 and `transferHookRemainingAccounts`, which are provided by the instance.
    * @returns A transaction object representing the performed action.
    */
-  async performUnsoldBaseTokenAction(
-    params: Omit<
-      IPerformUnsoldBaseTokenActionParams,
-      | "presaleProgram"
-      | "presaleAddress"
-      | "presaleAccount"
-      | "transferHookAccountInfo"
-      | "transferHookRemainingAccounts"
-    >
-  ) {
+  async performUnsoldBaseTokenAction(payer: PublicKey) {
     const performUnsoldBaseTokenActionIxs =
       await createPerformUnsoldBaseTokenActionIx({
         presaleProgram: this.program,
         presaleAddress: this.presaleAddress,
         presaleAccount: this.presaleAccount,
-        transferHookRemainingAccountInfo: this.transferHookAccountInfo,
-        transferHookRemainingAccounts:
-          this.transferHookAccountInfo.extraAccountMetas,
-        ...params,
+        transferHookAccountInfo: this.baseTransferHookAccountInfo,
+        creator: this.presaleAccount.owner,
       });
 
     return buildTransaction(
       this.program.provider.connection,
       performUnsoldBaseTokenActionIxs,
-      params.creator
+      payer
     );
   }
 
@@ -855,16 +989,19 @@ class Presale {
   async creatorWithdraw(
     params: Omit<
       ICreatorWithdrawParams,
-      "presaleProgram" | "presaleAddress" | "presaleAccount"
+      | "presaleProgram"
+      | "presaleAddress"
+      | "presaleAccount"
+      | "baseTransferHookAccountInfo"
+      | "quoteTransferHookAccountInfo"
     >
   ) {
     const withdrawIxs = await createCreatorWithdrawIx({
       presaleAccount: this.presaleAccount,
       presaleProgram: this.program,
       presaleAddress: this.presaleAddress,
-      transferHookRemainingAccountInfo: this.transferHookAccountInfo,
-      transferHookRemainingAccounts:
-        this.transferHookAccountInfo.extraAccountMetas,
+      baseTransferHookAccountInfo: this.baseTransferHookAccountInfo,
+      quoteTransferHookAccountInfo: this.quoteTransferHookAccountInfo,
       ...params,
     });
 
@@ -902,30 +1039,62 @@ class Presale {
   }
 
   /**
-   * Closes the Merkle proof metadata account associated with the presale.
+   * Creates and initializes permissioned server metadata for a presale.
    *
-   * This method constructs and returns a transaction to close the Merkle proof metadata,
-   * using the provided parameters and the current presale address and program.
+   * This method constructs an instruction to initialize permissioned server metadata
+   * using the provided parameters, and builds a transaction for submission.
    *
-   * @param params - The parameters required to close the Merkle proof metadata, excluding
-   *                 `presaleProgram` and `presaleAddress` which are provided by the instance.
-   * @returns A transaction object for closing the Merkle proof metadata.
+   * @param params - The parameters required to create permissioned server metadata,
+   *   excluding `presaleProgram` and `presaleAddress` which are provided by the instance.
+   * @returns A transaction object containing the instruction to initialize permissioned server metadata.
    */
-  async closeMerkleProofMetadata(
+  async createPermissionedServerMetadata(
     params: Omit<
-      ICloseMerkleProofMetadataParams,
+      ICreatePermissionedServerMetadataParams,
       "presaleProgram" | "presaleAddress"
     >
   ) {
-    const closeMerkleProofMetadataIx = await createCloseMerkleProofMetadataIx({
-      presaleAddress: this.presaleAddress,
-      presaleProgram: this.program,
-      ...params,
-    });
+    const createPermissionedServerMetadataIx =
+      await createInitializePermissionedServerMetadataIx({
+        presaleAddress: this.presaleAddress,
+        presaleProgram: this.program,
+        ...params,
+      });
 
     return buildTransaction(
       this.program.provider.connection,
-      [closeMerkleProofMetadataIx],
+      [createPermissionedServerMetadataIx],
+      params.owner
+    );
+  }
+
+  /**
+   * Closes the permissioned server metadata for a presale.
+   *
+   * This method creates and returns a transaction to close the permissioned server metadata
+   * associated with the current presale instance. It omits the `presaleProgram` and `presaleAddress`
+   * fields from the input parameters, as these are provided by the instance itself.
+   *
+   * @param params - The parameters required to close the permissioned server metadata, excluding
+   *                 `presaleProgram` and `presaleAddress`. Must include the owner.
+   * @returns A promise that resolves to a transaction for closing the permissioned server metadata.
+   */
+  async closePermissionedServerMetadata(
+    params: Omit<
+      IClosePermissionedServerMetadataParams,
+      "presaleProgram" | "presaleAddress"
+    >
+  ) {
+    const closePermissionedServerMetadataIx =
+      await createClosePermissionedServerMetadataIx({
+        presaleAddress: this.presaleAddress,
+        presaleProgram: this.program,
+        ...params,
+      });
+
+    return buildTransaction(
+      this.program.provider.connection,
+      [closePermissionedServerMetadataIx],
       params.owner
     );
   }
@@ -956,35 +1125,156 @@ class Presale {
   }
 
   /**
-   * Calculates the progress percentage of the presale based on the total deposit.
+   * Retrieves the presale escrow account associated with a specific owner.
    *
-   * The percentage is determined by dividing the total deposit (capped at the presale maximum cap)
-   * by the presale maximum cap and multiplying by 100.
-   *
-   * @returns {number} The presale progress as a percentage (0 to 100).
+   * @param owner - The public key of the escrow owner.
+   * @returns A promise that resolves to the escrow account data if it exists, or `null` if not found.
    */
-  getPresaleProgressPercentage() {
-    const totalDeposit = Math.min(
-      this.presaleAccount.totalDeposit.toNumber(),
-      this.presaleAccount.presaleMaximumCap.toNumber()
+  async getPresaleEscrowByOwner(
+    owner: PublicKey
+  ): Promise<IEscrowWrapper | null> {
+    const escrow = deriveEscrow(
+      this.presaleAddress,
+      owner,
+      this.program.programId
     );
 
-    return (
-      (totalDeposit * 100.0) / this.presaleAccount.presaleMaximumCap.toNumber()
+    const accounts =
+      await this.program.provider.connection.getMultipleAccountsInfo([
+        escrow,
+        this.presaleAddress,
+      ]);
+
+    const [escrowAccount, presaleAccount] = accounts;
+
+    if (!escrowAccount) {
+      return null;
+    }
+
+    this.updatePresaleCache(presaleAccount);
+
+    const decodedEscrow: EscrowAccount = this.program.coder.accounts.decode(
+      "escrow",
+      escrowAccount.data
+    );
+
+    return new EscrowWrapper(
+      decodedEscrow,
+      this.baseMint.decimals,
+      this.quoteMint.decimals
     );
   }
 
   /**
-   * Determines the current progress state of the presale based on the current time and deposit amounts.
+   * Retrieves all escrow accounts associated with the current presale.
    *
-   * @returns {PresaleProgress} The current state of the presale:
-   * - `NotStarted`: If the current time is before the presale start time.
-   * - `Ongoing`: If the current time is between the presale start and end times.
-   * - `Completed`: If the presale has ended and the minimum cap has been reached.
-   * - `Failed`: If the presale has ended and the minimum cap has not been reached.
+   * This method queries the blockchain for all accounts matching the escrow filters,
+   * specifically filtering by the presale address. It fetches the public keys of the
+   * matching escrow accounts, retrieves their full account data in batches, and decodes
+   * each account into an `EscrowAccount` object.
+   *
+   * @returns A promise that resolves to an array of objects, each containing the public key
+   *          and the decoded escrow account data.
    */
-  getPresaleProgressState(): PresaleProgress {
-    return getPresaleProgressState(this.presaleAccount);
+  async getEscrowsByPresale(): Promise<
+    { pubkey: PublicKey; account: EscrowAccount }[]
+  > {
+    const escrowAddresses = await this.program.provider.connection
+      .getProgramAccounts(this.program.programId, {
+        filters: [
+          getEscrowFilter(),
+          getEscrowPresaleFilter(this.presaleAddress),
+        ],
+        encoding: "base64",
+        dataSlice: {
+          offset: 0,
+          length: 0,
+        },
+      })
+      .then((response) => {
+        return response.map(({ pubkey }) => pubkey);
+      });
+
+    const accounts = await fetchMultipleAccountsAutoChunk(
+      this.program.provider.connection,
+      escrowAddresses
+    );
+
+    return accounts.map(({ pubkey, account }) => {
+      return {
+        pubkey,
+        account: this.program.coder.accounts.decode("escrow", account.data),
+      };
+    });
+  }
+
+  /**
+   * Retrieves all presale accounts from the blockchain using the provided connection and optional program ID.
+   *
+   * This method fetches all accounts matching the presale filter, decodes their data using the presale program's coder,
+   * and returns an array of objects containing the public key and decoded account data for each presale.
+   *
+   * @param connection - The Solana connection object to interact with the blockchain.
+   * @param programId - (Optional) The public key of the presale program. Defaults to `PRESALE_PROGRAM_ID` if not provided.
+   * @returns A promise that resolves to an array of objects, each containing:
+   *   - `pubkey`: The public key of the presale account.
+   *   - `account`: The decoded presale account data.
+   */
+  static async getPresales(
+    connection: Connection,
+    programId?: PublicKey
+  ): Promise<{ pubkey: PublicKey; account: PresaleAccount }[]> {
+    const presaleProgram = createPresaleProgram(
+      connection,
+      programId ?? PRESALE_PROGRAM_ID
+    );
+
+    const presaleAddresses = await connection
+      .getProgramAccounts(programId ?? PRESALE_PROGRAM_ID, {
+        filters: [getPresaleFilter()],
+        encoding: "base64",
+        dataSlice: {
+          offset: 0,
+          length: 0,
+        },
+      })
+      .then((response) => {
+        return response.map(({ pubkey }) => pubkey);
+      });
+
+    const accounts = await fetchMultipleAccountsAutoChunk(
+      connection,
+      presaleAddresses
+    );
+
+    return accounts.map(({ pubkey, account }) => {
+      return {
+        pubkey,
+        account: presaleProgram.coder.accounts.decode("presale", account.data),
+      };
+    });
+  }
+
+  /**
+   * Returns a parsed representation of the presale by creating a new `PresaleWrapper` instance.
+   *
+   * @returns {PresaleWrapper} An instance of `PresaleWrapper` initialized with the current presale account and mint decimals.
+   */
+  getParsedPresale() {
+    return new PresaleWrapper(
+      this.presaleAccount,
+      this.baseMint.decimals,
+      this.quoteMint.decimals
+    );
+  }
+
+  private updatePresaleCache(account: AccountInfo<Buffer>) {
+    const decodedPresale = this.program.coder.accounts.decode(
+      "presale",
+      account.data
+    );
+
+    this.presaleAccount = decodedPresale;
   }
 }
 

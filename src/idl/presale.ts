@@ -246,26 +246,26 @@ export type Presale = {
       "args": []
     },
     {
-      "name": "closeMerkleProofMetadata",
+      "name": "closePermissionedServerMetadata",
       "discriminator": [
-        23,
-        52,
-        170,
-        30,
-        252,
-        47,
-        100,
-        129
+        226,
+        2,
+        147,
+        220,
+        38,
+        247,
+        138,
+        95
       ],
       "accounts": [
         {
           "name": "presale",
           "relations": [
-            "merkleProofMetadata"
+            "permissionedServerMetadata"
           ]
         },
         {
-          "name": "merkleProofMetadata",
+          "name": "permissionedServerMetadata",
           "writable": true
         },
         {
@@ -313,103 +313,6 @@ export type Presale = {
         }
       ],
       "args": []
-    },
-    {
-      "name": "createMerkleProofMetadata",
-      "discriminator": [
-        151,
-        46,
-        163,
-        52,
-        181,
-        178,
-        47,
-        227
-      ],
-      "accounts": [
-        {
-          "name": "presale"
-        },
-        {
-          "name": "merkleProofMetadata",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  109,
-                  101,
-                  114,
-                  107,
-                  108,
-                  101,
-                  95,
-                  112,
-                  114,
-                  111,
-                  111,
-                  102
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "presale"
-              }
-            ]
-          }
-        },
-        {
-          "name": "owner",
-          "writable": true,
-          "signer": true,
-          "relations": [
-            "presale"
-          ]
-        },
-        {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
-        },
-        {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  95,
-                  95,
-                  101,
-                  118,
-                  101,
-                  110,
-                  116,
-                  95,
-                  97,
-                  117,
-                  116,
-                  104,
-                  111,
-                  114,
-                  105,
-                  116,
-                  121
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "program"
-        }
-      ],
-      "args": [
-        {
-          "name": "proofUrl",
-          "type": "string"
-        }
-      ]
     },
     {
       "name": "createMerkleRootConfig",
@@ -805,6 +708,106 @@ export type Presale = {
               ]
             }
           }
+        }
+      ]
+    },
+    {
+      "name": "createPermissionedServerMetadata",
+      "discriminator": [
+        139,
+        13,
+        120,
+        145,
+        18,
+        209,
+        185,
+        180
+      ],
+      "accounts": [
+        {
+          "name": "presale"
+        },
+        {
+          "name": "permissionedServerMetadata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  114,
+                  118,
+                  101,
+                  114,
+                  95,
+                  109,
+                  101,
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "presale"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "presale"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "eventAuthority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  95,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "serverUrl",
+          "type": "string"
         }
       ]
     },
@@ -1875,19 +1878,6 @@ export type Presale = {
       ]
     },
     {
-      "name": "merkleProofMetadata",
-      "discriminator": [
-        133,
-        24,
-        30,
-        217,
-        240,
-        20,
-        222,
-        100
-      ]
-    },
-    {
       "name": "merkleRootConfig",
       "discriminator": [
         103,
@@ -1911,6 +1901,19 @@ export type Presale = {
         139,
         204,
         117
+      ]
+    },
+    {
+      "name": "permissionedServerMetadata",
+      "discriminator": [
+        130,
+        242,
+        96,
+        20,
+        147,
+        138,
+        75,
+        246
       ]
     },
     {
@@ -2033,32 +2036,6 @@ export type Presale = {
       ]
     },
     {
-      "name": "evtMerkleProofMetadataClose",
-      "discriminator": [
-        89,
-        204,
-        254,
-        22,
-        230,
-        127,
-        117,
-        103
-      ]
-    },
-    {
-      "name": "evtMerkleProofMetadataCreate",
-      "discriminator": [
-        58,
-        148,
-        90,
-        56,
-        95,
-        57,
-        98,
-        175
-      ]
-    },
-    {
       "name": "evtMerkleRootConfigCreate",
       "discriminator": [
         124,
@@ -2095,6 +2072,32 @@ export type Presale = {
         171,
         228,
         130
+      ]
+    },
+    {
+      "name": "evtPermissionedServerMetadataClose",
+      "discriminator": [
+        205,
+        49,
+        203,
+        99,
+        89,
+        22,
+        127,
+        111
+      ]
+    },
+    {
+      "name": "evtPermissionedServerMetadataCreate",
+      "discriminator": [
+        103,
+        183,
+        81,
+        175,
+        100,
+        254,
+        206,
+        232
       ]
     },
     {
@@ -2420,6 +2423,15 @@ export type Presale = {
           {
             "name": "lastRefreshedAt",
             "type": "u64"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                8
+              ]
+            }
           }
         ]
       }
@@ -2629,42 +2641,6 @@ export type Presale = {
       }
     },
     {
-      "name": "evtMerkleProofMetadataClose",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "presale",
-            "type": "pubkey"
-          },
-          {
-            "name": "merkleProofMetadata",
-            "type": "pubkey"
-          }
-        ]
-      }
-    },
-    {
-      "name": "evtMerkleProofMetadataCreate",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "presale",
-            "type": "pubkey"
-          },
-          {
-            "name": "merkleProofMetadata",
-            "type": "pubkey"
-          },
-          {
-            "name": "proofUrl",
-            "type": "string"
-          }
-        ]
-      }
-    },
-    {
       "name": "evtMerkleRootConfigCreate",
       "type": {
         "kind": "struct",
@@ -2733,6 +2709,42 @@ export type Presale = {
           {
             "name": "unsoldBaseTokenAction",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "evtPermissionedServerMetadataClose",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "presale",
+            "type": "pubkey"
+          },
+          {
+            "name": "permissionedServerMetadata",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "evtPermissionedServerMetadataCreate",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "presale",
+            "type": "pubkey"
+          },
+          {
+            "name": "permissionedServerMetadata",
+            "type": "pubkey"
+          },
+          {
+            "name": "serverUrl",
+            "type": "string"
           }
         ]
       }
@@ -2921,7 +2933,7 @@ export type Presale = {
             "type": {
               "array": [
                 "u64",
-                4
+                8
               ]
             }
           }
@@ -2952,10 +2964,8 @@ export type Presale = {
           {
             "name": "lockedVestingParams",
             "type": {
-              "option": {
-                "defined": {
-                  "name": "lockedVestingArgs"
-                }
+              "defined": {
+                "name": "lockedVestingArgs"
               }
             }
           },
@@ -3006,37 +3016,6 @@ export type Presale = {
       }
     },
     {
-      "name": "merkleProofMetadata",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "presale",
-            "docs": [
-              "Presale address"
-            ],
-            "type": "pubkey"
-          },
-          {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                16
-              ]
-            }
-          },
-          {
-            "name": "proofUrl",
-            "docs": [
-              "Merkle root proof URL"
-            ],
-            "type": "string"
-          }
-        ]
-      }
-    },
-    {
       "name": "merkleRootConfig",
       "serialization": "bytemuck",
       "repr": {
@@ -3079,7 +3058,7 @@ export type Presale = {
             "type": "u64"
           },
           {
-            "name": "padding",
+            "name": "padding1",
             "docs": [
               "Padding for further use"
             ],
@@ -3115,9 +3094,40 @@ export type Presale = {
             "type": {
               "array": [
                 "u64",
-                4
+                8
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "permissionedServerMetadata",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "presale",
+            "docs": [
+              "Presale address"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                16
+              ]
+            }
+          },
+          {
+            "name": "serverUrl",
+            "docs": [
+              "Server URL to retrieve the merkle proof or partially signed transaction by the operator"
+            ],
+            "type": "string"
           }
         ]
       }
@@ -3364,6 +3374,15 @@ export type Presale = {
               "Presale rate. Only applicable for fixed price presale mode"
             ],
             "type": "u128"
+          },
+          {
+            "name": "padding3",
+            "type": {
+              "array": [
+                "u128",
+                6
+              ]
+            }
           }
         ]
       }

@@ -13,8 +13,13 @@ import {
   derivePresaleVault,
   deriveQuoteTokenVault,
 } from "../../pda";
-import { getSlicesAndExtraAccountMetasForTransferHook } from "../../token2022";
-import { PresaleMode, PresaleProgram, UnsoldTokenAction } from "../../type";
+import { getSliceAndExtraAccountMetasForTransferHook } from "../../token2022";
+import {
+  AccountsType,
+  PresaleMode,
+  PresaleProgram,
+  UnsoldTokenAction,
+} from "../../type";
 
 interface ICreateInitializeFixedPricePresaleArgsIxParams {
   program: PresaleProgram;
@@ -68,7 +73,7 @@ export async function createInitializeFixedPricePresaleArgsIx(
       presale,
       unsoldTokenAction,
       qPrice,
-      padding: new Array(32).fill(0),
+      padding: new Array(8).fill(new BN(0)),
     })
     .accountsPartial({
       fixedPricePresaleParams,
@@ -84,7 +89,7 @@ export async function createInitializeFixedPricePresaleArgsIx(
 export async function createInitializeFixedPricePresaleIx(
   presaleParams: ICreateInitializePresaleIxParams,
   fixedPriceParams: ICreateInitializeFixedPricePresaleArgsIxParams
-): Promise<TransactionInstruction> {
+): Promise<TransactionInstruction[]> {
   const {
     program,
     tokenomicArgs,
@@ -126,17 +131,13 @@ export async function createInitializeFixedPricePresaleIx(
     true,
     baseTokenProgram
   );
+
   const { slices, extraAccountMetas } =
-    await getSlicesAndExtraAccountMetasForTransferHook(
+    await getSliceAndExtraAccountMetasForTransferHook(
       program.provider.connection,
-      {
-        mintAddress: baseMintPubkey,
-        mintAccountInfo: baseMintAccount,
-      },
-      {
-        mintAddress: quoteMintPubkey,
-        mintAccountInfo: quoteMintAccount,
-      }
+      baseMintPubkey,
+      baseMintAccount,
+      AccountsType.TransferHookBase
     );
 
   const initializePresaleIx = await program.methods
@@ -152,11 +153,16 @@ export async function createInitializeFixedPricePresaleIx(
           presaleMode: PresaleMode.FixedPrice,
           padding: new Array(4).fill(new BN(0)),
         },
-        lockedVestingParams: lockedVestingArgs ?? {
-          ...lockedVestingArgs,
-          padding: new Array(4).fill(new BN(0)),
-        },
-        padding: new Array(4).fill(new BN(0)),
+        lockedVestingParams: lockedVestingArgs
+          ? {
+              ...lockedVestingArgs,
+              padding: new Array(4).fill(new BN(0)),
+            }
+          : {
+              lockDuration: new BN(0),
+              vestDuration: new BN(0),
+              padding: new Array(4).fill(new BN(0)),
+            },
       },
       {
         slices,
@@ -177,7 +183,6 @@ export async function createInitializeFixedPricePresaleIx(
       presaleAuthority,
       systemProgram: SystemProgram.programId,
     })
-    .preInstructions([createFixedPricePresaleArgsIx])
     .remainingAccounts([
       {
         pubkey: deriveFixedPricePresaleExtraArgs(presale, program.programId),
@@ -188,5 +193,5 @@ export async function createInitializeFixedPricePresaleIx(
     ])
     .instruction();
 
-  return initializePresaleIx;
+  return [createFixedPricePresaleArgsIx, initializePresaleIx];
 }

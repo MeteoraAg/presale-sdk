@@ -2,11 +2,15 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
-import { AccountMeta, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { MEMO_PROGRAM_ID } from "..";
 import { deriveEscrow } from "../pda";
 import { getTokenProgramIdFromFlag } from "../token2022";
-import { PresaleAccount, PresaleProgram, RemainingAccountInfo } from "../type";
+import {
+  PresaleAccount,
+  PresaleProgram,
+  TransferHookAccountInfo,
+} from "../type";
 import { createRefreshEscrowIx } from "./refresh_escrow";
 
 export interface IClaimParams {
@@ -14,8 +18,7 @@ export interface IClaimParams {
   presaleAddress: PublicKey;
   presaleAccount: PresaleAccount;
   owner: PublicKey;
-  transferHookRemainingAccountInfo: RemainingAccountInfo;
-  transferHookRemainingAccounts: AccountMeta[];
+  transferHookAccountInfo: TransferHookAccountInfo;
 }
 
 export async function createClaimIx(params: IClaimParams) {
@@ -24,9 +27,10 @@ export async function createClaimIx(params: IClaimParams) {
     presaleAddress,
     presaleAccount,
     owner,
-    transferHookRemainingAccountInfo,
-    transferHookRemainingAccounts,
+    transferHookAccountInfo,
   } = params;
+
+  const { slices, extraAccountMetas } = transferHookAccountInfo;
 
   const baseTokenProgram = getTokenProgramIdFromFlag(
     presaleAccount.baseTokenProgramFlag
@@ -51,7 +55,9 @@ export async function createClaimIx(params: IClaimParams) {
   const escrow = deriveEscrow(presaleAddress, owner, presaleProgram.programId);
 
   const claimIx = await presaleProgram.methods
-    .claim(transferHookRemainingAccountInfo)
+    .claim({
+      slices,
+    })
     .accountsPartial({
       presale: presaleAddress,
       escrow,
@@ -62,7 +68,7 @@ export async function createClaimIx(params: IClaimParams) {
       tokenProgram: baseTokenProgram,
       memoProgram: MEMO_PROGRAM_ID,
     })
-    .remainingAccounts(transferHookRemainingAccounts)
+    .remainingAccounts(extraAccountMetas)
     .instruction();
 
   return [
