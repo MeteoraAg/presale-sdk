@@ -3,6 +3,7 @@ import fs from "fs";
 import os from "os";
 import { PRESALE_PROGRAM_ID } from "../src";
 import Presale from "../src/presale";
+import { BN } from "bn.js";
 
 const connection = new Connection(clusterApiUrl("devnet"));
 
@@ -17,22 +18,36 @@ async function closeEscrow(
     PRESALE_PROGRAM_ID
   );
 
-  const closeEscrowTx = await presaleInstance.closeEscrow({
-    owner: user.publicKey,
-  });
+  const escrows = await presaleInstance.getPresaleEscrowByOwner(user.publicKey);
 
-  closeEscrowTx.sign(user);
+  const closeEscrowTxs = await Promise.all(
+    escrows.map(async (escrow) => {
+      const escrowAccount = escrow.getEscrowAccount();
+      return presaleInstance.closeEscrow({
+        owner: escrowAccount.owner,
+        registryIndex: new BN(escrowAccount.registryIndex),
+      });
+    })
+  );
 
-  const txSig = await connection.sendRawTransaction(closeEscrowTx.serialize());
-  console.log("Close escrow transaction sent:", txSig);
+  await Promise.all(
+    closeEscrowTxs.map(async (closeEscrowTx) => {
+      closeEscrowTx.sign(user);
 
-  await connection.confirmTransaction(
-    {
-      signature: txSig,
-      lastValidBlockHeight: closeEscrowTx.lastValidBlockHeight,
-      blockhash: closeEscrowTx.recentBlockhash,
-    },
-    "finalized"
+      const txSig = await connection.sendRawTransaction(
+        closeEscrowTx.serialize()
+      );
+      console.log("Close escrow transaction sent:", txSig);
+
+      await connection.confirmTransaction(
+        {
+          signature: txSig,
+          lastValidBlockHeight: closeEscrowTx.lastValidBlockHeight,
+          blockhash: closeEscrowTx.recentBlockhash,
+        },
+        "finalized"
+      );
+    })
   );
 }
 

@@ -1,6 +1,10 @@
 import BN from "bn.js";
 import Decimal from "decimal.js";
 import { PresaleAccount, PresaleMode, PresaleProgress, U64_MAX } from "../type";
+import {
+  IPresaleRegistryWrapper,
+  PresaleRegistryWrapper,
+} from "./presale_registry_wrapper";
 
 function getPresaleRemainingDepositQuota(presaleAccount: PresaleAccount): BN {
   const { presaleMaximumCap, totalDeposit } = presaleAccount;
@@ -92,11 +96,13 @@ export interface IPresaleWrapper {
     uiAmount: number;
     isBaseToken: boolean;
   };
+  // TODO: Fix this
   getRemainingDepositQuota(): BN;
   getRemainingDepositUiQuota(): number;
   getTotalDepositAmount(): BN;
   getTotalDepositUiAmount(): number;
   getTokenPrice(): number;
+  getAllPresaleRegistries(): IPresaleRegistryWrapper[];
 }
 
 export class PresaleWrapper implements IPresaleWrapper {
@@ -265,6 +271,14 @@ export class PresaleWrapper implements IPresaleWrapper {
       .div(new Decimal(this.presaleAccount.totalDeposit.toString()))
       .mul(new Decimal(10).pow(this.baseDecimals - this.quoteDecimals))
       .toNumber();
+  }
+
+  public getAllPresaleRegistries(): IPresaleRegistryWrapper[] {
+    const presaleRegistryWrappers = this.presaleAccount.presaleRegistries.map(
+      (registry, index) => new PresaleRegistryWrapper(registry, index)
+    );
+
+    return presaleRegistryWrappers.filter((wrapper) => wrapper.isInitialized());
   }
 }
 

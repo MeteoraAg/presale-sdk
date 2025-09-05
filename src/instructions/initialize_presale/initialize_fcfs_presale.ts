@@ -36,7 +36,6 @@ export async function createInitializeFcfsPresaleIx(
 ): Promise<TransactionInstruction> {
   const {
     program,
-    tokenomicArgs,
     presaleArgs,
     lockedVestingArgs,
     baseMintPubkey,
@@ -44,6 +43,7 @@ export async function createInitializeFcfsPresaleIx(
     creatorPubkey,
     feePayerPubkey,
     basePubkey,
+    presaleRegistriesArgs,
   } = params;
 
   const presale = derivePresale(
@@ -85,10 +85,6 @@ export async function createInitializeFcfsPresaleIx(
     .initializePresale(
       // @ts-expect-error
       {
-        tokenomic: {
-          ...tokenomicArgs,
-          padding: new Array(4).fill(new BN(0)),
-        },
         presaleParams: {
           ...presaleArgs,
           presaleMode: PresaleMode.Fcfs,
@@ -100,6 +96,7 @@ export async function createInitializeFcfsPresaleIx(
               padding: new Array(4).fill(new BN(0)),
             }
           : {
+              immediatelyReleaseBps: 0,
               lockDuration: new BN(0),
               vestDuration: new BN(0),
               padding: new Array(4).fill(new BN(0)),

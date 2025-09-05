@@ -7,7 +7,7 @@ import { derivePresale, PRESALE_PROGRAM_ID } from "../../src";
 import {
   ILockedVestingArgs,
   IPresaleArgs,
-  ITokenomicArgs,
+  IPresaleRegistryArgs,
 } from "../../src/instructions";
 import Presale from "../../src/presale";
 import { Rounding, UnsoldTokenAction, WhitelistMode } from "../../src/type";
@@ -22,8 +22,7 @@ async function initializeFixedPricePresale(
   keypair: Keypair,
   baseKeypair: Keypair,
   price: Decimal,
-  unsoldTokenAction: UnsoldTokenAction,
-  tokenomicArgs: ITokenomicArgs,
+  presaleRegistriesArgs: IPresaleRegistryArgs[],
   presaleArgs: Omit<IPresaleArgs, "presaleMode">,
   lockedVestingArgs?: ILockedVestingArgs
 ) {
@@ -36,13 +35,12 @@ async function initializeFixedPricePresale(
       basePubkey: baseKeypair.publicKey,
       creatorPubkey: keypair.publicKey,
       feePayerPubkey: keypair.publicKey,
-      tokenomicArgs,
+      presaleRegistriesArgs,
       presaleArgs,
       lockedVestingArgs,
     },
     {
       price,
-      unsoldTokenAction,
       rounding: Rounding.Down,
     }
   );
@@ -90,22 +88,28 @@ const keypairFilepath = `${os.homedir()}/.config/solana/id.json`;
 const rawKeypair = fs.readFileSync(keypairFilepath, "utf-8");
 const keypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(rawKeypair)));
 
-const tokenomicArgs: ITokenomicArgs = {
-  presalePoolSupply: new BN(2000000000),
-};
+const presaleRegistriesArgs: IPresaleRegistryArgs[] = [];
+
+presaleRegistriesArgs.push({
+  presaleSupply: new BN(2000000000),
+  depositFeeBps: new BN(0),
+  buyerMaximumDepositCap: new BN(1000000000),
+  buyerMinimumDepositCap: new BN(10000000),
+});
+
 const presaleArgs: Omit<IPresaleArgs, "presaleMode"> = {
   presaleMaximumCap: new BN(100000000000),
   presaleMinimumCap: new BN(100000000),
-  buyerMaximumDepositCap: new BN(1000000000),
-  buyerMinimumDepositCap: new BN(10000000),
   presaleStartTime: new BN(0),
   presaleEndTime: new BN(Math.floor(Date.now() / 1000 + 300)),
   whitelistMode: WhitelistMode.Permissionless,
+  unsoldTokenAction: UnsoldTokenAction.Refund,
 };
 
 const lockedVestingArgs: ILockedVestingArgs = {
   lockDuration: new BN(60),
   vestDuration: new BN(60),
+  immediateReleaseBps: new BN(0),
 };
 
 const baseMintPubkey = new PublicKey(
@@ -123,8 +127,7 @@ initializeFixedPricePresale(
   keypair,
   baseKeypair,
   new Decimal(0.1),
-  UnsoldTokenAction.Burn,
-  tokenomicArgs,
+  presaleRegistriesArgs,
   presaleArgs,
   lockedVestingArgs
 );

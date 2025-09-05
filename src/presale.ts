@@ -22,7 +22,7 @@ import { Mint, unpackMint } from "@solana/spl-token";
 import { BN } from "bn.js";
 import Decimal from "decimal.js";
 import { PRESALE_PROGRAM_ID } from ".";
-import { BalanceTree } from "../libs/merkle_tree";
+import { BalanceTree, WhitelistedWallet } from "../libs/merkle_tree";
 import { PresaleWrapper } from "./accounts/presale_wrapper";
 import type { Presale as PresaleTypes } from "./idl/presale";
 import PresaleIDL from "./idl/presale.json";
@@ -318,7 +318,6 @@ class Presale {
     programId: PublicKey,
     presaleParams: Omit<ICreateInitializePresaleIxParams, "program">,
     fixedPriceParams: {
-      unsoldTokenAction: UnsoldTokenAction;
       price: Decimal;
       rounding: Rounding;
     }
@@ -347,7 +346,6 @@ class Presale {
         feePayerPubkey: presaleParams.feePayerPubkey,
         basePubkey: presaleParams.basePubkey,
         ownerPubkey: presaleParams.creatorPubkey,
-        unsoldTokenAction: fixedPriceParams.unsoldTokenAction,
         qPrice: uiPriceToQPrice(
           fixedPriceParams.price.toNumber(),
           baseMint.decimals,
@@ -449,22 +447,21 @@ class Presale {
       ICreateMerkleRootConfigParams,
       "presaleProgram" | "presaleAddress" | "version" | "root"
     > & {
-      addresses: PublicKey[];
-      addressPerTree?: number;
+      whitelistWallets: WhitelistedWallet[];
+      walletPerTree?: number;
     }
   ) {
-    let { addresses, addressPerTree, creator } = params;
-    addressPerTree = addressPerTree || 10_000;
+    let { whitelistWallets, walletPerTree, creator } = params;
+    walletPerTree = walletPerTree || 10_000;
 
     const merkleTrees: BalanceTree[] = [];
 
-    while (addresses.length > 0) {
-      const chunkedAddress = addresses.splice(0, addressPerTree);
-      const balanceTree = new BalanceTree(
-        chunkedAddress.map((address) => ({
-          account: address,
-        }))
+    while (whitelistWallets.length > 0) {
+      const chunkledWhitelistWallets = whitelistWallets.splice(
+        0,
+        walletPerTree
       );
+      const balanceTree = new BalanceTree(chunkledWhitelistWallets);
       merkleTrees.push(balanceTree);
     }
 
@@ -510,14 +507,14 @@ class Presale {
       ICreateMerkleRootConfigParams,
       "presaleProgram" | "presaleAddress" | "version" | "root"
     > & {
-      addresses: PublicKey[];
-      addressPerTree?: number;
+      whitelistWallets: WhitelistedWallet[];
+      walletPerTree?: number;
     }
   ): Promise<{
     [address: string]: MerkleProofResponse;
   }> {
-    let { addresses, addressPerTree, creator } = params;
-    addressPerTree = addressPerTree || 10_000;
+    let { whitelistWallets, walletPerTree, creator } = params;
+    walletPerTree = walletPerTree || 10_000;
 
     let merkleProofs: {
       [address: string]: MerkleProofResponse;
@@ -525,13 +522,9 @@ class Presale {
 
     let version = 0;
 
-    while (addresses.length > 0) {
-      const chunkedAddress = addresses.splice(0, addressPerTree);
-      const balanceTree = new BalanceTree(
-        chunkedAddress.map((address) => ({
-          account: address,
-        }))
-      );
+    while (whitelistWallets.length > 0) {
+      const chunkedWhitelistWallets = whitelistWallets.splice(0, walletPerTree);
+      const balanceTree = new BalanceTree(chunkedWhitelistWallets);
 
       const merkleRootConfig = deriveMerkleRootConfig(
         this.presaleAddress,
@@ -539,11 +532,13 @@ class Presale {
         new BN(version)
       );
 
-      for (const address of chunkedAddress) {
-        const proof = balanceTree.getProof(address);
-        merkleProofs[address.toBase58()] = {
+      for (const whitelistWallet of chunkedWhitelistWallets) {
+        const proof = balanceTree.getProof(whitelistWallet);
+        const { account, depositCap } = whitelistWallet;
+        merkleProofs[account.toBase58()] = {
           merkle_root_config: merkleRootConfig.toBase58(),
           proof: proof.map((p) => Array.from(p)),
+          deposit_cap: depositCap.toNumber(),
         };
       }
 
@@ -796,6 +791,7 @@ class Presale {
             presaleProgram: this.program,
             owner: params.owner,
             payer: params.owner,
+            registryIndex: params.registryIndex,
           });
 
         if (initEscrowIx) {
@@ -807,6 +803,7 @@ class Presale {
         const escrow = deriveEscrow(
           this.presaleAddress,
           params.owner,
+          params.registryIndex,
           this.program.programId
         );
         const escrowState = await this.program.account.escrow.fetchNullable(
@@ -821,6 +818,7 @@ class Presale {
             presaleAccount: this.presaleAccount,
             amount: params.amount,
             owner: params.owner,
+            registryIndex: params.registryIndex,
           });
         }
       }
@@ -1130,39 +1128,49 @@ class Presale {
    * @param owner - The public key of the escrow owner.
    * @returns A promise that resolves to the escrow account data if it exists, or `null` if not found.
    */
-  async getPresaleEscrowByOwner(
-    owner: PublicKey
-  ): Promise<IEscrowWrapper | null> {
-    const escrow = deriveEscrow(
-      this.presaleAddress,
-      owner,
-      this.program.programId
-    );
-
-    const accounts =
-      await this.program.provider.connection.getMultipleAccountsInfo([
-        escrow,
-        this.presaleAddress,
-      ]);
-
-    const [escrowAccount, presaleAccount] = accounts;
-
-    if (!escrowAccount) {
-      return null;
-    }
-
-    this.updatePresaleCache(presaleAccount);
-
-    const decodedEscrow: EscrowAccount = this.program.coder.accounts.decode(
-      "escrow",
-      escrowAccount.data
-    );
-
-    return new EscrowWrapper(
-      decodedEscrow,
+  async getPresaleEscrowByOwner(owner: PublicKey): Promise<IEscrowWrapper[]> {
+    const presaleWrapper = new PresaleWrapper(
+      this.presaleAccount,
       this.baseMint.decimals,
       this.quoteMint.decimals
     );
+
+    const initializedPresaleRegistries =
+      presaleWrapper.getAllPresaleRegistries();
+
+    const escrowAddresses = initializedPresaleRegistries.map((registry) => {
+      return deriveEscrow(
+        this.presaleAddress,
+        owner,
+        new BN(registry.getRegistryIndex()),
+        this.program.programId
+      );
+    });
+
+    const accounts =
+      await this.program.provider.connection.getMultipleAccountsInfo([
+        this.presaleAddress,
+        ...escrowAddresses,
+      ]);
+
+    const [presaleAccount, ...escrowAccounts] = accounts;
+
+    this.updatePresaleCache(presaleAccount);
+
+    const validEscrowAccounts = escrowAccounts.filter(Boolean);
+
+    return validEscrowAccounts.map((account) => {
+      const decodedEscrow: EscrowAccount = this.program.coder.accounts.decode(
+        "escrow",
+        account.data
+      );
+
+      return new EscrowWrapper(
+        decodedEscrow,
+        this.baseMint.decimals,
+        this.quoteMint.decimals
+      );
+    });
   }
 
   /**

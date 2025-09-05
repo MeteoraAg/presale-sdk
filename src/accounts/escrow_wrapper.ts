@@ -162,17 +162,25 @@ export class EscrowWrapper implements IEscrowWrapper {
 
   public getRemainingDepositAmount(presaleWrapper: IPresaleWrapper): BN {
     const presaleAccount = presaleWrapper.getPresaleAccount();
-    const personalCap = presaleAccount.buyerMaximumDepositCap.sub(
+    const presaleRegistry =
+      presaleAccount.presaleRegistries[this.escrowAccount.registryIndex];
+
+    const buyerMaximumDepositCap = BN.min(
+      presaleRegistry.buyerMaximumDepositCap,
+      this.escrowAccount.depositMaxCap
+    );
+
+    const buyerCap = buyerMaximumDepositCap.sub(
       this.escrowAccount.totalDeposit
     );
 
     if (presaleAccount.presaleMode === PresaleMode.Prorata) {
-      return personalCap;
+      return buyerCap;
     }
     const globalCap = presaleAccount.presaleMaximumCap.sub(
       presaleAccount.totalDeposit
     );
-    return BN.min(globalCap, personalCap);
+    return BN.min(globalCap, buyerCap);
   }
 
   public getRemainingDepositUiAmount(presaleWrapper: IPresaleWrapper): number {

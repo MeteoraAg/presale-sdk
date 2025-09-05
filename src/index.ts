@@ -4,6 +4,7 @@ import * as PresaleIDL from "./idl/presale.json";
 export * from "./pda";
 export * from "./presale";
 export * from "./instructions";
+export * from "./constant";
 
 export const PRESALE_PROGRAM_ID = new PublicKey(PresaleIDL.address);
 export const MEMO_PROGRAM_ID = new PublicKey(

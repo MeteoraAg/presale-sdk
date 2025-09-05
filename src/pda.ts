@@ -74,10 +74,16 @@ export function deriveMerkleRootConfig(
 export function deriveEscrow(
   presale: PublicKey,
   owner: PublicKey,
+  registryIndex: BN,
   programId: PublicKey
 ): PublicKey {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from("escrow"), presale.toBuffer(), owner.toBuffer()],
+    [
+      Buffer.from("escrow"),
+      presale.toBuffer(),
+      owner.toBuffer(),
+      registryIndex.toArrayLike(Buffer, "le", 1),
+    ],
     programId
   )[0];
 }

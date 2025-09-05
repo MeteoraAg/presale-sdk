@@ -8,7 +8,7 @@ import { deriveOperator, derivePresale, PRESALE_PROGRAM_ID } from "../../src";
 import {
   ILockedVestingArgs,
   IPresaleArgs,
-  ITokenomicArgs,
+  IPresaleRegistryArgs,
 } from "../../src/instructions";
 import Presale from "../../src/presale";
 import { Rounding, UnsoldTokenAction, WhitelistMode } from "../../src/type";
@@ -22,8 +22,7 @@ async function initializeAuthorityPermissionedFixedPricePresale(
   keypair: Keypair,
   baseKeypair: Keypair,
   price: Decimal,
-  unsoldTokenAction: UnsoldTokenAction,
-  tokenomicArgs: ITokenomicArgs,
+  presaleRegistriesArgs: IPresaleRegistryArgs[],
   presaleArgs: Omit<IPresaleArgs, "presaleMode">,
   serverSigningUrl: string,
   operatorAddress: PublicKey,
@@ -38,13 +37,12 @@ async function initializeAuthorityPermissionedFixedPricePresale(
       basePubkey: baseKeypair.publicKey,
       creatorPubkey: keypair.publicKey,
       feePayerPubkey: keypair.publicKey,
-      tokenomicArgs,
       presaleArgs,
       lockedVestingArgs,
+      presaleRegistriesArgs,
     },
     {
       price,
-      unsoldTokenAction,
       rounding: Rounding.Down,
     }
   );
@@ -151,20 +149,26 @@ const operatorKeypair = Keypair.fromSecretKey(
   new Uint8Array(JSON.parse(fs.readFileSync(operatorKeypairFilepath, "utf-8")))
 );
 
-const tokenomicArgs: ITokenomicArgs = {
-  presalePoolSupply: new BN(2000000000),
-};
+const presaleRegistriesArgs: IPresaleRegistryArgs[] = [];
+
+presaleRegistriesArgs.push({
+  presaleSupply: new BN(2000000000),
+  buyerMaximumDepositCap: new BN(1000000000),
+  buyerMinimumDepositCap: new BN(10000000),
+  depositFeeBps: new BN(0),
+});
+
 const presaleArgs: Omit<IPresaleArgs, "presaleMode"> = {
   presaleMaximumCap: new BN(100000000000),
   presaleMinimumCap: new BN(1000000000),
-  buyerMaximumDepositCap: new BN(1000000000),
-  buyerMinimumDepositCap: new BN(10000000),
   presaleStartTime: new BN(0),
   presaleEndTime: new BN(Math.floor(Date.now() / 1000 + 86400)),
   whitelistMode: WhitelistMode.PermissionWithAuthority,
+  unsoldTokenAction: UnsoldTokenAction.Refund,
 };
 
 const lockedVestingArgs: ILockedVestingArgs = {
+  immediateReleaseBps: new BN(0),
   lockDuration: new BN(3600),
   vestDuration: new BN(3600),
 };
@@ -186,8 +190,7 @@ initializeAuthorityPermissionedFixedPricePresale(
   creatorKeypair,
   baseKeypair,
   new Decimal(0.1),
-  UnsoldTokenAction.Refund,
-  tokenomicArgs,
+  presaleRegistriesArgs,
   presaleArgs,
   serverSigningUrl,
   operatorKeypair.publicKey,

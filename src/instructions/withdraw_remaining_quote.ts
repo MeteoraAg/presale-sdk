@@ -11,6 +11,7 @@ import {
   PresaleProgram,
   TransferHookAccountInfo,
 } from "../type";
+import BN from "bn.js";
 
 export interface IWithdrawRemainingQuoteParams {
   presaleProgram: PresaleProgram;
@@ -18,6 +19,7 @@ export interface IWithdrawRemainingQuoteParams {
   presaleAccount: PresaleAccount;
   owner: PublicKey;
   transferHookAccountInfo: TransferHookAccountInfo;
+  registryIndex: BN;
 }
 
 export async function createWithdrawRemainingQuoteIx(
@@ -29,6 +31,7 @@ export async function createWithdrawRemainingQuoteIx(
     presaleAccount,
     owner,
     transferHookAccountInfo,
+    registryIndex,
   } = params;
 
   const { slices, extraAccountMetas } = transferHookAccountInfo;
@@ -53,7 +56,12 @@ export async function createWithdrawRemainingQuoteIx(
       quoteTokenProgram
     );
 
-  const escrow = deriveEscrow(presaleAddress, owner, presaleProgram.programId);
+  const escrow = deriveEscrow(
+    presaleAddress,
+    owner,
+    registryIndex,
+    presaleProgram.programId
+  );
 
   const withdrawRemainingQuoteIx = await presaleProgram.methods
     .withdrawRemainingQuote({ slices })

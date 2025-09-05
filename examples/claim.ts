@@ -3,6 +3,7 @@ import fs from "fs";
 import os from "os";
 import { PRESALE_PROGRAM_ID } from "../src";
 import Presale from "../src/presale";
+import { BN } from "bn.js";
 
 const connection = new Connection(clusterApiUrl("devnet"));
 
@@ -17,22 +18,36 @@ async function claim(
     PRESALE_PROGRAM_ID
   );
 
-  const claimTx = await presaleInstance.claim({
-    owner: user.publicKey,
-  });
+  const escrows = await presaleInstance.getPresaleEscrowByOwner(
+    keypair.publicKey
+  );
 
-  claimTx.sign(user);
-  const txSig = await connection.sendRawTransaction(claimTx.serialize());
+  const claimTxs = await Promise.all(
+    escrows.map((escrow) => {
+      const escrowState = escrow.getEscrowAccount();
+      return presaleInstance.claim({
+        owner: escrowState.owner,
+        registryIndex: new BN(escrowState.registryIndex),
+      });
+    })
+  );
 
-  console.log("Claim transaction sent:", txSig);
+  await Promise.all(
+    claimTxs.map(async (claimTx) => {
+      claimTx.sign(user);
+      const txSig = await connection.sendRawTransaction(claimTx.serialize());
 
-  await connection.confirmTransaction(
-    {
-      signature: txSig,
-      lastValidBlockHeight: claimTx.lastValidBlockHeight,
-      blockhash: claimTx.recentBlockhash,
-    },
-    "finalized"
+      console.log("Claim transaction sent:", txSig);
+
+      await connection.confirmTransaction(
+        {
+          signature: txSig,
+          lastValidBlockHeight: claimTx.lastValidBlockHeight,
+          blockhash: claimTx.recentBlockhash,
+        },
+        "finalized"
+      );
+    })
   );
 }
 
