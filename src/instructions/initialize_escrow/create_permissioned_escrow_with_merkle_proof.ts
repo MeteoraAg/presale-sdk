@@ -77,7 +77,7 @@ export async function autoFetchProofAndCreatePermissionedEscrowWithMerkleProofIx
   if (baseUrl.endsWith("/")) {
     baseUrl = baseUrl.slice(0, baseUrl.length - 1);
   }
-  const fullUrl = `${baseUrl}/${presaleAddress.toBase58()}/${owner.toBase58()}`;
+  const fullUrl = `${baseUrl}/${presaleAddress.toBase58()}/${registryIndex.toString()}/${owner.toBase58()}`;
 
   const response = await fetch(fullUrl);
 

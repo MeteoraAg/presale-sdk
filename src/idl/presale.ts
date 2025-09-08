@@ -3165,7 +3165,7 @@ export type Presale = {
             "type": "u128"
           },
           {
-            "name": "padding0",
+            "name": "padding1",
             "type": {
               "array": [
                 "u64",

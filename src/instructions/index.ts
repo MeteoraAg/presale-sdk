@@ -12,3 +12,4 @@ export * from "./perform_unsold_base_token_action";
 export * from "./close_escrow";
 export * from "./refresh_escrow";
 export * from "./creator_withdraw";
+export * from "./creator_collect_fee";

@@ -59,7 +59,7 @@ async function depositWithMerkleProof(
 
 async function startMerkleProofServer(
   presaleAddress: PublicKey,
-  whitelistAddresses: WhitelistedWallet[],
+  whitelistWallets: WhitelistedWallet[],
   creator: Keypair,
   app: express.Express
 ) {
@@ -70,7 +70,7 @@ async function startMerkleProofServer(
   );
 
   const merkleProofs = await presaleInstance.createMerkleProofResponse({
-    whitelistWallets: whitelistAddresses,
+    whitelistWallets,
     creator: creator.publicKey,
   });
 
@@ -109,7 +109,7 @@ const rawKeypair = fs.readFileSync(keypairFilepath, "utf-8");
 const keypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(rawKeypair)));
 
 const presaleAddress = new PublicKey(
-  "CkG4awAGBdHBQkVsJgSensJmFrt3KarMcCSLjNsXfRHN"
+  "H7pDwguN8f2mxg8gtyBwbKopW5ENRFMnWxYHGAG1hM6L"
 );
 const whitelistedAddresses: WhitelistedWallet[] = [
   {

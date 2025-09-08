@@ -98,7 +98,8 @@ export async function fetchPartialSignedInitEscrowAndDepositTransactionFromOpera
     amount: BN;
   }
 ) {
-  const { presaleProgram, presaleAddress, owner, amount } = params;
+  const { presaleProgram, presaleAddress, owner, amount, registryIndex } =
+    params;
 
   const permissionedServerMetadata = derivePermissionedServerMetadata(
     presaleAddress,
@@ -114,7 +115,7 @@ export async function fetchPartialSignedInitEscrowAndDepositTransactionFromOpera
   if (baseUrl.endsWith("/")) {
     baseUrl = baseUrl.slice(0, baseUrl.length - 1);
   }
-  const fullUrl = `${baseUrl}/${presaleAddress.toBase58()}/${owner.toBase58()}?amount=${amount.toString()}`;
+  const fullUrl = `${baseUrl}/${presaleAddress.toBase58()}/${registryIndex.toString()}/${owner.toBase58()}?amount=${amount.toString()}`;
 
   const response = await fetch(fullUrl);
 

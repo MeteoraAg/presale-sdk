@@ -70,7 +70,7 @@ export async function createInitializeFixedPricePresaleArgsIx(
     .initializeFixedPricePresaleArgs({
       presale,
       qPrice,
-      padding0: new Array(8).fill(new BN(0)),
+      padding1: new Array(8).fill(new BN(0)),
     })
     .accountsPartial({
       fixedPricePresaleParams,
@@ -96,6 +96,7 @@ export async function createInitializeFixedPricePresaleIx(
     creatorPubkey,
     feePayerPubkey,
     basePubkey,
+    presaleRegistries,
   } = presaleParams;
 
   const createFixedPricePresaleArgsIx =
@@ -156,6 +157,8 @@ export async function createInitializeFixedPricePresaleIx(
               vestDuration: new BN(0),
               padding: new Array(4).fill(new BN(0)),
             },
+        padding: new Array(4).fill(new BN(0)),
+        presaleRegistries,
       },
       {
         slices,

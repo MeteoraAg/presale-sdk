@@ -34,7 +34,7 @@ async function initializeProrataPresale(
       creatorPubkey: keypair.publicKey,
       feePayerPubkey: keypair.publicKey,
       presaleArgs,
-      presaleRegistriesArgs,
+      presaleRegistries: presaleRegistriesArgs,
       lockedVestingArgs,
     }
   );

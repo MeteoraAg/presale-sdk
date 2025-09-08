@@ -43,5 +43,5 @@ export interface ICreateInitializePresaleIxParams {
   quoteMintPubkey: PublicKey;
   creatorPubkey: PublicKey;
   feePayerPubkey: PublicKey;
-  presaleRegistriesArgs: IPresaleRegistryArgs[];
+  presaleRegistries: IPresaleRegistryArgs[];
 }

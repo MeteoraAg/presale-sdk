@@ -2,6 +2,7 @@ import { IdlDiscriminator } from "@coral-xyz/anchor/dist/cjs/idl";
 import { MemcmpFilter, PublicKey } from "@solana/web3.js";
 import IDL from "../idl/presale.json";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
+import BN from "bn.js";
 
 const IDL_DISCRIMINATOR_LENGTH = 8;
 
@@ -36,6 +37,15 @@ export function getEscrowFilter(): MemcmpFilter {
     memcmp: {
       offset: 0,
       bytes: bs58.encode(getAccountDiscriminator("escrow")),
+    },
+  };
+}
+
+export function getEscrowRegistryIndexFilter(registryIndex: BN): MemcmpFilter {
+  return {
+    memcmp: {
+      offset: IDL_DISCRIMINATOR_LENGTH + 32 + 32 + 8 + 8 + 1,
+      bytes: bs58.encode(registryIndex.toArrayLike(Buffer, "le", 1)),
     },
   };
 }

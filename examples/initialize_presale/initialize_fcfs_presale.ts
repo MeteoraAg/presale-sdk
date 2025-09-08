@@ -33,7 +33,7 @@ async function initializeFcfsPresale(
       basePubkey: baseKeypair.publicKey,
       creatorPubkey: keypair.publicKey,
       feePayerPubkey: keypair.publicKey,
-      presaleRegistriesArgs,
+      presaleRegistries: presaleRegistriesArgs,
       presaleArgs,
       lockedVestingArgs,
     }

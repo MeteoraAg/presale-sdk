@@ -40,7 +40,7 @@ async function initializeMerkleTreePermissionedFixedPricePresale(
       feePayerPubkey: keypair.publicKey,
       presaleArgs,
       lockedVestingArgs,
-      presaleRegistriesArgs,
+      presaleRegistries: presaleRegistriesArgs,
     },
     {
       price,

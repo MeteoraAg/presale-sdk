@@ -43,7 +43,7 @@ export async function createInitializeFcfsPresaleIx(
     creatorPubkey,
     feePayerPubkey,
     basePubkey,
-    presaleRegistriesArgs,
+    presaleRegistries,
   } = params;
 
   const presale = derivePresale(
@@ -101,6 +101,8 @@ export async function createInitializeFcfsPresaleIx(
               vestDuration: new BN(0),
               padding: new Array(4).fill(new BN(0)),
             },
+        padding: new Array(4).fill(new BN(0)),
+        presaleRegistries,
       },
       {
         slices,

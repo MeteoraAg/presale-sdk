@@ -50,6 +50,7 @@ export async function createInitializeProrataPresaleIx(
     creatorPubkey,
     feePayerPubkey,
     basePubkey,
+    presaleRegistries,
   } = params;
 
   const presale = derivePresale(
@@ -118,7 +119,10 @@ export async function createInitializeProrataPresaleIx(
               vestDuration: new BN(0),
               padding: new Array(4).fill(new BN(0)),
             },
+        padding: new Array(4).fill(new BN(0)),
+        presaleRegistries,
       },
+
       {
         slices,
       }

@@ -22,7 +22,7 @@ async function initializeAuthorityPermissionedFixedPricePresale(
   keypair: Keypair,
   baseKeypair: Keypair,
   price: Decimal,
-  presaleRegistriesArgs: IPresaleRegistryArgs[],
+  presaleRegistries: IPresaleRegistryArgs[],
   presaleArgs: Omit<IPresaleArgs, "presaleMode">,
   serverSigningUrl: string,
   operatorAddress: PublicKey,
@@ -39,7 +39,7 @@ async function initializeAuthorityPermissionedFixedPricePresale(
       feePayerPubkey: keypair.publicKey,
       presaleArgs,
       lockedVestingArgs,
-      presaleRegistriesArgs,
+      presaleRegistries,
     },
     {
       price,

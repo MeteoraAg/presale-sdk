@@ -177,7 +177,7 @@ const operatorKeypair = Keypair.fromSecretKey(
 );
 
 const presaleAddress = new PublicKey(
-  "5tDHssKGhvNVSzMThrp7jsJmNp9BJrkXJpEhVW4HoPmx"
+  "DpRrSp5tMv31cpa19bNHELGtFH6tymNGNBvLPCHxFezt"
 );
 const whitelistedAddresses: WhitelistedWallet[] = [
   {

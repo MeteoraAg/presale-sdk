@@ -2870,10 +2870,6 @@
             "type": "pubkey"
           },
           {
-            "name": "unsold_token_action",
-            "type": "u8"
-          },
-          {
             "name": "q_price",
             "type": "u128"
           }
@@ -3117,15 +3113,11 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "unsold_token_action",
-            "type": "u8"
-          },
-          {
             "name": "padding0",
             "type": {
               "array": [
                 "u8",
-                15
+                16
               ]
             }
           },
@@ -3163,15 +3155,11 @@
             "type": "pubkey"
           },
           {
-            "name": "unsold_token_action",
-            "type": "u8"
-          },
-          {
             "name": "q_price",
             "type": "u128"
           },
           {
-            "name": "padding",
+            "name": "padding1",
             "type": {
               "array": [
                 "u64",
@@ -3719,11 +3707,15 @@
             "type": "u8"
           },
           {
+            "name": "unsold_token_action",
+            "type": "u8"
+          },
+          {
             "name": "padding",
             "type": {
               "array": [
                 "u8",
-                32
+                31
               ]
             }
           }

@@ -47,7 +47,7 @@ const rawKeypair = fs.readFileSync(keypairFilepath, "utf-8");
 const keypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(rawKeypair)));
 
 const presaleAddress = new PublicKey(
-  "GStMrk5xbeYXM2fvoHUCd6qyyFyegZRfnADsQec1xviA"
+  "CMhi9fJgwkk4wkicpFn8ULAv9ca9UWSQypfLGFgqMLzF"
 );
 
 deposit(connection, keypair, presaleAddress);
