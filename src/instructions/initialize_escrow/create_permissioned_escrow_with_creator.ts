@@ -22,6 +22,8 @@ export interface ICreatePermissionedEscrowWithCreatorParams {
   owner: PublicKey;
   operator: PublicKey;
   payer: PublicKey;
+  registryIndex: BN;
+  depositCap: BN;
 }
 
 export async function createPermissionedEscrowWithCreatorIx(
@@ -34,9 +36,16 @@ export async function createPermissionedEscrowWithCreatorIx(
     owner,
     operator,
     payer,
+    registryIndex,
+    depositCap,
   } = params;
 
-  const escrow = deriveEscrow(presaleAddress, owner, presaleProgram.programId);
+  const escrow = deriveEscrow(
+    presaleAddress,
+    owner,
+    registryIndex,
+    presaleProgram.programId
+  );
 
   const operatorPda = deriveOperator(
     presaleAccount.owner,
@@ -45,7 +54,11 @@ export async function createPermissionedEscrowWithCreatorIx(
   );
 
   const initEscrowIx = await presaleProgram.methods
-    .createPermissionedEscrowWithCreator()
+    .createPermissionedEscrowWithCreator({
+      registryIndex: registryIndex.toNumber(),
+      depositCap,
+      padding: new Array(32).fill(0),
+    })
     .accountsPartial({
       escrow,
       presale: presaleAddress,
@@ -62,9 +75,14 @@ export async function createPermissionedEscrowWithCreatorIx(
 export async function getOrCreatePermissionedEscrowWithCreatorIx(
   params: ICreatePermissionedEscrowWithCreatorParams
 ): Promise<TransactionInstruction | null> {
-  const { presaleProgram, presaleAddress, owner } = params;
+  const { presaleProgram, presaleAddress, owner, registryIndex } = params;
 
-  const escrow = deriveEscrow(presaleAddress, owner, presaleProgram.programId);
+  const escrow = deriveEscrow(
+    presaleAddress,
+    owner,
+    registryIndex,
+    presaleProgram.programId
+  );
   const escrowState = await presaleProgram.account.escrow.fetchNullable(escrow);
 
   if (!escrowState) {
@@ -75,12 +93,13 @@ export async function getOrCreatePermissionedEscrowWithCreatorIx(
 export async function fetchPartialSignedInitEscrowAndDepositTransactionFromOperator(
   params: Omit<
     ICreatePermissionedEscrowWithCreatorParams,
-    "operator" | "payer"
+    "operator" | "payer" | "depositCap"
   > & {
     amount: BN;
   }
 ) {
-  const { presaleProgram, presaleAddress, owner, amount } = params;
+  const { presaleProgram, presaleAddress, owner, amount, registryIndex } =
+    params;
 
   const permissionedServerMetadata = derivePermissionedServerMetadata(
     presaleAddress,
@@ -96,7 +115,7 @@ export async function fetchPartialSignedInitEscrowAndDepositTransactionFromOpera
   if (baseUrl.endsWith("/")) {
     baseUrl = baseUrl.slice(0, baseUrl.length - 1);
   }
-  const fullUrl = `${baseUrl}/${presaleAddress.toBase58()}/${owner.toBase58()}?amount=${amount.toString()}`;
+  const fullUrl = `${baseUrl}/${presaleAddress.toBase58()}/${registryIndex.toString()}/${owner.toBase58()}?amount=${amount.toString()}`;
 
   const response = await fetch(fullUrl);
 

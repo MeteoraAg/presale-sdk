@@ -1,6 +1,7 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { deriveEscrow } from "../../pda";
 import { PresaleProgram } from "../../type";
+import { DEFAULT_PERMISSIONLESS_REGISTRY_INDEX } from "../../constant";
 
 export interface ICreatePermissionlessEscrowParams {
   presaleProgram: PresaleProgram;
@@ -14,7 +15,12 @@ export async function createPermissionlessEscrowIx(
 ) {
   const { presaleProgram, presaleAddress, owner, payer } = params;
 
-  const escrow = deriveEscrow(presaleAddress, owner, presaleProgram.programId);
+  const escrow = deriveEscrow(
+    presaleAddress,
+    owner,
+    DEFAULT_PERMISSIONLESS_REGISTRY_INDEX,
+    presaleProgram.programId
+  );
 
   const initEscrowIx = await presaleProgram.methods
     .createPermissionlessEscrow()
@@ -34,7 +40,12 @@ export async function getOrCreatePermissionlessEscrowIx(
 ): Promise<TransactionInstruction | null> {
   const { presaleProgram, presaleAddress, owner } = params;
 
-  const escrow = deriveEscrow(presaleAddress, owner, presaleProgram.programId);
+  const escrow = deriveEscrow(
+    presaleAddress,
+    owner,
+    DEFAULT_PERMISSIONLESS_REGISTRY_INDEX,
+    presaleProgram.programId
+  );
   const escrowState = await presaleProgram.account.escrow.fetchNullable(escrow);
 
   if (!escrowState) {

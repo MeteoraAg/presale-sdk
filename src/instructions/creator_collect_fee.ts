@@ -3,79 +3,67 @@ import {
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import BN from "bn.js";
-import { MEMO_PROGRAM_ID } from "..";
-import { deriveEscrow } from "../pda";
 import { getTokenProgramIdFromFlag } from "../token2022";
 import {
   PresaleAccount,
   PresaleProgram,
   TransferHookAccountInfo,
 } from "../type";
+import { derivePresaleAuthority, MEMO_PROGRAM_ID } from "..";
 
-export interface IWithdrawParams {
+export interface ICreatorCollectFeeParams {
   presaleProgram: PresaleProgram;
   presaleAddress: PublicKey;
   presaleAccount: PresaleAccount;
-  owner: PublicKey;
-  amount: BN;
-  transferHookAccountInfo: TransferHookAccountInfo;
-  registryIndex: BN;
+  quoteTransferHookAccountInfo: TransferHookAccountInfo;
 }
 
-export async function createWithdrawIx(params: IWithdrawParams) {
+export async function createCreatorCollectFeeIx(
+  params: ICreatorCollectFeeParams
+) {
   const {
     presaleProgram,
     presaleAddress,
     presaleAccount,
-    owner,
-    amount,
-    transferHookAccountInfo,
-    registryIndex,
+    quoteTransferHookAccountInfo,
   } = params;
 
-  const { slices, extraAccountMetas } = transferHookAccountInfo;
-
-  const escrow = deriveEscrow(
-    presaleAddress,
-    owner,
-    registryIndex,
-    presaleProgram.programId
-  );
   const quoteTokenProgram = getTokenProgramIdFromFlag(
     presaleAccount.quoteTokenProgramFlag
   );
 
-  const ownerQuoteAta = getAssociatedTokenAddressSync(
+  const ownerQuoteTokenAddress = getAssociatedTokenAddressSync(
     presaleAccount.quoteMint,
-    owner,
+    presaleAccount.owner,
     true,
     quoteTokenProgram
   );
 
-  const createOwnerQuoteAtaIx =
+  const initOwnerQuoteTokenAtaIx =
     createAssociatedTokenAccountIdempotentInstruction(
-      owner,
-      ownerQuoteAta,
-      owner,
+      presaleAccount.owner,
+      ownerQuoteTokenAddress,
+      presaleAccount.owner,
       presaleAccount.quoteMint,
       quoteTokenProgram
     );
 
-  const withdrawIx = await presaleProgram.methods
-    .withdraw(amount, { slices })
+  const collectFeeIx = await presaleProgram.methods
+    .creatorCollectFee({
+      slices: [...quoteTransferHookAccountInfo.slices],
+    })
     .accountsPartial({
       presale: presaleAddress,
-      owner: owner,
-      escrow,
+      owner: presaleAccount.owner,
+      tokenProgram: quoteTokenProgram,
       quoteMint: presaleAccount.quoteMint,
       quoteTokenVault: presaleAccount.quoteTokenVault,
-      ownerQuoteToken: ownerQuoteAta,
-      tokenProgram: quoteTokenProgram,
+      feeReceivingAccount: ownerQuoteTokenAddress,
       memoProgram: MEMO_PROGRAM_ID,
+      presaleAuthority: derivePresaleAuthority(presaleProgram.programId),
     })
-    .remainingAccounts([...extraAccountMetas])
+    .remainingAccounts([...quoteTransferHookAccountInfo.extraAccountMetas])
     .instruction();
 
-  return [createOwnerQuoteAtaIx, withdrawIx];
+  return [initOwnerQuoteTokenAtaIx, collectFeeIx];
 }

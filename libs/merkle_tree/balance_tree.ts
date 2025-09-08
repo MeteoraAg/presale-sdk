@@ -3,26 +3,28 @@ import { sha256 } from "js-sha256";
 
 import { MerkleTree } from "./merkle_tree";
 
-interface WhitelistedWallet {
+export interface WhitelistedWallet {
   account: web3.PublicKey;
+  registryIndex: BN;
+  depositCap: BN;
 }
 
 export class BalanceTree {
   private readonly _tree: MerkleTree;
   constructor(whitelistedWallet: WhitelistedWallet[]) {
     this._tree = new MerkleTree(
-      whitelistedWallet.map(({ account }) => {
-        return BalanceTree.toNode(account);
+      whitelistedWallet.map((whitelistedWallet) => {
+        return BalanceTree.toNode(whitelistedWallet);
       })
     );
   }
 
   static verifyProof(
-    account: web3.PublicKey,
+    whitelistedWallet: WhitelistedWallet,
     proof: Buffer[],
     root: Buffer
   ): boolean {
-    let pair = BalanceTree.toNode(account);
+    let pair = BalanceTree.toNode(whitelistedWallet);
     for (const item of proof) {
       pair = MerkleTree.combinedHash(pair, item);
     }
@@ -30,8 +32,12 @@ export class BalanceTree {
     return pair.equals(root);
   }
 
-  static toNode(account: web3.PublicKey): Buffer {
-    const buf = account.toBuffer();
+  static toNode(whitelistWallet: WhitelistedWallet): Buffer {
+    const buf0 = whitelistWallet.account.toBuffer();
+    const buf1 = whitelistWallet.registryIndex.toArrayLike(Buffer, "le", 1);
+    const buf2 = whitelistWallet.depositCap.toArrayLike(Buffer, "le", 8);
+
+    const buf = Buffer.concat([buf0, buf1, buf2]);
 
     const hashedBuff = Buffer.from(sha256(buf), "hex");
 
@@ -44,15 +50,15 @@ export class BalanceTree {
   }
 
   // returns the hex bytes32 values of the proof
-  getHexProof(account: web3.PublicKey): string[] {
-    return this._tree.getHexProof(BalanceTree.toNode(account));
+  getHexProof(whitelistWallet: WhitelistedWallet): string[] {
+    return this._tree.getHexProof(BalanceTree.toNode(whitelistWallet));
   }
 
   getRoot(): Buffer {
     return this._tree.getRoot();
   }
 
-  getProof(account: web3.PublicKey): Buffer[] {
-    return this._tree.getProof(BalanceTree.toNode(account));
+  getProof(whitelistWallet: WhitelistedWallet): Buffer[] {
+    return this._tree.getProof(BalanceTree.toNode(whitelistWallet));
   }
 }

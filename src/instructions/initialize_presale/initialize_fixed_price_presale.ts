@@ -28,7 +28,6 @@ interface ICreateInitializeFixedPricePresaleArgsIxParams {
   basePubkey: PublicKey;
   ownerPubkey: PublicKey;
   feePayerPubkey: PublicKey;
-  unsoldTokenAction: UnsoldTokenAction;
   qPrice: BN;
 }
 
@@ -51,7 +50,6 @@ export async function createInitializeFixedPricePresaleArgsIx(
     quoteMintPubkey,
     basePubkey,
     ownerPubkey,
-    unsoldTokenAction,
     feePayerPubkey,
     qPrice,
   } = params;
@@ -71,9 +69,8 @@ export async function createInitializeFixedPricePresaleArgsIx(
   const ix = await program.methods
     .initializeFixedPricePresaleArgs({
       presale,
-      unsoldTokenAction,
       qPrice,
-      padding: new Array(8).fill(new BN(0)),
+      padding1: new Array(8).fill(new BN(0)),
     })
     .accountsPartial({
       fixedPricePresaleParams,
@@ -92,7 +89,6 @@ export async function createInitializeFixedPricePresaleIx(
 ): Promise<TransactionInstruction[]> {
   const {
     program,
-    tokenomicArgs,
     presaleArgs,
     lockedVestingArgs,
     baseMintPubkey,
@@ -100,6 +96,7 @@ export async function createInitializeFixedPricePresaleIx(
     creatorPubkey,
     feePayerPubkey,
     basePubkey,
+    presaleRegistries,
   } = presaleParams;
 
   const createFixedPricePresaleArgsIx =
@@ -144,10 +141,6 @@ export async function createInitializeFixedPricePresaleIx(
     .initializePresale(
       // @ts-expect-error
       {
-        tokenomic: {
-          ...tokenomicArgs,
-          padding: new Array(4).fill(new BN(0)),
-        },
         presaleParams: {
           ...presaleArgs,
           presaleMode: PresaleMode.FixedPrice,
@@ -159,10 +152,13 @@ export async function createInitializeFixedPricePresaleIx(
               padding: new Array(4).fill(new BN(0)),
             }
           : {
+              immediatelyReleaseBps: 0,
               lockDuration: new BN(0),
               vestDuration: new BN(0),
               padding: new Array(4).fill(new BN(0)),
             },
+        padding: new Array(4).fill(new BN(0)),
+        presaleRegistries,
       },
       {
         slices,

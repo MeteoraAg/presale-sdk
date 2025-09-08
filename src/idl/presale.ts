@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/presale.json`.
  */
 export type Presale = {
-  "address": "2TEbURHCQNsVyGFUm2appkEsuSShKkUUdVqtC5Xn7zw9",
+  "address": "EkY6mLB685Ek1PpQ7AvWkHn2WngBKLbc1CUQKD5ewNqP",
   "metadata": {
     "name": "presale",
     "version": "0.1.0",
@@ -48,7 +48,7 @@ export type Presale = {
         },
         {
           "name": "presaleAuthority",
-          "address": "GwyAYgXqXaMAC5cHmwecU7uuu2bGiPHiP8eQY2kSNnkc"
+          "address": "ECMXFSYJrZvVN7zEAtjU8vUWNCZmisvj7CnvgPqkjKJx"
         },
         {
           "name": "escrow",
@@ -544,6 +544,10 @@ export type Presale = {
               {
                 "kind": "account",
                 "path": "owner"
+              },
+              {
+                "kind": "arg",
+                "path": "params.registry_index"
               }
             ]
           }
@@ -600,7 +604,16 @@ export type Presale = {
           "name": "program"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "createPermissionedEscrowWithCreatorParams"
+            }
+          }
+        }
+      ]
     },
     {
       "name": "createPermissionedEscrowWithMerkleProof",
@@ -645,6 +658,10 @@ export type Presale = {
               {
                 "kind": "account",
                 "path": "owner"
+              },
+              {
+                "kind": "arg",
+                "path": "params.registry_index"
               }
             ]
           }
@@ -699,13 +716,10 @@ export type Presale = {
       ],
       "args": [
         {
-          "name": "proof",
+          "name": "params",
           "type": {
-            "vec": {
-              "array": [
-                "u8",
-                32
-              ]
+            "defined": {
+              "name": "createPermissionedEscrowWithMerkleProofParams"
             }
           }
         }
@@ -851,6 +865,12 @@ export type Presale = {
               {
                 "kind": "account",
                 "path": "owner"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  0
+                ]
               }
             ]
           }
@@ -903,6 +923,102 @@ export type Presale = {
       "args": []
     },
     {
+      "name": "creatorCollectFee",
+      "discriminator": [
+        9,
+        215,
+        62,
+        151,
+        64,
+        163,
+        150,
+        7
+      ],
+      "accounts": [
+        {
+          "name": "presale",
+          "writable": true
+        },
+        {
+          "name": "presaleAuthority",
+          "address": "ECMXFSYJrZvVN7zEAtjU8vUWNCZmisvj7CnvgPqkjKJx"
+        },
+        {
+          "name": "quoteTokenVault",
+          "writable": true,
+          "relations": [
+            "presale"
+          ]
+        },
+        {
+          "name": "quoteMint",
+          "relations": [
+            "presale"
+          ]
+        },
+        {
+          "name": "feeReceivingAccount",
+          "writable": true
+        },
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "presale"
+          ]
+        },
+        {
+          "name": "tokenProgram"
+        },
+        {
+          "name": "memoProgram",
+          "address": "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"
+        },
+        {
+          "name": "eventAuthority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  95,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "remainingAccountsInfo",
+          "type": {
+            "defined": {
+              "name": "remainingAccountsInfo"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "creatorWithdraw",
       "discriminator": [
         92,
@@ -921,7 +1037,7 @@ export type Presale = {
         },
         {
           "name": "presaleAuthority",
-          "address": "GwyAYgXqXaMAC5cHmwecU7uuu2bGiPHiP8eQY2kSNnkc"
+          "address": "ECMXFSYJrZvVN7zEAtjU8vUWNCZmisvj7CnvgPqkjKJx"
         },
         {
           "name": "ownerToken",
@@ -1240,7 +1356,7 @@ export type Presale = {
         },
         {
           "name": "presaleAuthority",
-          "address": "GwyAYgXqXaMAC5cHmwecU7uuu2bGiPHiP8eQY2kSNnkc"
+          "address": "ECMXFSYJrZvVN7zEAtjU8vUWNCZmisvj7CnvgPqkjKJx"
         },
         {
           "name": "quoteTokenMint"
@@ -1411,7 +1527,7 @@ export type Presale = {
         },
         {
           "name": "presaleAuthority",
-          "address": "GwyAYgXqXaMAC5cHmwecU7uuu2bGiPHiP8eQY2kSNnkc"
+          "address": "ECMXFSYJrZvVN7zEAtjU8vUWNCZmisvj7CnvgPqkjKJx"
         },
         {
           "name": "creatorBaseToken",
@@ -1674,7 +1790,7 @@ export type Presale = {
         },
         {
           "name": "presaleAuthority",
-          "address": "GwyAYgXqXaMAC5cHmwecU7uuu2bGiPHiP8eQY2kSNnkc"
+          "address": "ECMXFSYJrZvVN7zEAtjU8vUWNCZmisvj7CnvgPqkjKJx"
         },
         {
           "name": "escrow",
@@ -1781,7 +1897,7 @@ export type Presale = {
         },
         {
           "name": "presaleAuthority",
-          "address": "GwyAYgXqXaMAC5cHmwecU7uuu2bGiPHiP8eQY2kSNnkc"
+          "address": "ECMXFSYJrZvVN7zEAtjU8vUWNCZmisvj7CnvgPqkjKJx"
         },
         {
           "name": "escrow",
@@ -1942,6 +2058,19 @@ export type Presale = {
         196,
         174,
         1
+      ]
+    },
+    {
+      "name": "evtCreatorCollectFee",
+      "discriminator": [
+        47,
+        82,
+        115,
+        255,
+        214,
+        26,
+        54,
+        104
       ]
     },
     {
@@ -2330,6 +2459,26 @@ export type Presale = {
       "code": 6037,
       "name": "unsoldBaseTokenActionAlreadyPerformed",
       "msg": "Unsold base token action already performed"
+    },
+    {
+      "code": 6038,
+      "name": "invalidPresaleRegistryIndex",
+      "msg": "Invalid presale registry index"
+    },
+    {
+      "code": 6039,
+      "name": "multiplePresaleRegistriesNotAllowed",
+      "msg": "Multiple presale registries are not allowed"
+    },
+    {
+      "code": 6040,
+      "name": "invalidDepositCap",
+      "msg": "Invalid deposit cap"
+    },
+    {
+      "code": 6041,
+      "name": "presaleNotOpenForCollectFee",
+      "msg": "Presale is not open for collect fee"
     }
   ],
   "types": [
@@ -2375,6 +2524,67 @@ export type Presale = {
       }
     },
     {
+      "name": "createPermissionedEscrowWithCreatorParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "registryIndex",
+            "type": "u8"
+          },
+          {
+            "name": "depositCap",
+            "type": "u64"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "createPermissionedEscrowWithMerkleProofParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "proof",
+            "type": {
+              "vec": {
+                "array": [
+                  "u8",
+                  32
+                ]
+              }
+            }
+          },
+          {
+            "name": "registryIndex",
+            "type": "u8"
+          },
+          {
+            "name": "depositCap",
+            "type": "u64"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
       "name": "escrow",
       "serialization": "bytemuck",
       "repr": {
@@ -2404,11 +2614,15 @@ export type Presale = {
             "type": "u8"
           },
           {
+            "name": "registryIndex",
+            "type": "u8"
+          },
+          {
             "name": "padding0",
             "type": {
               "array": [
                 "u8",
-                7
+                6
               ]
             }
           },
@@ -2417,7 +2631,15 @@ export type Presale = {
             "type": "u64"
           },
           {
+            "name": "depositMaxCap",
+            "type": "u64"
+          },
+          {
             "name": "createdAt",
+            "type": "u64"
+          },
+          {
+            "name": "totalDepositFee",
             "type": "u64"
           },
           {
@@ -2464,6 +2686,26 @@ export type Presale = {
           {
             "name": "owner",
             "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "evtCreatorCollectFee",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "presale",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "totalCollectedFee",
+            "type": "u64"
           }
         ]
       }
@@ -2520,6 +2762,10 @@ export type Presale = {
           {
             "name": "owner",
             "type": "pubkey"
+          },
+          {
+            "name": "depositFee",
+            "type": "u64"
           }
         ]
       }
@@ -2628,10 +2874,6 @@ export type Presale = {
           {
             "name": "presale",
             "type": "pubkey"
-          },
-          {
-            "name": "unsoldTokenAction",
-            "type": "u8"
           },
           {
             "name": "qPrice",
@@ -2763,12 +3005,14 @@ export type Presale = {
             "type": "pubkey"
           },
           {
-            "name": "buyerMaximumDepositCap",
-            "type": "u64"
-          },
-          {
-            "name": "buyerMinimumDepositCap",
-            "type": "u64"
+            "name": "presaleRegistries",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "presaleRegistryArgs"
+                }
+              }
+            }
           },
           {
             "name": "lockDuration",
@@ -2875,15 +3119,11 @@ export type Presale = {
         "kind": "struct",
         "fields": [
           {
-            "name": "unsoldTokenAction",
-            "type": "u8"
-          },
-          {
             "name": "padding0",
             "type": {
               "array": [
                 "u8",
-                15
+                16
               ]
             }
           },
@@ -2921,15 +3161,11 @@ export type Presale = {
             "type": "pubkey"
           },
           {
-            "name": "unsoldTokenAction",
-            "type": "u8"
-          },
-          {
             "name": "qPrice",
             "type": "u128"
           },
           {
-            "name": "padding",
+            "name": "padding1",
             "type": {
               "array": [
                 "u64",
@@ -2945,14 +3181,6 @@ export type Presale = {
       "type": {
         "kind": "struct",
         "fields": [
-          {
-            "name": "tokenomic",
-            "type": {
-              "defined": {
-                "name": "tokenomicArgs"
-              }
-            }
-          },
           {
             "name": "presaleParams",
             "type": {
@@ -2973,9 +3201,19 @@ export type Presale = {
             "name": "padding",
             "type": {
               "array": [
-                "u64",
-                4
+                "u8",
+                32
               ]
+            }
+          },
+          {
+            "name": "presaleRegistries",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "presaleRegistryArgs"
+                }
+              }
             }
           }
         ]
@@ -2989,6 +3227,13 @@ export type Presale = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "immediatelyReleaseBps",
+            "docs": [
+              "How many % of the token supply is released immediately"
+            ],
+            "type": "u16"
+          },
           {
             "name": "lockDuration",
             "docs": [
@@ -3007,8 +3252,8 @@ export type Presale = {
             "name": "padding",
             "type": {
               "array": [
-                "u64",
-                4
+                "u8",
+                32
               ]
             }
           }
@@ -3184,6 +3429,36 @@ export type Presale = {
             "type": "pubkey"
           },
           {
+            "name": "version",
+            "docs": [
+              "Presale version"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "presaleMode",
+            "docs": [
+              "Presale mode"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "whitelistMode",
+            "docs": [
+              "Whitelist mode"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "padding0",
+            "type": {
+              "array": [
+                "u8",
+                5
+              ]
+            }
+          },
+          {
             "name": "presaleMaximumCap",
             "docs": [
               "Presale target raised capital"
@@ -3207,21 +3482,7 @@ export type Presale = {
           {
             "name": "presaleEndTime",
             "docs": [
-              "When presale ends. Presale can be ended earlier by creator if raised capital is reached (based on presale mode)"
-            ],
-            "type": "u64"
-          },
-          {
-            "name": "buyerMinimumDepositCap",
-            "docs": [
-              "This is the minimum amount of quote token that a user can deposit to the presale"
-            ],
-            "type": "u64"
-          },
-          {
-            "name": "buyerMaximumDepositCap",
-            "docs": [
-              "This is the maximum amount of quote token that a user can deposit to the presale"
+              "When presale ends. Presale can be ended earlier by creator if raised capital is reached (based on presale mode)."
             ],
             "type": "u64"
           },
@@ -3310,22 +3571,30 @@ export type Presale = {
             "type": "u64"
           },
           {
-            "name": "padding0",
+            "name": "totalDepositFee",
+            "docs": [
+              "Total deposit fee collected"
+            ],
             "type": "u64"
           },
           {
-            "name": "whitelistMode",
+            "name": "depositFeeCollected",
             "docs": [
-              "Whitelist mode"
+              "Determine whether creator collected the deposit fee"
             ],
             "type": "u8"
           },
           {
-            "name": "presaleMode",
+            "name": "padding1",
             "docs": [
-              "Presale mode"
+              "Padding"
             ],
-            "type": "u8"
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
           },
           {
             "name": "hasCreatorWithdrawn",
@@ -3349,24 +3618,32 @@ export type Presale = {
             "type": "u8"
           },
           {
-            "name": "fixedPricePresaleUnsoldTokenAction",
+            "name": "totalPresaleRegistryCount",
             "docs": [
-              "What to do with unsold base token. Only applicable for fixed price presale mode"
+              "Total presale registry count"
             ],
             "type": "u8"
           },
           {
-            "name": "isFixedPricePresaleUnsoldTokenActionPerformed",
+            "name": "unsoldTokenAction",
+            "docs": [
+              "What to do with unsold base token"
+            ],
             "type": "u8"
           },
           {
-            "name": "padding2",
-            "type": {
-              "array": [
-                "u8",
-                17
-              ]
-            }
+            "name": "isUnsoldTokenActionPerformed",
+            "docs": [
+              "Whether the fixed price presale unsold token action has been performed"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "immediateReleaseBps",
+            "docs": [
+              "How many % of the token supply is released immediately"
+            ],
+            "type": "u16"
           },
           {
             "name": "fixedPricePresaleQPrice",
@@ -3381,6 +3658,22 @@ export type Presale = {
               "array": [
                 "u128",
                 6
+              ]
+            }
+          },
+          {
+            "name": "presaleRegistries",
+            "docs": [
+              "Presale registries. Note: Supporting more registries will causes increased account size."
+            ],
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "presaleRegistry"
+                  }
+                },
+                5
               ]
             }
           }
@@ -3404,14 +3697,6 @@ export type Presale = {
             "type": "u64"
           },
           {
-            "name": "buyerMinimumDepositCap",
-            "type": "u64"
-          },
-          {
-            "name": "buyerMaximumDepositCap",
-            "type": "u64"
-          },
-          {
             "name": "presaleStartTime",
             "type": "u64"
           },
@@ -3428,11 +3713,141 @@ export type Presale = {
             "type": "u8"
           },
           {
+            "name": "unsoldTokenAction",
+            "type": "u8"
+          },
+          {
             "name": "padding",
             "type": {
               "array": [
-                "u64",
-                4
+                "u8",
+                31
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "presaleRegistry",
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "presaleSupply",
+            "docs": [
+              "Total supply of tokens available for this presale registry"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "totalDeposit",
+            "docs": [
+              "Total amount of tokens deposited in this presale registry"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "totalEscrow",
+            "docs": [
+              "Total escrow in this presale registry"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "totalClaimedToken",
+            "docs": [
+              "Total claimed base token. For statistic purpose only"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "totalRefundedQuoteToken",
+            "docs": [
+              "Total refunded quote token. For statistic purpose only"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "buyerMinimumDepositCap",
+            "docs": [
+              "This is the minimum amount of quote token that a user can deposit to the presale. Personal cap must within the global cap range."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "buyerMaximumDepositCap",
+            "docs": [
+              "This is the maximum amount of quote token that a user can deposit to the presale. Personal cap must within the global cap range."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "totalDepositFee",
+            "docs": [
+              "Deposit fee collected"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "depositFeeBps",
+            "docs": [
+              "Deposit fee bps"
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "padding0",
+            "type": {
+              "array": [
+                "u8",
+                14
+              ]
+            }
+          },
+          {
+            "name": "padding1",
+            "type": {
+              "array": [
+                "u128",
+                5
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "presaleRegistryArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "buyerMinimumDepositCap",
+            "type": "u64"
+          },
+          {
+            "name": "buyerMaximumDepositCap",
+            "type": "u64"
+          },
+          {
+            "name": "presaleSupply",
+            "type": "u64"
+          },
+          {
+            "name": "depositFeeBps",
+            "type": "u16"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u8",
+                32
               ]
             }
           }
@@ -3473,27 +3888,6 @@ export type Presale = {
           {
             "name": "length",
             "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "tokenomicArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "presalePoolSupply",
-            "type": "u64"
-          },
-          {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                4
-              ]
-            }
           }
         ]
       }

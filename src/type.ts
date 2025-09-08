@@ -8,6 +8,7 @@ export type RemainingAccountsSlice =
   IdlTypes<PresaleTypes>["remainingAccountsSlice"];
 export type PresaleAccount = IdlAccounts<PresaleTypes>["presale"];
 export type EscrowAccount = IdlAccounts<PresaleTypes>["escrow"];
+export type PresaleRegistry = IdlTypes<PresaleTypes>["presaleRegistry"];
 
 export enum UnsoldTokenAction {
   Refund = 0,
@@ -38,6 +39,7 @@ export enum AccountsType {
 
 export interface MerkleProofResponse {
   merkle_root_config: string;
+  deposit_cap: number;
   proof: number[][];
 }
 

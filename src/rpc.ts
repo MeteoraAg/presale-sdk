@@ -1,4 +1,13 @@
-import { Connection, PublicKey } from "@solana/web3.js";
+import {
+  AddressLookupTableAccount,
+  Commitment,
+  ComputeBudgetProgram,
+  Connection,
+  PublicKey,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
 
 export async function fetchMultipleAccountsAutoChunk(
   connection: Connection,
@@ -22,3 +31,45 @@ export async function fetchMultipleAccountsAutoChunk(
     )
   ).then((results) => results.flat());
 }
+
+export const getSimulationComputeUnits = async (
+  connection: Connection,
+  instructions: Array<TransactionInstruction>,
+  payer: PublicKey,
+  lookupTables: Array<AddressLookupTableAccount> | [],
+  commitment: Commitment = "confirmed"
+): Promise<number | null> => {
+  const testInstructions = [
+    // Set an arbitrarily high number in simulation
+    // so we can be sure the transaction will succeed
+    // and get the real compute units used
+    ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
+    ...instructions,
+  ];
+
+  const testTransaction = new VersionedTransaction(
+    new TransactionMessage({
+      instructions: testInstructions,
+      payerKey: payer,
+      // RecentBlockhash can by any public key during simulation
+      // since 'replaceRecentBlockhash' is set to 'true' below
+      recentBlockhash: PublicKey.default.toString(),
+    }).compileToV0Message(lookupTables)
+  );
+
+  const rpcResponse = await connection.simulateTransaction(testTransaction, {
+    replaceRecentBlockhash: true,
+    sigVerify: false,
+    commitment,
+  });
+
+  if (rpcResponse?.value?.err) {
+    const logs = rpcResponse.value.logs?.join("\n  • ") || "No logs available";
+    throw new Error(
+      `Transaction simulation failed:\n  •${logs}` +
+        JSON.stringify(rpcResponse?.value?.err)
+    );
+  }
+
+  return rpcResponse.value.unitsConsumed || null;
+};

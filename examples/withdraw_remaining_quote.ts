@@ -1,4 +1,5 @@
 import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { BN } from "bn.js";
 import fs from "fs";
 import os from "os";
 import { PRESALE_PROGRAM_ID } from "../src";
@@ -17,21 +18,33 @@ async function withdrawRemainingQuote(
     PRESALE_PROGRAM_ID
   );
 
-  const withdrawTx = await presaleInstance.withdrawRemainingQuote({
-    owner: user.publicKey,
-  });
+  const escrows = await presaleInstance.getPresaleEscrowByOwner(user.publicKey);
 
-  withdrawTx.sign(user);
-  const txSig = await connection.sendRawTransaction(withdrawTx.serialize());
+  const withdrawTxs = await Promise.all(
+    escrows.map(async (escrow) => {
+      const escrowAccount = escrow.getEscrowAccount();
+      return presaleInstance.withdrawRemainingQuote({
+        owner: escrowAccount.owner,
+        registryIndex: new BN(escrowAccount.registryIndex),
+      });
+    })
+  );
 
-  console.log("Withdraw remaining quote transaction sent:", txSig);
-  await connection.confirmTransaction(
-    {
-      signature: txSig,
-      lastValidBlockHeight: withdrawTx.lastValidBlockHeight,
-      blockhash: withdrawTx.recentBlockhash,
-    },
-    "finalized"
+  await Promise.all(
+    withdrawTxs.map(async (withdrawTx) => {
+      withdrawTx.sign(user);
+      const txSig = await connection.sendRawTransaction(withdrawTx.serialize());
+
+      console.log("Withdraw remaining quote transaction sent:", txSig);
+      await connection.confirmTransaction(
+        {
+          signature: txSig,
+          lastValidBlockHeight: withdrawTx.lastValidBlockHeight,
+          blockhash: withdrawTx.recentBlockhash,
+        },
+        "finalized"
+      );
+    })
   );
 }
 
@@ -41,7 +54,7 @@ const keypair = Keypair.fromSecretKey(
 );
 
 const presaleAddress = new PublicKey(
-  "g3W9QTRZMMQJJgTfmQvP3xQ3wFHcEwLbNMiPxPgxgeA"
+  "2Hw4PgTbU6kp2zmfqgJpdjts4ojap1ob7D2gUzpfzzR1"
 );
 
 withdrawRemainingQuote(connection, presaleAddress, keypair);

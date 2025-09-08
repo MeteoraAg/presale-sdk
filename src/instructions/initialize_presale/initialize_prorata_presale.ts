@@ -43,7 +43,6 @@ export async function createInitializeProrataPresaleIx(
 ): Promise<TransactionInstruction> {
   const {
     program,
-    tokenomicArgs,
     presaleArgs,
     lockedVestingArgs,
     baseMintPubkey,
@@ -51,6 +50,7 @@ export async function createInitializeProrataPresaleIx(
     creatorPubkey,
     feePayerPubkey,
     basePubkey,
+    presaleRegistries,
   } = params;
 
   const presale = derivePresale(
@@ -103,10 +103,6 @@ export async function createInitializeProrataPresaleIx(
     .initializePresale(
       // @ts-expect-error
       {
-        tokenomic: {
-          ...tokenomicArgs,
-          padding: new Array(4).fill(new BN(0)),
-        },
         presaleParams: {
           ...presaleArgs,
           presaleMode: PresaleMode.Prorata,
@@ -118,11 +114,15 @@ export async function createInitializeProrataPresaleIx(
               padding: new Array(4).fill(new BN(0)),
             }
           : {
+              immediatelyReleaseBps: 0,
               lockDuration: new BN(0),
               vestDuration: new BN(0),
               padding: new Array(4).fill(new BN(0)),
             },
+        padding: new Array(4).fill(new BN(0)),
+        presaleRegistries,
       },
+
       {
         slices,
       }

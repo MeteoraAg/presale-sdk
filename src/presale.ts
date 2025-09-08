@@ -1,6 +1,7 @@
 import { Program } from "@coral-xyz/anchor";
 import {
   AccountInfo,
+  ComputeBudgetProgram,
   Connection,
   PublicKey,
   Transaction,
@@ -14,15 +15,21 @@ import {
   PresaleProgram,
   Rounding,
   TransferHookAccountInfo,
-  UnsoldTokenAction,
   WhitelistMode,
 } from "./type";
 
 import { Mint, unpackMint } from "@solana/spl-token";
-import { BN } from "bn.js";
+import BN from "bn.js";
 import Decimal from "decimal.js";
 import { PRESALE_PROGRAM_ID } from ".";
-import { BalanceTree } from "../libs/merkle_tree";
+import { BalanceTree, WhitelistedWallet } from "../libs/merkle_tree";
+import {
+  getEscrowFilter,
+  getEscrowPresaleFilter,
+  getEscrowRegistryIndexFilter,
+  getPresaleFilter,
+} from "./accounts";
+import { EscrowWrapper, IEscrowWrapper } from "./accounts/escrow_wrapper";
 import { PresaleWrapper } from "./accounts/presale_wrapper";
 import type { Presale as PresaleTypes } from "./idl/presale";
 import PresaleIDL from "./idl/presale.json";
@@ -32,6 +39,7 @@ import {
   createCloseEscrowIx,
   createCloseFixedPriceArgsIx,
   createClosePermissionedServerMetadataIx,
+  createCreatorCollectFeeIx,
   createCreatorWithdrawIx,
   createInitializeFcfsPresaleIx,
   createInitializeFixedPricePresaleIx,
@@ -60,7 +68,6 @@ import {
   ICreatePermissionedEscrowWithMerkleProofParams,
   ICreatePermissionlessEscrowParams,
   ICreatorWithdrawParams,
-  IPerformUnsoldBaseTokenActionParams,
   IRefreshEscrowParams,
   IRevokeOperatorParams,
   IWithdrawParams,
@@ -73,14 +80,11 @@ import {
 import { createDepositIx, IDepositParams } from "./instructions/deposit";
 import { uiPriceToQPrice } from "./math";
 import { deriveEscrow, deriveMerkleRootConfig } from "./pda";
-import { getSliceAndExtraAccountMetasForTransferHook } from "./token2022";
-import { EscrowWrapper, IEscrowWrapper } from "./accounts/escrow_wrapper";
 import {
-  getEscrowFilter,
-  getEscrowPresaleFilter,
-  getPresaleFilter,
-} from "./accounts";
-import { fetchMultipleAccountsAutoChunk } from "./rpc";
+  fetchMultipleAccountsAutoChunk,
+  getSimulationComputeUnits,
+} from "./rpc";
+import { getSliceAndExtraAccountMetasForTransferHook } from "./token2022";
 
 /**
  * Creates and returns an instance of the Presale program.
@@ -182,6 +186,28 @@ async function fetchAccountsForCache(
   };
 }
 
+async function buildTransactionWithOptimizedComputeUnit(
+  connection: Connection,
+  instructions: TransactionInstruction[],
+  feePayer: PublicKey
+) {
+  const estimatedComputeUnit = await getSimulationComputeUnits(
+    connection,
+    instructions,
+    feePayer,
+    []
+  ).catch((_e) => {
+    // Follow default behavior of default CU
+    return Math.min(1_400_000, instructions.length * 200_000);
+  });
+
+  const setCuIx = ComputeBudgetProgram.setComputeUnitLimit({
+    units: estimatedComputeUnit,
+  });
+
+  return buildTransaction(connection, [setCuIx, ...instructions], feePayer);
+}
+
 async function buildTransaction(
   connection: Connection,
   instructions: TransactionInstruction[],
@@ -265,7 +291,7 @@ class Presale {
       ...params,
     });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       connection,
       [initializePresaleIx],
       params.feePayerPubkey
@@ -294,7 +320,7 @@ class Presale {
       ...params,
     });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       connection,
       [initializePresaleIx],
       params.feePayerPubkey
@@ -318,7 +344,6 @@ class Presale {
     programId: PublicKey,
     presaleParams: Omit<ICreateInitializePresaleIxParams, "program">,
     fixedPriceParams: {
-      unsoldTokenAction: UnsoldTokenAction;
       price: Decimal;
       rounding: Rounding;
     }
@@ -347,7 +372,6 @@ class Presale {
         feePayerPubkey: presaleParams.feePayerPubkey,
         basePubkey: presaleParams.basePubkey,
         ownerPubkey: presaleParams.creatorPubkey,
-        unsoldTokenAction: fixedPriceParams.unsoldTokenAction,
         qPrice: uiPriceToQPrice(
           fixedPriceParams.price.toNumber(),
           baseMint.decimals,
@@ -358,7 +382,7 @@ class Presale {
       }
     );
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       connection,
       initializePresaleIxs,
       presaleParams.feePayerPubkey
@@ -394,7 +418,7 @@ class Presale {
       owner,
     });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       connection,
       [closeFixedPricePresaleArgsIx],
       params.owner
@@ -424,7 +448,7 @@ class Presale {
 
     const { creator } = params;
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       this.program.provider.connection,
       [initMerkleRootConfigIx],
       creator
@@ -449,22 +473,21 @@ class Presale {
       ICreateMerkleRootConfigParams,
       "presaleProgram" | "presaleAddress" | "version" | "root"
     > & {
-      addresses: PublicKey[];
-      addressPerTree?: number;
+      whitelistWallets: WhitelistedWallet[];
+      walletPerTree?: number;
     }
   ) {
-    let { addresses, addressPerTree, creator } = params;
-    addressPerTree = addressPerTree || 10_000;
+    let { whitelistWallets, walletPerTree, creator } = params;
+    walletPerTree = walletPerTree || 10_000;
 
     const merkleTrees: BalanceTree[] = [];
 
-    while (addresses.length > 0) {
-      const chunkedAddress = addresses.splice(0, addressPerTree);
-      const balanceTree = new BalanceTree(
-        chunkedAddress.map((address) => ({
-          account: address,
-        }))
+    while (whitelistWallets.length > 0) {
+      const chunkledWhitelistWallets = whitelistWallets.splice(
+        0,
+        walletPerTree
       );
+      const balanceTree = new BalanceTree(chunkledWhitelistWallets);
       merkleTrees.push(balanceTree);
     }
 
@@ -510,14 +533,14 @@ class Presale {
       ICreateMerkleRootConfigParams,
       "presaleProgram" | "presaleAddress" | "version" | "root"
     > & {
-      addresses: PublicKey[];
-      addressPerTree?: number;
+      whitelistWallets: WhitelistedWallet[];
+      walletPerTree?: number;
     }
   ): Promise<{
     [address: string]: MerkleProofResponse;
   }> {
-    let { addresses, addressPerTree, creator } = params;
-    addressPerTree = addressPerTree || 10_000;
+    let { whitelistWallets, walletPerTree, creator } = params;
+    walletPerTree = walletPerTree || 10_000;
 
     let merkleProofs: {
       [address: string]: MerkleProofResponse;
@@ -525,13 +548,9 @@ class Presale {
 
     let version = 0;
 
-    while (addresses.length > 0) {
-      const chunkedAddress = addresses.splice(0, addressPerTree);
-      const balanceTree = new BalanceTree(
-        chunkedAddress.map((address) => ({
-          account: address,
-        }))
-      );
+    while (whitelistWallets.length > 0) {
+      const chunkedWhitelistWallets = whitelistWallets.splice(0, walletPerTree);
+      const balanceTree = new BalanceTree(chunkedWhitelistWallets);
 
       const merkleRootConfig = deriveMerkleRootConfig(
         this.presaleAddress,
@@ -539,11 +558,13 @@ class Presale {
         new BN(version)
       );
 
-      for (const address of chunkedAddress) {
-        const proof = balanceTree.getProof(address);
-        merkleProofs[address.toBase58()] = {
+      for (const whitelistWallet of chunkedWhitelistWallets) {
+        const proof = balanceTree.getProof(whitelistWallet);
+        const { account, depositCap } = whitelistWallet;
+        merkleProofs[account.toBase58()] = {
           merkle_root_config: merkleRootConfig.toBase58(),
           proof: proof.map((p) => Array.from(p)),
+          deposit_cap: depositCap.toNumber(),
         };
       }
 
@@ -574,7 +595,7 @@ class Presale {
       ...params,
     });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       this.program.provider.connection,
       [initPermissionlessEscrowIx],
       params.payer
@@ -630,7 +651,7 @@ class Presale {
         ...params,
       });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       this.program.provider.connection,
       [initPermissionedEscrowIx],
       params.payer
@@ -661,7 +682,7 @@ class Presale {
         ...params,
       });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       this.program.provider.connection,
       [initPermissionedEscrowWithCreatorIx],
       params.payer
@@ -722,7 +743,7 @@ class Presale {
       creator,
     });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       program.provider.connection,
       [revokeOperatorIx],
       creator
@@ -796,6 +817,7 @@ class Presale {
             presaleProgram: this.program,
             owner: params.owner,
             payer: params.owner,
+            registryIndex: params.registryIndex,
           });
 
         if (initEscrowIx) {
@@ -807,6 +829,7 @@ class Presale {
         const escrow = deriveEscrow(
           this.presaleAddress,
           params.owner,
+          params.registryIndex,
           this.program.programId
         );
         const escrowState = await this.program.account.escrow.fetchNullable(
@@ -821,6 +844,7 @@ class Presale {
             presaleAccount: this.presaleAccount,
             amount: params.amount,
             owner: params.owner,
+            registryIndex: params.registryIndex,
           });
         }
       }
@@ -834,7 +858,7 @@ class Presale {
       ...params,
     });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       this.program.provider.connection,
       [...preInstructions, ...depositIx],
       params.owner
@@ -870,7 +894,7 @@ class Presale {
       ...params,
     });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       this.program.provider.connection,
       withdrawIxs,
       params.owner
@@ -905,7 +929,7 @@ class Presale {
       ...params,
     });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       this.program.provider.connection,
       claimIxs,
       params.owner
@@ -942,7 +966,7 @@ class Presale {
       ...params,
     });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       this.program.provider.connection,
       withdrawRemainingQuoteIxs,
       params.owner
@@ -968,7 +992,7 @@ class Presale {
         creator: this.presaleAccount.owner,
       });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       this.program.provider.connection,
       performUnsoldBaseTokenActionIxs,
       payer
@@ -1005,7 +1029,7 @@ class Presale {
       ...params,
     });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       this.program.provider.connection,
       withdrawIxs,
       params.creator
@@ -1031,7 +1055,7 @@ class Presale {
       ...params,
     });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       this.program.provider.connection,
       [closeEscrowIx],
       params.owner
@@ -1061,7 +1085,7 @@ class Presale {
         ...params,
       });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       this.program.provider.connection,
       [createPermissionedServerMetadataIx],
       params.owner
@@ -1092,7 +1116,7 @@ class Presale {
         ...params,
       });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       this.program.provider.connection,
       [closePermissionedServerMetadataIx],
       params.owner
@@ -1117,10 +1141,37 @@ class Presale {
       ...params,
     });
 
-    return buildTransaction(
+    return buildTransactionWithOptimizedComputeUnit(
       this.program.provider.connection,
       [refreshEscrowIx],
       params.owner
+    );
+  }
+
+  /**
+   * Collects the creator fee from the presale contract.
+   *
+   * This method generates the necessary instructions to collect the creator's fee
+   * by invoking `createCreatorCollectFeeIx` with the current presale context.
+   * It then builds and returns a transaction for the fee collection, signed by the
+   * presale account owner.
+   *
+   * @returns {Promise<Transaction>} A promise that resolves to the constructed transaction for collecting the creator fee.
+   *
+   * @throws {Error} If instruction creation or transaction building fails.
+   */
+  async creatorCollectFee() {
+    const creatorCollectFeeIxs = await createCreatorCollectFeeIx({
+      presaleProgram: this.program,
+      presaleAddress: this.presaleAddress,
+      presaleAccount: this.presaleAccount,
+      quoteTransferHookAccountInfo: this.quoteTransferHookAccountInfo,
+    });
+
+    return buildTransactionWithOptimizedComputeUnit(
+      this.program.provider.connection,
+      creatorCollectFeeIxs,
+      this.presaleAccount.owner
     );
   }
 
@@ -1130,39 +1181,49 @@ class Presale {
    * @param owner - The public key of the escrow owner.
    * @returns A promise that resolves to the escrow account data if it exists, or `null` if not found.
    */
-  async getPresaleEscrowByOwner(
-    owner: PublicKey
-  ): Promise<IEscrowWrapper | null> {
-    const escrow = deriveEscrow(
-      this.presaleAddress,
-      owner,
-      this.program.programId
-    );
-
-    const accounts =
-      await this.program.provider.connection.getMultipleAccountsInfo([
-        escrow,
-        this.presaleAddress,
-      ]);
-
-    const [escrowAccount, presaleAccount] = accounts;
-
-    if (!escrowAccount) {
-      return null;
-    }
-
-    this.updatePresaleCache(presaleAccount);
-
-    const decodedEscrow: EscrowAccount = this.program.coder.accounts.decode(
-      "escrow",
-      escrowAccount.data
-    );
-
-    return new EscrowWrapper(
-      decodedEscrow,
+  async getPresaleEscrowByOwner(owner: PublicKey): Promise<IEscrowWrapper[]> {
+    const presaleWrapper = new PresaleWrapper(
+      this.presaleAccount,
       this.baseMint.decimals,
       this.quoteMint.decimals
     );
+
+    const initializedPresaleRegistries =
+      presaleWrapper.getAllPresaleRegistries();
+
+    const escrowAddresses = initializedPresaleRegistries.map((registry) => {
+      return deriveEscrow(
+        this.presaleAddress,
+        owner,
+        new BN(registry.getRegistryIndex()),
+        this.program.programId
+      );
+    });
+
+    const accounts =
+      await this.program.provider.connection.getMultipleAccountsInfo([
+        this.presaleAddress,
+        ...escrowAddresses,
+      ]);
+
+    const [presaleAccount, ...escrowAccounts] = accounts;
+
+    this.updatePresaleCache(presaleAccount);
+
+    const validEscrowAccounts = escrowAccounts.filter(Boolean);
+
+    return validEscrowAccounts.map((account) => {
+      const decodedEscrow: EscrowAccount = this.program.coder.accounts.decode(
+        "escrow",
+        account.data
+      );
+
+      return new EscrowWrapper(
+        decodedEscrow,
+        this.baseMint.decimals,
+        this.quoteMint.decimals
+      );
+    });
   }
 
   /**
@@ -1184,6 +1245,39 @@ class Presale {
         filters: [
           getEscrowFilter(),
           getEscrowPresaleFilter(this.presaleAddress),
+        ],
+        encoding: "base64",
+        dataSlice: {
+          offset: 0,
+          length: 0,
+        },
+      })
+      .then((response) => {
+        return response.map(({ pubkey }) => pubkey);
+      });
+
+    const accounts = await fetchMultipleAccountsAutoChunk(
+      this.program.provider.connection,
+      escrowAddresses
+    );
+
+    return accounts.map(({ pubkey, account }) => {
+      return {
+        pubkey,
+        account: this.program.coder.accounts.decode("escrow", account.data),
+      };
+    });
+  }
+
+  async getEscrowsByPresaleRegistry(
+    registryIndex: BN
+  ): Promise<{ pubkey: PublicKey; account: EscrowAccount }[]> {
+    const escrowAddresses = await this.program.provider.connection
+      .getProgramAccounts(this.program.programId, {
+        filters: [
+          getEscrowFilter(),
+          getEscrowPresaleFilter(this.presaleAddress),
+          getEscrowRegistryIndexFilter(registryIndex),
         ],
         encoding: "base64",
         dataSlice: {

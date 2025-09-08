@@ -21,6 +21,7 @@ export interface IDepositParams {
   owner: PublicKey;
   amount: BN;
   transferHookAccountInfo: TransferHookAccountInfo;
+  registryIndex: BN;
 }
 
 export async function createDepositIx(params: IDepositParams) {
@@ -31,11 +32,17 @@ export async function createDepositIx(params: IDepositParams) {
     owner,
     amount,
     transferHookAccountInfo,
+    registryIndex,
   } = params;
 
   const { slices, extraAccountMetas } = transferHookAccountInfo;
 
-  const escrow = deriveEscrow(presaleAddress, owner, presaleProgram.programId);
+  const escrow = deriveEscrow(
+    presaleAddress,
+    owner,
+    registryIndex,
+    presaleProgram.programId
+  );
 
   const quoteTokenProgram = getTokenProgramIdFromFlag(
     presaleAccount.quoteTokenProgramFlag

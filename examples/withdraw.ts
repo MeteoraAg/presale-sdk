@@ -19,23 +19,35 @@ async function withdraw(
     PRESALE_PROGRAM_ID
   );
 
-  const withdrawTx = await presaleInstance.withdraw({
-    amount,
-    owner: user.publicKey,
-  });
+  const escrows = await presaleInstance.getPresaleEscrowByOwner(user.publicKey);
 
-  withdrawTx.sign(user);
+  const withdrawTxs = await Promise.all(
+    escrows.map(async (escrow) => {
+      const escrowAccount = escrow.getEscrowAccount();
+      return presaleInstance.withdraw({
+        amount,
+        owner: escrowAccount.owner,
+        registryIndex: new BN(escrowAccount.registryIndex),
+      });
+    })
+  );
 
-  const txSig = await connection.sendRawTransaction(withdrawTx.serialize());
-  console.log("Withdraw transaction sent:", txSig);
+  await Promise.all(
+    withdrawTxs.map(async (withdrawTx) => {
+      withdrawTx.sign(user);
 
-  await connection.confirmTransaction(
-    {
-      signature: txSig,
-      lastValidBlockHeight: withdrawTx.lastValidBlockHeight,
-      blockhash: withdrawTx.recentBlockhash,
-    },
-    "finalized"
+      const txSig = await connection.sendRawTransaction(withdrawTx.serialize());
+      console.log("Withdraw transaction sent:", txSig);
+
+      await connection.confirmTransaction(
+        {
+          signature: txSig,
+          lastValidBlockHeight: withdrawTx.lastValidBlockHeight,
+          blockhash: withdrawTx.recentBlockhash,
+        },
+        "finalized"
+      );
+    })
   );
 }
 
@@ -45,7 +57,7 @@ const keypair = Keypair.fromSecretKey(
 );
 
 const presaleAddress = new PublicKey(
-  "5tDHssKGhvNVSzMThrp7jsJmNp9BJrkXJpEhVW4HoPmx"
+  "DpRrSp5tMv31cpa19bNHELGtFH6tymNGNBvLPCHxFezt"
 );
 
 const amount = new BN(1000000);
