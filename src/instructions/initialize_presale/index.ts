@@ -1,23 +1,29 @@
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
-import { PresaleMode, PresaleProgram, WhitelistMode } from "../../type";
+import {
+  PresaleMode,
+  PresaleProgram,
+  PresaleRegistryArgs,
+  UnsoldTokenAction,
+  WhitelistMode,
+} from "../../type";
 
 export * from "./initialize_fcfs_presale";
 export * from "./initialize_fixed_price_presale";
 export * from "./initialize_prorata_presale";
 
-export interface ITokenomicArgs {
-  presalePoolSupply: BN;
-}
+export type IPresaleRegistryArgsWithoutPadding = Omit<
+  PresaleRegistryArgs,
+  "padding"
+>;
 
 export interface IPresaleArgs {
   presaleMaximumCap: BN;
   presaleMinimumCap: BN;
-  buyerMinimumDepositCap: BN;
-  buyerMaximumDepositCap: BN;
   presaleStartTime: BN;
   presaleEndTime: BN;
   whitelistMode: WhitelistMode;
+  unsoldTokenAction: UnsoldTokenAction;
   presaleMode: PresaleMode;
 }
 
@@ -28,9 +34,9 @@ export interface ILockedVestingArgs {
 
 export interface ICreateInitializePresaleIxParams {
   program: PresaleProgram;
-  tokenomicArgs: ITokenomicArgs;
   presaleArgs: Omit<IPresaleArgs, "presaleMode">;
   lockedVestingArgs?: ILockedVestingArgs;
+  presaleRegistries: IPresaleRegistryArgsWithoutPadding[];
   basePubkey: PublicKey;
   baseMintPubkey: PublicKey;
   quoteMintPubkey: PublicKey;

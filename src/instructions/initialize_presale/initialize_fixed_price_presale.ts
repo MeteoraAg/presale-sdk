@@ -28,7 +28,6 @@ interface ICreateInitializeFixedPricePresaleArgsIxParams {
   basePubkey: PublicKey;
   ownerPubkey: PublicKey;
   feePayerPubkey: PublicKey;
-  unsoldTokenAction: UnsoldTokenAction;
   qPrice: BN;
 }
 
@@ -51,7 +50,6 @@ export async function createInitializeFixedPricePresaleArgsIx(
     quoteMintPubkey,
     basePubkey,
     ownerPubkey,
-    unsoldTokenAction,
     feePayerPubkey,
     qPrice,
   } = params;
@@ -71,9 +69,9 @@ export async function createInitializeFixedPricePresaleArgsIx(
   const ix = await program.methods
     .initializeFixedPricePresaleArgs({
       presale,
-      unsoldTokenAction,
+      padding0: 0,
       qPrice,
-      padding: new Array(8).fill(new BN(0)),
+      padding1: new Array(8).fill(new BN(0)),
     })
     .accountsPartial({
       fixedPricePresaleParams,
@@ -92,7 +90,7 @@ export async function createInitializeFixedPricePresaleIx(
 ): Promise<TransactionInstruction[]> {
   const {
     program,
-    tokenomicArgs,
+    presaleRegistries,
     presaleArgs,
     lockedVestingArgs,
     baseMintPubkey,
@@ -144,15 +142,17 @@ export async function createInitializeFixedPricePresaleIx(
     .initializePresale(
       // @ts-expect-error
       {
-        tokenomic: {
-          ...tokenomicArgs,
-          padding: new Array(4).fill(new BN(0)),
-        },
         presaleParams: {
           ...presaleArgs,
           presaleMode: PresaleMode.FixedPrice,
           padding: new Array(4).fill(new BN(0)),
         },
+        presaleRegistries: presaleRegistries.map((registry) => {
+          return {
+            ...registry,
+            padding: new Array(4).fill(new BN(0)),
+          };
+        }),
         lockedVestingParams: lockedVestingArgs
           ? {
               ...lockedVestingArgs,

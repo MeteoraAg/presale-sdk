@@ -5,79 +5,63 @@
  * IDL can be found at `target/idl/presale.json`.
  */
 export type Presale = {
-  "address": "2TEbURHCQNsVyGFUm2appkEsuSShKkUUdVqtC5Xn7zw9",
-  "metadata": {
-    "name": "presale",
-    "version": "0.1.0",
-    "spec": "0.1.0",
-    "description": "Created with Anchor"
-  },
-  "instructions": [
+  address: "presSVxnf9UU8jMxhgSMqaRwNiT36qeBdNeTRKjTdbj";
+  metadata: {
+    name: "presale";
+    version: "0.1.0";
+    spec: "0.1.0";
+    description: "Created with Anchor";
+  };
+  instructions: [
     {
-      "name": "claim",
-      "discriminator": [
-        62,
-        198,
-        214,
-        193,
-        213,
-        159,
-        108,
-        210
-      ],
-      "accounts": [
+      name: "claim";
+      discriminator: [62, 198, 214, 193, 213, 159, 108, 210];
+      accounts: [
         {
-          "name": "presale",
-          "writable": true,
-          "relations": [
-            "escrow"
-          ]
+          name: "presale";
+          writable: true;
+          relations: ["escrow"];
         },
         {
-          "name": "baseTokenVault",
-          "writable": true,
-          "relations": [
-            "presale"
-          ]
+          name: "baseTokenVault";
+          writable: true;
+          relations: ["presale"];
         },
         {
-          "name": "baseMint",
-          "relations": [
-            "presale"
-          ]
+          name: "baseMint";
+          relations: ["presale"];
         },
         {
-          "name": "presaleAuthority",
-          "address": "GwyAYgXqXaMAC5cHmwecU7uuu2bGiPHiP8eQY2kSNnkc"
+          name: "presaleAuthority";
+          address: "ECMXFSYJrZvVN7zEAtjU8vUWNCZmisvj7CnvgPqkjKJx";
         },
         {
-          "name": "escrow",
-          "writable": true
+          name: "escrow";
+          writable: true;
         },
         {
-          "name": "ownerBaseToken"
+          name: "ownerBaseToken";
+          writable: true;
         },
         {
-          "name": "owner",
-          "signer": true,
-          "relations": [
-            "escrow"
-          ]
+          name: "owner";
+          signer: true;
+          relations: ["escrow"];
         },
         {
-          "name": "tokenProgram"
+          name: "tokenProgram";
         },
         {
-          "name": "memoProgram",
-          "address": "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"
+          name: "memoProgram";
+          address: "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -95,68 +79,55 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": [
+      ];
+      args: [
         {
-          "name": "remainingAccountsInfo",
-          "type": {
-            "defined": {
-              "name": "remainingAccountsInfo"
-            }
-          }
+          name: "remainingAccountsInfo";
+          type: {
+            defined: {
+              name: "remainingAccountsInfo";
+            };
+          };
         }
-      ]
+      ];
     },
     {
-      "name": "closeEscrow",
-      "discriminator": [
-        139,
-        171,
-        94,
-        146,
-        191,
-        91,
-        144,
-        50
-      ],
-      "accounts": [
+      name: "closeEscrow";
+      discriminator: [139, 171, 94, 146, 191, 91, 144, 50];
+      accounts: [
         {
-          "name": "presale",
-          "writable": true,
-          "relations": [
-            "escrow"
-          ]
+          name: "presale";
+          writable: true;
+          relations: ["escrow"];
         },
         {
-          "name": "escrow",
-          "writable": true
+          name: "escrow";
+          writable: true;
         },
         {
-          "name": "owner",
-          "signer": true,
-          "relations": [
-            "escrow"
-          ]
+          name: "owner";
+          signer: true;
+          relations: ["escrow"];
         },
         {
-          "name": "rentReceiver",
-          "writable": true
+          name: "rentReceiver";
+          writable: true;
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -174,49 +145,38 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": []
+      ];
+      args: [];
     },
     {
-      "name": "closeFixedPricePresaleArgs",
-      "discriminator": [
-        125,
-        65,
-        70,
-        247,
-        99,
-        200,
-        42,
-        225
-      ],
-      "accounts": [
+      name: "closeFixedPricePresaleArgs";
+      discriminator: [125, 65, 70, 247, 99, 200, 42, 225];
+      accounts: [
         {
-          "name": "fixedPricePresaleArgs",
-          "writable": true
+          name: "fixedPricePresaleArgs";
+          writable: true;
         },
         {
-          "name": "owner",
-          "writable": true,
-          "signer": true,
-          "relations": [
-            "fixedPricePresaleArgs"
-          ]
+          name: "owner";
+          writable: true;
+          signer: true;
+          relations: ["fixedPricePresaleArgs"];
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -234,58 +194,45 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": []
+      ];
+      args: [];
     },
     {
-      "name": "closePermissionedServerMetadata",
-      "discriminator": [
-        226,
-        2,
-        147,
-        220,
-        38,
-        247,
-        138,
-        95
-      ],
-      "accounts": [
+      name: "closePermissionedServerMetadata";
+      discriminator: [226, 2, 147, 220, 38, 247, 138, 95];
+      accounts: [
         {
-          "name": "presale",
-          "relations": [
-            "permissionedServerMetadata"
-          ]
+          name: "presale";
+          relations: ["permissionedServerMetadata"];
         },
         {
-          "name": "permissionedServerMetadata",
-          "writable": true
+          name: "permissionedServerMetadata";
+          writable: true;
         },
         {
-          "name": "rentReceiver",
-          "writable": true
+          name: "rentReceiver";
+          writable: true;
         },
         {
-          "name": "owner",
-          "signer": true,
-          "relations": [
-            "presale"
-          ]
+          name: "owner";
+          signer: true;
+          relations: ["presale"];
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -303,81 +250,60 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": []
+      ];
+      args: [];
     },
     {
-      "name": "createMerkleRootConfig",
-      "discriminator": [
-        55,
-        243,
-        253,
-        240,
-        78,
-        186,
-        232,
-        166
-      ],
-      "accounts": [
+      name: "createMerkleRootConfig";
+      discriminator: [55, 243, 253, 240, 78, 186, 232, 166];
+      accounts: [
         {
-          "name": "presale"
+          name: "presale";
         },
         {
-          "name": "merkleRootConfig",
-          "writable": true,
-          "pda": {
-            "seeds": [
+          name: "merkleRootConfig";
+          writable: true;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
-                  109,
-                  101,
-                  114,
-                  107,
-                  108,
-                  101,
-                  95,
-                  114,
-                  111,
-                  111,
-                  116
-                ]
+                kind: "const";
+                value: [109, 101, 114, 107, 108, 101, 95, 114, 111, 111, 116];
               },
               {
-                "kind": "account",
-                "path": "presale"
+                kind: "account";
+                path: "presale";
               },
               {
-                "kind": "arg",
-                "path": "params.version"
+                kind: "arg";
+                path: "params.version";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "creator",
-          "writable": true,
-          "signer": true
+          name: "creator";
+          writable: true;
+          signer: true;
         },
         {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
+          name: "systemProgram";
+          address: "11111111111111111111111111111111";
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -395,87 +321,69 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": [
+      ];
+      args: [
         {
-          "name": "params",
-          "type": {
-            "defined": {
-              "name": "createMerkleRootConfigParams"
-            }
-          }
+          name: "params";
+          type: {
+            defined: {
+              name: "createMerkleRootConfigParams";
+            };
+          };
         }
-      ]
+      ];
     },
     {
-      "name": "createOperator",
-      "discriminator": [
-        145,
-        40,
-        238,
-        75,
-        181,
-        252,
-        59,
-        11
-      ],
-      "accounts": [
+      name: "createOperator";
+      discriminator: [145, 40, 238, 75, 181, 252, 59, 11];
+      accounts: [
         {
-          "name": "operator",
-          "writable": true,
-          "pda": {
-            "seeds": [
+          name: "operator";
+          writable: true;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
-                  111,
-                  112,
-                  101,
-                  114,
-                  97,
-                  116,
-                  111,
-                  114
-                ]
+                kind: "const";
+                value: [111, 112, 101, 114, 97, 116, 111, 114];
               },
               {
-                "kind": "account",
-                "path": "creator"
+                kind: "account";
+                path: "creator";
               },
               {
-                "kind": "account",
-                "path": "operatorOwner"
+                kind: "account";
+                path: "operatorOwner";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "operatorOwner"
+          name: "operatorOwner";
         },
         {
-          "name": "creator",
-          "writable": true,
-          "signer": true
+          name: "creator";
+          writable: true;
+          signer: true;
         },
         {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
+          name: "systemProgram";
+          address: "11111111111111111111111111111111";
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -493,87 +401,75 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": []
+      ];
+      args: [];
     },
     {
-      "name": "createPermissionedEscrowWithCreator",
-      "discriminator": [
-        131,
-        130,
-        26,
-        39,
-        200,
-        38,
-        18,
-        173
-      ],
-      "accounts": [
+      name: "createPermissionedEscrowWithCreator";
+      discriminator: [131, 130, 26, 39, 200, 38, 18, 173];
+      accounts: [
         {
-          "name": "presale",
-          "writable": true
+          name: "presale";
+          writable: true;
         },
         {
-          "name": "escrow",
-          "writable": true,
-          "pda": {
-            "seeds": [
+          name: "escrow";
+          writable: true;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
-                  101,
-                  115,
-                  99,
-                  114,
-                  111,
-                  119
-                ]
+                kind: "const";
+                value: [101, 115, 99, 114, 111, 119];
               },
               {
-                "kind": "account",
-                "path": "presale"
+                kind: "account";
+                path: "presale";
               },
               {
-                "kind": "account",
-                "path": "owner"
+                kind: "account";
+                path: "owner";
+              },
+              {
+                kind: "arg";
+                path: "params.registry_index";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "owner"
+          name: "owner";
         },
         {
-          "name": "operator"
+          name: "operator";
         },
         {
-          "name": "operatorOwner",
-          "signer": true
+          name: "operatorOwner";
+          signer: true;
         },
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
+          name: "payer";
+          writable: true;
+          signer: true;
         },
         {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
+          name: "systemProgram";
+          address: "11111111111111111111111111111111";
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -591,86 +487,81 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": []
+      ];
+      args: [
+        {
+          name: "params";
+          type: {
+            defined: {
+              name: "createPermissionedEscrowWithCreatorParams";
+            };
+          };
+        }
+      ];
     },
     {
-      "name": "createPermissionedEscrowWithMerkleProof",
-      "discriminator": [
-        62,
-        200,
-        54,
-        145,
-        59,
-        239,
-        91,
-        5
-      ],
-      "accounts": [
+      name: "createPermissionedEscrowWithMerkleProof";
+      discriminator: [62, 200, 54, 145, 59, 239, 91, 5];
+      accounts: [
         {
-          "name": "presale",
-          "writable": true,
-          "relations": [
-            "merkleRootConfig"
-          ]
+          name: "presale";
+          writable: true;
+          relations: ["merkleRootConfig"];
         },
         {
-          "name": "escrow",
-          "writable": true,
-          "pda": {
-            "seeds": [
+          name: "escrow";
+          writable: true;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
-                  101,
-                  115,
-                  99,
-                  114,
-                  111,
-                  119
-                ]
+                kind: "const";
+                value: [101, 115, 99, 114, 111, 119];
               },
               {
-                "kind": "account",
-                "path": "presale"
+                kind: "account";
+                path: "presale";
               },
               {
-                "kind": "account",
-                "path": "owner"
+                kind: "account";
+                path: "owner";
+              },
+              {
+                kind: "arg";
+                path: "params.registry_index";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "owner"
+          name: "owner";
         },
         {
-          "name": "merkleRootConfig"
+          name: "merkleRootConfig";
         },
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
+          name: "payer";
+          writable: true;
+          signer: true;
         },
         {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
+          name: "systemProgram";
+          address: "11111111111111111111111111111111";
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -688,53 +579,41 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": [
+      ];
+      args: [
         {
-          "name": "proof",
-          "type": {
-            "vec": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
-          }
+          name: "params";
+          type: {
+            defined: {
+              name: "createPermissionedEscrowWithMerkleProofParams";
+            };
+          };
         }
-      ]
+      ];
     },
     {
-      "name": "createPermissionedServerMetadata",
-      "discriminator": [
-        139,
-        13,
-        120,
-        145,
-        18,
-        209,
-        185,
-        180
-      ],
-      "accounts": [
+      name: "createPermissionedServerMetadata";
+      discriminator: [139, 13, 120, 145, 18, 209, 185, 180];
+      accounts: [
         {
-          "name": "presale"
+          name: "presale";
         },
         {
-          "name": "permissionedServerMetadata",
-          "writable": true,
-          "pda": {
-            "seeds": [
+          name: "permissionedServerMetadata";
+          writable: true;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   115,
                   101,
                   114,
@@ -750,34 +629,32 @@ export type Presale = {
                   97,
                   116,
                   97
-                ]
+                ];
               },
               {
-                "kind": "account",
-                "path": "presale"
+                kind: "account";
+                path: "presale";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "owner",
-          "writable": true,
-          "signer": true,
-          "relations": [
-            "presale"
-          ]
+          name: "owner";
+          writable: true;
+          signer: true;
+          relations: ["presale"];
         },
         {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
+          name: "systemProgram";
+          address: "11111111111111111111111111111111";
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -795,85 +672,73 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": [
+      ];
+      args: [
         {
-          "name": "serverUrl",
-          "type": "string"
+          name: "serverUrl";
+          type: "string";
         }
-      ]
+      ];
     },
     {
-      "name": "createPermissionlessEscrow",
-      "discriminator": [
-        241,
-        26,
-        9,
-        26,
-        248,
-        201,
-        151,
-        0
-      ],
-      "accounts": [
+      name: "createPermissionlessEscrow";
+      discriminator: [241, 26, 9, 26, 248, 201, 151, 0];
+      accounts: [
         {
-          "name": "presale",
-          "writable": true
+          name: "presale";
+          writable: true;
         },
         {
-          "name": "escrow",
-          "writable": true,
-          "pda": {
-            "seeds": [
+          name: "escrow";
+          writable: true;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
-                  101,
-                  115,
-                  99,
-                  114,
-                  111,
-                  119
-                ]
+                kind: "const";
+                value: [101, 115, 99, 114, 111, 119];
               },
               {
-                "kind": "account",
-                "path": "presale"
+                kind: "account";
+                path: "presale";
               },
               {
-                "kind": "account",
-                "path": "owner"
-              }
-            ]
-          }
-        },
-        {
-          "name": "owner"
-        },
-        {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
-        },
-        {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+                kind: "account";
+                path: "owner";
+              },
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [0];
+              }
+            ];
+          };
+        },
+        {
+          name: "owner";
+        },
+        {
+          name: "payer";
+          writable: true;
+          signer: true;
+        },
+        {
+          name: "systemProgram";
+          address: "11111111111111111111111111111111";
+        },
+        {
+          name: "eventAuthority";
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -891,63 +756,61 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": []
+      ];
+      args: [];
     },
     {
-      "name": "creatorWithdraw",
-      "discriminator": [
-        92,
-        117,
-        206,
-        254,
-        174,
-        108,
-        37,
-        106
-      ],
-      "accounts": [
+      name: "creatorCollectFee";
+      discriminator: [9, 215, 62, 151, 64, 163, 150, 7];
+      accounts: [
         {
-          "name": "presale",
-          "writable": true
+          name: "presale";
+          writable: true;
         },
         {
-          "name": "presaleAuthority",
-          "address": "GwyAYgXqXaMAC5cHmwecU7uuu2bGiPHiP8eQY2kSNnkc"
+          name: "presaleAuthority";
+          address: "ECMXFSYJrZvVN7zEAtjU8vUWNCZmisvj7CnvgPqkjKJx";
         },
         {
-          "name": "ownerToken",
-          "writable": true
+          name: "quoteTokenVault";
+          writable: true;
+          relations: ["presale"];
         },
         {
-          "name": "owner",
-          "signer": true,
-          "relations": [
-            "presale"
-          ]
+          name: "quoteMint";
+          relations: ["presale"];
         },
         {
-          "name": "tokenProgram"
+          name: "feeReceivingAccount";
+          writable: true;
         },
         {
-          "name": "memoProgram",
-          "address": "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"
+          name: "owner";
+          signer: true;
+          relations: ["presale"];
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "tokenProgram";
+        },
+        {
+          name: "memoProgram";
+          address: "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
+        },
+        {
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -965,81 +828,61 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": [
+      ];
+      args: [
         {
-          "name": "remainingAccountsInfo",
-          "type": {
-            "defined": {
-              "name": "remainingAccountsInfo"
-            }
-          }
+          name: "remainingAccountsInfo";
+          type: {
+            defined: {
+              name: "remainingAccountsInfo";
+            };
+          };
         }
-      ]
+      ];
     },
     {
-      "name": "deposit",
-      "discriminator": [
-        242,
-        35,
-        198,
-        137,
-        82,
-        225,
-        242,
-        182
-      ],
-      "accounts": [
+      name: "creatorWithdraw";
+      discriminator: [92, 117, 206, 254, 174, 108, 37, 106];
+      accounts: [
         {
-          "name": "presale",
-          "writable": true,
-          "relations": [
-            "escrow"
-          ]
+          name: "presale";
+          writable: true;
         },
         {
-          "name": "quoteTokenVault",
-          "writable": true,
-          "relations": [
-            "presale"
-          ]
+          name: "presaleAuthority";
+          address: "ECMXFSYJrZvVN7zEAtjU8vUWNCZmisvj7CnvgPqkjKJx";
         },
         {
-          "name": "quoteMint",
-          "relations": [
-            "presale"
-          ]
+          name: "ownerToken";
+          writable: true;
         },
         {
-          "name": "escrow",
-          "writable": true
+          name: "owner";
+          signer: true;
+          relations: ["presale"];
         },
         {
-          "name": "payerQuoteToken",
-          "writable": true
+          name: "tokenProgram";
         },
         {
-          "name": "payer",
-          "signer": true
+          name: "memoProgram";
+          address: "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
         },
         {
-          "name": "tokenProgram"
-        },
-        {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -1057,54 +900,119 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": [
+      ];
+      args: [
         {
-          "name": "maxAmount",
-          "type": "u64"
-        },
-        {
-          "name": "remainingAccountInfo",
-          "type": {
-            "defined": {
-              "name": "remainingAccountsInfo"
-            }
-          }
+          name: "remainingAccountsInfo";
+          type: {
+            defined: {
+              name: "remainingAccountsInfo";
+            };
+          };
         }
-      ]
+      ];
     },
     {
-      "name": "initializeFixedPricePresaleArgs",
-      "docs": [
-        "Create presale vault related functions"
-      ],
-      "discriminator": [
-        224,
-        80,
-        127,
-        193,
-        204,
-        143,
-        243,
-        194
-      ],
-      "accounts": [
+      name: "deposit";
+      discriminator: [242, 35, 198, 137, 82, 225, 242, 182];
+      accounts: [
         {
-          "name": "fixedPricePresaleParams",
-          "writable": true,
-          "pda": {
-            "seeds": [
+          name: "presale";
+          writable: true;
+          relations: ["escrow"];
+        },
+        {
+          name: "quoteTokenVault";
+          writable: true;
+          relations: ["presale"];
+        },
+        {
+          name: "quoteMint";
+          relations: ["presale"];
+        },
+        {
+          name: "escrow";
+          writable: true;
+        },
+        {
+          name: "payerQuoteToken";
+          writable: true;
+        },
+        {
+          name: "payer";
+          signer: true;
+        },
+        {
+          name: "tokenProgram";
+        },
+        {
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
+                  95,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ];
+              }
+            ];
+          };
+        },
+        {
+          name: "program";
+        }
+      ];
+      args: [
+        {
+          name: "maxAmount";
+          type: "u64";
+        },
+        {
+          name: "remainingAccountInfo";
+          type: {
+            defined: {
+              name: "remainingAccountsInfo";
+            };
+          };
+        }
+      ];
+    },
+    {
+      name: "initializeFixedPricePresaleArgs";
+      discriminator: [224, 80, 127, 193, 204, 143, 243, 194];
+      accounts: [
+        {
+          name: "fixedPricePresaleParams";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [
                   102,
                   105,
                   120,
@@ -1122,34 +1030,34 @@ export type Presale = {
                   114,
                   97,
                   109
-                ]
+                ];
               },
               {
-                "kind": "arg",
-                "path": "params.presale"
+                kind: "arg";
+                path: "params.presale";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "owner"
+          name: "owner";
         },
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
+          name: "payer";
+          writable: true;
+          signer: true;
         },
         {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
+          name: "systemProgram";
+          address: "11111111111111111111111111111111";
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -1167,172 +1075,130 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": [
+      ];
+      args: [
         {
-          "name": "params",
-          "type": {
-            "defined": {
-              "name": "initializeFixedPricePresaleExtraArgs"
-            }
-          }
+          name: "params";
+          type: {
+            defined: {
+              name: "initializeFixedPricePresaleExtraArgs";
+            };
+          };
         }
-      ]
+      ];
     },
     {
-      "name": "initializePresale",
-      "discriminator": [
-        9,
-        174,
-        12,
-        126,
-        150,
-        119,
-        68,
-        100
-      ],
-      "accounts": [
+      name: "initializePresale";
+      discriminator: [9, 174, 12, 126, 150, 119, 68, 100];
+      accounts: [
         {
-          "name": "presaleMint"
+          name: "presaleMint";
         },
         {
-          "name": "presale",
-          "docs": [
-            "presale address"
-          ],
-          "writable": true,
-          "pda": {
-            "seeds": [
+          name: "presale";
+          docs: ["presale address"];
+          writable: true;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
-                  112,
-                  114,
-                  101,
-                  115,
-                  97,
-                  108,
-                  101
-                ]
+                kind: "const";
+                value: [112, 114, 101, 115, 97, 108, 101];
               },
               {
-                "kind": "account",
-                "path": "base"
+                kind: "account";
+                path: "base";
               },
               {
-                "kind": "account",
-                "path": "presaleMint"
+                kind: "account";
+                path: "presaleMint";
               },
               {
-                "kind": "account",
-                "path": "quoteTokenMint"
+                kind: "account";
+                path: "quoteTokenMint";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "presaleAuthority",
-          "address": "GwyAYgXqXaMAC5cHmwecU7uuu2bGiPHiP8eQY2kSNnkc"
+          name: "presaleAuthority";
+          address: "ECMXFSYJrZvVN7zEAtjU8vUWNCZmisvj7CnvgPqkjKJx";
         },
         {
-          "name": "quoteTokenMint"
+          name: "quoteTokenMint";
         },
         {
-          "name": "presaleVault",
-          "writable": true,
-          "pda": {
-            "seeds": [
+          name: "presaleVault";
+          writable: true;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
-                  98,
-                  97,
-                  115,
-                  101,
-                  95,
-                  118,
-                  97,
-                  117,
-                  108,
-                  116
-                ]
+                kind: "const";
+                value: [98, 97, 115, 101, 95, 118, 97, 117, 108, 116];
               },
               {
-                "kind": "account",
-                "path": "presale"
+                kind: "account";
+                path: "presale";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "quoteTokenVault",
-          "writable": true,
-          "pda": {
-            "seeds": [
+          name: "quoteTokenVault";
+          writable: true;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
-                  113,
-                  117,
-                  111,
-                  116,
-                  101,
-                  95,
-                  118,
-                  97,
-                  117,
-                  108,
-                  116
-                ]
+                kind: "const";
+                value: [113, 117, 111, 116, 101, 95, 118, 97, 117, 108, 116];
               },
               {
-                "kind": "account",
-                "path": "presale"
+                kind: "account";
+                path: "presale";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "payerPresaleToken",
-          "writable": true
+          name: "payerPresaleToken";
+          writable: true;
         },
         {
-          "name": "creator"
+          name: "creator";
         },
         {
-          "name": "base",
-          "signer": true
+          name: "base";
+          signer: true;
         },
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
+          name: "payer";
+          writable: true;
+          signer: true;
         },
         {
-          "name": "baseTokenProgram"
+          name: "baseTokenProgram";
         },
         {
-          "name": "quoteTokenProgram"
+          name: "quoteTokenProgram";
         },
         {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
+          name: "systemProgram";
+          address: "11111111111111111111111111111111";
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -1350,90 +1216,77 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": [
+      ];
+      args: [
         {
-          "name": "params",
-          "type": {
-            "defined": {
-              "name": "initializePresaleArgs"
-            }
-          }
+          name: "params";
+          type: {
+            defined: {
+              name: "initializePresaleArgs";
+            };
+          };
         },
         {
-          "name": "remainingAccountInfo",
-          "type": {
-            "defined": {
-              "name": "remainingAccountsInfo"
-            }
-          }
+          name: "remainingAccountInfo";
+          type: {
+            defined: {
+              name: "remainingAccountsInfo";
+            };
+          };
         }
-      ]
+      ];
     },
     {
-      "name": "performUnsoldBaseTokenAction",
-      "discriminator": [
-        101,
-        141,
-        8,
-        65,
-        176,
-        225,
-        47,
-        110
-      ],
-      "accounts": [
+      name: "performUnsoldBaseTokenAction";
+      discriminator: [101, 141, 8, 65, 176, 225, 47, 110];
+      accounts: [
         {
-          "name": "presale",
-          "writable": true
+          name: "presale";
+          writable: true;
         },
         {
-          "name": "baseTokenVault",
-          "writable": true,
-          "relations": [
-            "presale"
-          ]
+          name: "baseTokenVault";
+          writable: true;
+          relations: ["presale"];
         },
         {
-          "name": "baseMint",
-          "writable": true,
-          "relations": [
-            "presale"
-          ]
+          name: "baseMint";
+          writable: true;
+          relations: ["presale"];
         },
         {
-          "name": "presaleAuthority",
-          "address": "GwyAYgXqXaMAC5cHmwecU7uuu2bGiPHiP8eQY2kSNnkc"
+          name: "presaleAuthority";
+          address: "ECMXFSYJrZvVN7zEAtjU8vUWNCZmisvj7CnvgPqkjKJx";
         },
         {
-          "name": "creatorBaseToken",
-          "writable": true,
-          "pda": {
-            "seeds": [
+          name: "creatorBaseToken";
+          writable: true;
+          pda: {
+            seeds: [
               {
-                "kind": "account",
-                "path": "presale"
+                kind: "account";
+                path: "presale";
               },
               {
-                "kind": "account",
-                "path": "tokenProgram"
+                kind: "account";
+                path: "tokenProgram";
               },
               {
-                "kind": "account",
-                "path": "baseMint"
+                kind: "account";
+                path: "baseMint";
               }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
+            ];
+            program: {
+              kind: "const";
+              value: [
                 140,
                 151,
                 37,
@@ -1466,24 +1319,24 @@ export type Presale = {
                 233,
                 248,
                 89
-              ]
-            }
-          }
+              ];
+            };
+          };
         },
         {
-          "name": "tokenProgram"
+          name: "tokenProgram";
         },
         {
-          "name": "memoProgram",
-          "address": "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"
+          name: "memoProgram";
+          address: "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -1501,56 +1354,45 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": [
+      ];
+      args: [
         {
-          "name": "remainingAccountsInfo",
-          "type": {
-            "defined": {
-              "name": "remainingAccountsInfo"
-            }
-          }
+          name: "remainingAccountsInfo";
+          type: {
+            defined: {
+              name: "remainingAccountsInfo";
+            };
+          };
         }
-      ]
+      ];
     },
     {
-      "name": "refreshEscrow",
-      "discriminator": [
-        68,
-        237,
-        17,
-        237,
-        147,
-        201,
-        27,
-        169
-      ],
-      "accounts": [
+      name: "refreshEscrow";
+      discriminator: [68, 237, 17, 237, 147, 201, 27, 169];
+      accounts: [
         {
-          "name": "presale",
-          "relations": [
-            "escrow"
-          ]
+          name: "presale";
+          relations: ["escrow"];
         },
         {
-          "name": "escrow",
-          "writable": true
+          name: "escrow";
+          writable: true;
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -1568,49 +1410,38 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": []
+      ];
+      args: [];
     },
     {
-      "name": "revokeOperator",
-      "discriminator": [
-        185,
-        25,
-        87,
-        77,
-        88,
-        8,
-        30,
-        175
-      ],
-      "accounts": [
+      name: "revokeOperator";
+      discriminator: [185, 25, 87, 77, 88, 8, 30, 175];
+      accounts: [
         {
-          "name": "operator",
-          "writable": true
+          name: "operator";
+          writable: true;
         },
         {
-          "name": "creator",
-          "writable": true,
-          "signer": true,
-          "relations": [
-            "operator"
-          ]
+          name: "creator";
+          writable: true;
+          signer: true;
+          relations: ["operator"];
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -1628,83 +1459,66 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": []
+      ];
+      args: [];
     },
     {
-      "name": "withdraw",
-      "discriminator": [
-        183,
-        18,
-        70,
-        156,
-        148,
-        109,
-        161,
-        34
-      ],
-      "accounts": [
+      name: "withdraw";
+      discriminator: [183, 18, 70, 156, 148, 109, 161, 34];
+      accounts: [
         {
-          "name": "presale",
-          "writable": true,
-          "relations": [
-            "escrow"
-          ]
+          name: "presale";
+          writable: true;
+          relations: ["escrow"];
         },
         {
-          "name": "quoteTokenVault",
-          "writable": true,
-          "relations": [
-            "presale"
-          ]
+          name: "quoteTokenVault";
+          writable: true;
+          relations: ["presale"];
         },
         {
-          "name": "quoteMint",
-          "relations": [
-            "presale"
-          ]
+          name: "quoteMint";
+          relations: ["presale"];
         },
         {
-          "name": "presaleAuthority",
-          "address": "GwyAYgXqXaMAC5cHmwecU7uuu2bGiPHiP8eQY2kSNnkc"
+          name: "presaleAuthority";
+          address: "ECMXFSYJrZvVN7zEAtjU8vUWNCZmisvj7CnvgPqkjKJx";
         },
         {
-          "name": "escrow",
-          "writable": true
+          name: "escrow";
+          writable: true;
         },
         {
-          "name": "ownerQuoteToken",
-          "writable": true
+          name: "ownerQuoteToken";
+          writable: true;
         },
         {
-          "name": "owner",
-          "signer": true,
-          "relations": [
-            "escrow"
-          ]
+          name: "owner";
+          signer: true;
+          relations: ["escrow"];
         },
         {
-          "name": "tokenProgram"
+          name: "tokenProgram";
         },
         {
-          "name": "memoProgram",
-          "address": "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"
+          name: "memoProgram";
+          address: "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -1722,96 +1536,79 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": [
+      ];
+      args: [
         {
-          "name": "amount",
-          "type": "u64"
+          name: "amount";
+          type: "u64";
         },
         {
-          "name": "remainingAccountInfo",
-          "type": {
-            "defined": {
-              "name": "remainingAccountsInfo"
-            }
-          }
+          name: "remainingAccountInfo";
+          type: {
+            defined: {
+              name: "remainingAccountsInfo";
+            };
+          };
         }
-      ]
+      ];
     },
     {
-      "name": "withdrawRemainingQuote",
-      "discriminator": [
-        54,
-        253,
-        188,
-        34,
-        100,
-        145,
-        59,
-        127
-      ],
-      "accounts": [
+      name: "withdrawRemainingQuote";
+      discriminator: [54, 253, 188, 34, 100, 145, 59, 127];
+      accounts: [
         {
-          "name": "presale",
-          "writable": true,
-          "relations": [
-            "escrow"
-          ]
+          name: "presale";
+          writable: true;
+          relations: ["escrow"];
         },
         {
-          "name": "quoteTokenVault",
-          "writable": true,
-          "relations": [
-            "presale"
-          ]
+          name: "quoteTokenVault";
+          writable: true;
+          relations: ["presale"];
         },
         {
-          "name": "quoteMint",
-          "relations": [
-            "presale"
-          ]
+          name: "quoteMint";
+          relations: ["presale"];
         },
         {
-          "name": "presaleAuthority",
-          "address": "GwyAYgXqXaMAC5cHmwecU7uuu2bGiPHiP8eQY2kSNnkc"
+          name: "presaleAuthority";
+          address: "ECMXFSYJrZvVN7zEAtjU8vUWNCZmisvj7CnvgPqkjKJx";
         },
         {
-          "name": "escrow",
-          "writable": true
+          name: "escrow";
+          writable: true;
         },
         {
-          "name": "ownerQuoteToken",
-          "writable": true
+          name: "ownerQuoteToken";
+          writable: true;
         },
         {
-          "name": "owner",
-          "signer": true,
-          "relations": [
-            "escrow"
-          ]
+          name: "owner";
+          signer: true;
+          relations: ["escrow"];
         },
         {
-          "name": "tokenProgram"
+          name: "tokenProgram";
         },
         {
-          "name": "memoProgram",
-          "address": "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"
+          name: "memoProgram";
+          address: "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
         },
         {
-          "name": "eventAuthority",
-          "pda": {
-            "seeds": [
+          name: "eventAuthority";
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "value": [
+                kind: "const";
+                value: [
                   95,
                   95,
                   101,
@@ -1829,1674 +1626,1575 @@ export type Presale = {
                   105,
                   116,
                   121
-                ]
+                ];
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "program"
+          name: "program";
         }
-      ],
-      "args": [
+      ];
+      args: [
         {
-          "name": "remainingAccountsInfo",
-          "type": {
-            "defined": {
-              "name": "remainingAccountsInfo"
-            }
-          }
+          name: "remainingAccountsInfo";
+          type: {
+            defined: {
+              name: "remainingAccountsInfo";
+            };
+          };
         }
-      ]
+      ];
     }
-  ],
-  "accounts": [
+  ];
+  accounts: [
     {
-      "name": "escrow",
-      "discriminator": [
-        31,
-        213,
-        123,
-        187,
-        186,
-        22,
-        218,
-        155
-      ]
+      name: "escrow";
+      discriminator: [31, 213, 123, 187, 186, 22, 218, 155];
     },
     {
-      "name": "fixedPricePresaleExtraArgs",
-      "discriminator": [
-        75,
-        139,
-        198,
-        148,
-        132,
-        54,
-        191,
-        83
-      ]
+      name: "fixedPricePresaleExtraArgs";
+      discriminator: [75, 139, 198, 148, 132, 54, 191, 83];
     },
     {
-      "name": "merkleRootConfig",
-      "discriminator": [
-        103,
-        2,
-        222,
-        217,
-        73,
-        50,
-        187,
-        39
-      ]
+      name: "merkleRootConfig";
+      discriminator: [103, 2, 222, 217, 73, 50, 187, 39];
     },
     {
-      "name": "operator",
-      "discriminator": [
-        219,
-        31,
-        188,
-        145,
-        69,
-        139,
-        204,
-        117
-      ]
+      name: "operator";
+      discriminator: [219, 31, 188, 145, 69, 139, 204, 117];
     },
     {
-      "name": "permissionedServerMetadata",
-      "discriminator": [
-        130,
-        242,
-        96,
-        20,
-        147,
-        138,
-        75,
-        246
-      ]
+      name: "permissionedServerMetadata";
+      discriminator: [130, 242, 96, 20, 147, 138, 75, 246];
     },
     {
-      "name": "presale",
-      "discriminator": [
-        38,
-        215,
-        222,
-        14,
-        115,
-        220,
-        52,
-        168
-      ]
+      name: "presale";
+      discriminator: [38, 215, 222, 14, 115, 220, 52, 168];
     }
-  ],
-  "events": [
+  ];
+  events: [
     {
-      "name": "evtClaim",
-      "discriminator": [
-        219,
-        247,
-        169,
-        104,
-        92,
-        196,
-        174,
-        1
-      ]
+      name: "evtClaim";
+      discriminator: [219, 247, 169, 104, 92, 196, 174, 1];
     },
     {
-      "name": "evtCreatorWithdraw",
-      "discriminator": [
-        88,
-        189,
-        89,
-        236,
-        7,
-        65,
-        245,
-        77
-      ]
+      name: "evtCreatorCollectFee";
+      discriminator: [47, 82, 115, 255, 214, 26, 54, 104];
     },
     {
-      "name": "evtDeposit",
-      "discriminator": [
-        245,
-        7,
-        99,
-        173,
-        152,
-        218,
-        66,
-        168
-      ]
+      name: "evtCreatorWithdraw";
+      discriminator: [88, 189, 89, 236, 7, 65, 245, 77];
     },
     {
-      "name": "evtEscrowClose",
-      "discriminator": [
-        25,
-        236,
-        63,
-        221,
-        35,
-        39,
-        134,
-        197
-      ]
+      name: "evtDeposit";
+      discriminator: [245, 7, 99, 173, 152, 218, 66, 168];
     },
     {
-      "name": "evtEscrowCreate",
-      "discriminator": [
-        206,
-        39,
-        252,
-        12,
-        21,
-        45,
-        79,
-        56
-      ]
+      name: "evtEscrowClose";
+      discriminator: [25, 236, 63, 221, 35, 39, 134, 197];
     },
     {
-      "name": "evtEscrowRefresh",
-      "discriminator": [
-        122,
-        224,
-        203,
-        206,
-        253,
-        154,
-        149,
-        172
-      ]
+      name: "evtEscrowCreate";
+      discriminator: [206, 39, 252, 12, 21, 45, 79, 56];
     },
     {
-      "name": "evtFixedPricePresaleArgsClose",
-      "discriminator": [
-        232,
-        209,
-        108,
-        196,
-        129,
-        150,
-        155,
-        161
-      ]
+      name: "evtEscrowRefresh";
+      discriminator: [122, 224, 203, 206, 253, 154, 149, 172];
     },
     {
-      "name": "evtFixedPricePresaleArgsCreate",
-      "discriminator": [
-        150,
-        2,
-        196,
-        99,
-        99,
-        233,
-        14,
-        134
-      ]
+      name: "evtFixedPricePresaleArgsClose";
+      discriminator: [232, 209, 108, 196, 129, 150, 155, 161];
     },
     {
-      "name": "evtMerkleRootConfigCreate",
-      "discriminator": [
-        124,
-        71,
-        226,
-        147,
-        30,
-        112,
-        202,
-        20
-      ]
+      name: "evtFixedPricePresaleArgsCreate";
+      discriminator: [150, 2, 196, 99, 99, 233, 14, 134];
     },
     {
-      "name": "evtOperatorCreate",
-      "discriminator": [
-        102,
-        33,
-        72,
-        210,
-        83,
-        100,
-        255,
-        79
-      ]
+      name: "evtMerkleRootConfigCreate";
+      discriminator: [124, 71, 226, 147, 30, 112, 202, 20];
     },
     {
-      "name": "evtPerformUnsoldBaseTokenAction",
-      "discriminator": [
-        101,
-        134,
-        249,
-        143,
-        220,
-        171,
-        228,
-        130
-      ]
+      name: "evtOperatorCreate";
+      discriminator: [102, 33, 72, 210, 83, 100, 255, 79];
     },
     {
-      "name": "evtPermissionedServerMetadataClose",
-      "discriminator": [
-        205,
-        49,
-        203,
-        99,
-        89,
-        22,
-        127,
-        111
-      ]
+      name: "evtPerformUnsoldBaseTokenAction";
+      discriminator: [101, 134, 249, 143, 220, 171, 228, 130];
     },
     {
-      "name": "evtPermissionedServerMetadataCreate",
-      "discriminator": [
-        103,
-        183,
-        81,
-        175,
-        100,
-        254,
-        206,
-        232
-      ]
+      name: "evtPermissionedServerMetadataClose";
+      discriminator: [205, 49, 203, 99, 89, 22, 127, 111];
     },
     {
-      "name": "evtPresaleVaultCreate",
-      "discriminator": [
-        215,
-        193,
-        132,
-        209,
-        72,
-        47,
-        198,
-        176
-      ]
+      name: "evtPermissionedServerMetadataCreate";
+      discriminator: [103, 183, 81, 175, 100, 254, 206, 232];
     },
     {
-      "name": "evtWithdraw",
-      "discriminator": [
-        149,
-        193,
-        150,
-        199,
-        244,
-        166,
-        129,
-        114
-      ]
+      name: "evtPresaleVaultCreate";
+      discriminator: [215, 193, 132, 209, 72, 47, 198, 176];
     },
     {
-      "name": "evtWithdrawRemainingQuote",
-      "discriminator": [
-        128,
-        150,
-        147,
-        65,
-        211,
-        26,
-        124,
-        208
-      ]
+      name: "evtWithdraw";
+      discriminator: [149, 193, 150, 199, 244, 166, 129, 114];
+    },
+    {
+      name: "evtWithdrawRemainingQuote";
+      discriminator: [128, 150, 147, 65, 211, 26, 124, 208];
     }
-  ],
-  "errors": [
+  ];
+  errors: [
     {
-      "code": 6000,
-      "name": "invalidMintMetadata",
-      "msg": "Invalid mint metadata"
+      code: 6000;
+      name: "invalidMintMetadata";
+      msg: "Invalid mint metadata";
     },
     {
-      "code": 6001,
-      "name": "invalidTokenInfo",
-      "msg": "Invalid token info"
+      code: 6001;
+      name: "invalidTokenInfo";
+      msg: "Invalid token info";
     },
     {
-      "code": 6002,
-      "name": "invalidTokenSupply",
-      "msg": "Invalid token supply"
+      code: 6002;
+      name: "invalidTokenSupply";
+      msg: "Invalid token supply";
     },
     {
-      "code": 6003,
-      "name": "invalidPresaleInfo",
-      "msg": "Invalid presale info"
+      code: 6003;
+      name: "invalidPresaleInfo";
+      msg: "Invalid presale info";
     },
     {
-      "code": 6004,
-      "name": "invalidQuoteMint",
-      "msg": "Invalid quote mint"
+      code: 6004;
+      name: "invalidQuoteMint";
+      msg: "Invalid quote mint";
     },
     {
-      "code": 6005,
-      "name": "invalidBaseMint",
-      "msg": "Invalid base mint"
+      code: 6005;
+      name: "invalidBaseMint";
+      msg: "Invalid base mint";
     },
     {
-      "code": 6006,
-      "name": "invalidLockVestingInfo",
-      "msg": "Invalid lock vesting info"
+      code: 6006;
+      name: "invalidLockVestingInfo";
+      msg: "Invalid lock vesting info";
     },
     {
-      "code": 6007,
-      "name": "invalidTokenPrice",
-      "msg": "Invalid token price"
+      code: 6007;
+      name: "invalidTokenPrice";
+      msg: "Invalid token price";
     },
     {
-      "code": 6008,
-      "name": "missingPresaleExtraParams",
-      "msg": "Missing presale extra params account"
+      code: 6008;
+      name: "missingPresaleExtraParams";
+      msg: "Missing presale extra params account";
     },
     {
-      "code": 6009,
-      "name": "zeroTokenAmount",
-      "msg": "Zero token amount"
+      code: 6009;
+      name: "zeroTokenAmount";
+      msg: "Zero token amount";
     },
     {
-      "code": 6010,
-      "name": "unsupportedToken2022MintOrExtension",
-      "msg": "Token2022 extensions or native mint is not supported"
+      code: 6010;
+      name: "unsupportedToken2022MintOrExtension";
+      msg: "Token2022 extensions or native mint is not supported";
     },
     {
-      "code": 6011,
-      "name": "invalidCreatorAccount",
-      "msg": "Invalid creator account"
+      code: 6011;
+      name: "invalidCreatorAccount";
+      msg: "Invalid creator account";
     },
     {
-      "code": 6012,
-      "name": "presaleNotOpenForDeposit",
-      "msg": "Presale is not open for deposit"
+      code: 6012;
+      name: "presaleNotOpenForDeposit";
+      msg: "Presale is not open for deposit";
     },
     {
-      "code": 6013,
-      "name": "presaleNotOpenForWithdraw",
-      "msg": "Presale is not open for withdraw"
+      code: 6013;
+      name: "presaleNotOpenForWithdraw";
+      msg: "Presale is not open for withdraw";
     },
     {
-      "code": 6014,
-      "name": "presaleNotOpenForWithdrawRemainingQuote",
-      "msg": "Presale is not open for withdraw remaining quote"
+      code: 6014;
+      name: "presaleNotOpenForWithdrawRemainingQuote";
+      msg: "Presale is not open for withdraw remaining quote";
     },
     {
-      "code": 6015,
-      "name": "invalidPresaleWhitelistMode",
-      "msg": "Invalid presale whitelist mode"
+      code: 6015;
+      name: "invalidPresaleWhitelistMode";
+      msg: "Invalid presale whitelist mode";
     },
     {
-      "code": 6016,
-      "name": "presaleEnded",
-      "msg": "Presale is ended"
+      code: 6016;
+      name: "presaleEnded";
+      msg: "Presale is ended";
     },
     {
-      "code": 6017,
-      "name": "presaleNotOpenForClaim",
-      "msg": "Presale is not open for claim"
+      code: 6017;
+      name: "presaleNotOpenForClaim";
+      msg: "Presale is not open for claim";
     },
     {
-      "code": 6018,
-      "name": "invalidMerkleProof",
-      "msg": "Invalid merkle proof"
+      code: 6018;
+      name: "invalidMerkleProof";
+      msg: "Invalid merkle proof";
     },
     {
-      "code": 6019,
-      "name": "depositAmountOutOfCap",
-      "msg": "Deposit amount out of cap"
+      code: 6019;
+      name: "depositAmountOutOfCap";
+      msg: "Deposit amount out of cap";
     },
     {
-      "code": 6020,
-      "name": "mathOverflow",
-      "msg": "Math overflow"
+      code: 6020;
+      name: "mathOverflow";
+      msg: "Math overflow";
     },
     {
-      "code": 6021,
-      "name": "insufficientEscrowBalance",
-      "msg": "Insufficient escrow balance"
+      code: 6021;
+      name: "insufficientEscrowBalance";
+      msg: "Insufficient escrow balance";
     },
     {
-      "code": 6022,
-      "name": "remainingQuoteAlreadyWithdrawn",
-      "msg": "Remaining quote has already been withdrawn"
+      code: 6022;
+      name: "remainingQuoteAlreadyWithdrawn";
+      msg: "Remaining quote has already been withdrawn";
     },
     {
-      "code": 6023,
-      "name": "presaleNotCompleted",
-      "msg": "Presale not completed"
+      code: 6023;
+      name: "presaleNotCompleted";
+      msg: "Presale not completed";
     },
     {
-      "code": 6024,
-      "name": "noUnsoldTokens",
-      "msg": "No unsold tokens"
+      code: 6024;
+      name: "noUnsoldTokens";
+      msg: "No unsold tokens";
     },
     {
-      "code": 6025,
-      "name": "escrowNotEmpty",
-      "msg": "Escrow is not empty"
+      code: 6025;
+      name: "escrowNotEmpty";
+      msg: "Escrow is not empty";
     },
     {
-      "code": 6026,
-      "name": "invalidUnsoldTokenAction",
-      "msg": "Invalid unsold token action"
+      code: 6026;
+      name: "invalidUnsoldTokenAction";
+      msg: "Invalid unsold token action";
     },
     {
-      "code": 6027,
-      "name": "creatorAlreadyWithdrawn",
-      "msg": "Creator has already withdrawn"
+      code: 6027;
+      name: "creatorAlreadyWithdrawn";
+      msg: "Creator has already withdrawn";
     },
     {
-      "code": 6028,
-      "name": "escrowNotRefreshed",
-      "msg": "Escrow not refreshed"
+      code: 6028;
+      name: "undeterminedError";
+      msg: "Undetermined error";
     },
     {
-      "code": 6029,
-      "name": "undeterminedError",
-      "msg": "Undetermined error"
+      code: 6029;
+      name: "invalidTokenVault";
+      msg: "Invalid token vault";
     },
     {
-      "code": 6030,
-      "name": "invalidTokenVault",
-      "msg": "Invalid token vault"
+      code: 6030;
+      name: "invalidRemainingAccountSlice";
+      msg: "Invalid remaining account slice";
     },
     {
-      "code": 6031,
-      "name": "invalidRemainingAccountSlice",
-      "msg": "Invalid remaining account slice"
+      code: 6031;
+      name: "duplicatedRemainingAccountTypes";
+      msg: "Duplicated remaining account types";
     },
     {
-      "code": 6032,
-      "name": "duplicatedRemainingAccountTypes",
-      "msg": "Duplicated remaining account types"
+      code: 6032;
+      name: "missingRemainingAccountForTransferHook";
+      msg: "Missing remaining account for transfer hook";
     },
     {
-      "code": 6033,
-      "name": "missingRemainingAccountForTransferHook",
-      "msg": "Missing remaining account for transfer hook"
+      code: 6033;
+      name: "noTransferHookProgram";
+      msg: "No transfer hook program";
     },
     {
-      "code": 6034,
-      "name": "noTransferHookProgram",
-      "msg": "No transfer hook program"
+      code: 6034;
+      name: "invalidOperator";
+      msg: "Invalid operator";
     },
     {
-      "code": 6035,
-      "name": "invalidOperator",
-      "msg": "Invalid operator"
+      code: 6035;
+      name: "noUnsoldBaseTokens";
+      msg: "No unsold base tokens";
     },
     {
-      "code": 6036,
-      "name": "noUnsoldBaseTokens",
-      "msg": "No unsold base tokens"
+      code: 6036;
+      name: "unsoldBaseTokenActionAlreadyPerformed";
+      msg: "Unsold base token action already performed";
     },
     {
-      "code": 6037,
-      "name": "unsoldBaseTokenActionAlreadyPerformed",
-      "msg": "Unsold base token action already performed"
+      code: 6037;
+      name: "invalidPresaleRegistryIndex";
+      msg: "Invalid presale registry index";
+    },
+    {
+      code: 6038;
+      name: "multiplePresaleRegistriesNotAllowed";
+      msg: "Multiple presale registries are not allowed";
+    },
+    {
+      code: 6039;
+      name: "invalidDepositCap";
+      msg: "Invalid deposit cap";
+    },
+    {
+      code: 6040;
+      name: "presaleNotOpenForCollectFee";
+      msg: "Presale is not open for collect fee";
     }
-  ],
-  "types": [
+  ];
+  types: [
     {
-      "name": "accountsType",
-      "type": {
-        "kind": "enum",
-        "variants": [
+      name: "accountsType";
+      type: {
+        kind: "enum";
+        variants: [
           {
-            "name": "transferHookBase"
+            name: "transferHookBase";
           },
           {
-            "name": "transferHookQuote"
+            name: "transferHookQuote";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "createMerkleRootConfigParams",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "createMerkleRootConfigParams";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "root",
-            "docs": [
-              "The 256-bit merkle root."
-            ],
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
+            name: "root";
+            docs: ["The 256-bit merkle root."];
+            type: {
+              array: ["u8", 32];
+            };
           },
           {
-            "name": "version",
-            "docs": [
-              "Version"
-            ],
-            "type": "u64"
+            name: "version";
+            docs: ["Version"];
+            type: "u64";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "escrow",
-      "serialization": "bytemuck",
-      "repr": {
-        "kind": "c"
-      },
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "createPermissionedEscrowWithCreatorParams";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "registryIndex";
+            type: "u8";
           },
           {
-            "name": "owner",
-            "type": "pubkey"
+            name: "depositCap";
+            type: "u64";
           },
           {
-            "name": "totalDeposit",
-            "type": "u64"
-          },
-          {
-            "name": "totalClaimedToken",
-            "type": "u64"
-          },
-          {
-            "name": "isRemainingQuoteWithdrawn",
-            "type": "u8"
-          },
-          {
-            "name": "padding0",
-            "type": {
-              "array": [
-                "u8",
-                7
-              ]
-            }
-          },
-          {
-            "name": "pendingClaimToken",
-            "type": "u64"
-          },
-          {
-            "name": "createdAt",
-            "type": "u64"
-          },
-          {
-            "name": "lastRefreshedAt",
-            "type": "u64"
-          },
-          {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                8
-              ]
-            }
+            name: "padding";
+            type: {
+              array: ["u8", 32];
+            };
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtClaim",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "createPermissionedEscrowWithMerkleProofParams";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "proof";
+            type: {
+              vec: {
+                array: ["u8", 32];
+              };
+            };
           },
           {
-            "name": "escrow",
-            "type": "pubkey"
+            name: "registryIndex";
+            type: "u8";
           },
           {
-            "name": "claimAmount",
-            "type": "u64"
+            name: "depositCap";
+            type: "u64";
           },
           {
-            "name": "escrowTotalClaimAmount",
-            "type": "u64"
-          },
-          {
-            "name": "presaleTotalClaimAmount",
-            "type": "u64"
-          },
-          {
-            "name": "owner",
-            "type": "pubkey"
+            name: "padding";
+            type: {
+              array: ["u8", 32];
+            };
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtCreatorWithdraw",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "escrow";
+      serialization: "bytemuck";
+      repr: {
+        kind: "c";
+      };
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "amount",
-            "type": "u64"
+            name: "owner";
+            type: "pubkey";
           },
           {
-            "name": "creator",
-            "type": "pubkey"
+            name: "totalDeposit";
+            type: "u64";
           },
           {
-            "name": "presaleProgress",
-            "type": "u8"
+            name: "totalClaimedToken";
+            type: "u64";
+          },
+          {
+            name: "isRemainingQuoteWithdrawn";
+            type: "u8";
+          },
+          {
+            name: "registryIndex";
+            type: "u8";
+          },
+          {
+            name: "padding0";
+            type: {
+              array: ["u8", 6];
+            };
+          },
+          {
+            name: "pendingClaimToken";
+            type: "u64";
+          },
+          {
+            name: "depositMaxCap";
+            type: "u64";
+          },
+          {
+            name: "createdAt";
+            type: "u64";
+          },
+          {
+            name: "totalDepositFee";
+            type: "u64";
+          },
+          {
+            name: "lastRefreshedAt";
+            type: "u64";
+          },
+          {
+            name: "padding";
+            type: {
+              array: ["u64", 8];
+            };
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtDeposit",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtClaim";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "escrow",
-            "type": "pubkey"
+            name: "escrow";
+            type: "pubkey";
           },
           {
-            "name": "depositAmount",
-            "type": "u64"
+            name: "claimAmount";
+            type: "u64";
           },
           {
-            "name": "escrowTotalDepositAmount",
-            "type": "u64"
+            name: "escrowTotalClaimAmount";
+            type: "u64";
           },
           {
-            "name": "presaleTotalDepositAmount",
-            "type": "u64"
+            name: "presaleTotalClaimAmount";
+            type: "u64";
           },
           {
-            "name": "owner",
-            "type": "pubkey"
+            name: "owner";
+            type: "pubkey";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtEscrowClose",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtCreatorCollectFee";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "escrow",
-            "type": "pubkey"
+            name: "owner";
+            type: "pubkey";
           },
           {
-            "name": "owner",
-            "type": "pubkey"
-          },
-          {
-            "name": "rentReceiver",
-            "type": "pubkey"
+            name: "totalCollectedFee";
+            type: "u64";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtEscrowCreate",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtCreatorWithdraw";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "owner",
-            "type": "pubkey"
+            name: "amount";
+            type: "u64";
           },
           {
-            "name": "whitelistMode",
-            "type": "u8"
+            name: "creator";
+            type: "pubkey";
           },
           {
-            "name": "totalEscrowCount",
-            "type": "u64"
+            name: "presaleProgress";
+            type: "u8";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtEscrowRefresh",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtDeposit";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "escrow",
-            "type": "pubkey"
+            name: "escrow";
+            type: "pubkey";
           },
           {
-            "name": "owner",
-            "type": "pubkey"
+            name: "depositAmount";
+            type: "u64";
           },
           {
-            "name": "currentTimestamp",
-            "type": "u64"
+            name: "escrowTotalDepositAmount";
+            type: "u64";
           },
           {
-            "name": "pendingClaimToken",
-            "type": "u64"
+            name: "presaleTotalDepositAmount";
+            type: "u64";
+          },
+          {
+            name: "owner";
+            type: "pubkey";
+          },
+          {
+            name: "depositFee";
+            type: "u64";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtFixedPricePresaleArgsClose",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtEscrowClose";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "owner",
-            "type": "pubkey"
+            name: "escrow";
+            type: "pubkey";
           },
           {
-            "name": "fixedPricePresaleArgs",
-            "type": "pubkey"
+            name: "owner";
+            type: "pubkey";
+          },
+          {
+            name: "rentReceiver";
+            type: "pubkey";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtFixedPricePresaleArgsCreate",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtEscrowCreate";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "unsoldTokenAction",
-            "type": "u8"
+            name: "owner";
+            type: "pubkey";
           },
           {
-            "name": "qPrice",
-            "type": "u128"
+            name: "whitelistMode";
+            type: "u8";
+          },
+          {
+            name: "totalEscrowCount";
+            type: "u64";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtMerkleRootConfigCreate",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtEscrowRefresh";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "owner",
-            "type": "pubkey"
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "config",
-            "type": "pubkey"
+            name: "escrow";
+            type: "pubkey";
           },
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "owner";
+            type: "pubkey";
           },
           {
-            "name": "version",
-            "type": "u64"
+            name: "currentTimestamp";
+            type: "u64";
           },
           {
-            "name": "root",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
+            name: "pendingClaimToken";
+            type: "u64";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtOperatorCreate",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtFixedPricePresaleArgsClose";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "creator",
-            "type": "pubkey"
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "operator",
-            "type": "pubkey"
+            name: "owner";
+            type: "pubkey";
           },
           {
-            "name": "operatorOwner",
-            "type": "pubkey"
+            name: "fixedPricePresaleArgs";
+            type: "pubkey";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtPerformUnsoldBaseTokenAction",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtFixedPricePresaleArgsCreate";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "totalTokenUnsold",
-            "type": "u64"
-          },
-          {
-            "name": "unsoldBaseTokenAction",
-            "type": "u8"
+            name: "qPrice";
+            type: "u128";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtPermissionedServerMetadataClose",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtMerkleRootConfigCreate";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "owner";
+            type: "pubkey";
           },
           {
-            "name": "permissionedServerMetadata",
-            "type": "pubkey"
+            name: "config";
+            type: "pubkey";
+          },
+          {
+            name: "presale";
+            type: "pubkey";
+          },
+          {
+            name: "version";
+            type: "u64";
+          },
+          {
+            name: "root";
+            type: {
+              array: ["u8", 32];
+            };
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtPermissionedServerMetadataCreate",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtOperatorCreate";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "creator";
+            type: "pubkey";
           },
           {
-            "name": "permissionedServerMetadata",
-            "type": "pubkey"
+            name: "operator";
+            type: "pubkey";
           },
           {
-            "name": "serverUrl",
-            "type": "string"
+            name: "operatorOwner";
+            type: "pubkey";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtPresaleVaultCreate",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtPerformUnsoldBaseTokenAction";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "baseMint",
-            "type": "pubkey"
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "quoteMint",
-            "type": "pubkey"
+            name: "totalTokenUnsold";
+            type: "u64";
           },
           {
-            "name": "buyerMaximumDepositCap",
-            "type": "u64"
-          },
-          {
-            "name": "buyerMinimumDepositCap",
-            "type": "u64"
-          },
-          {
-            "name": "lockDuration",
-            "type": "u64"
-          },
-          {
-            "name": "vestDuration",
-            "type": "u64"
-          },
-          {
-            "name": "whitelistMode",
-            "type": "u8"
-          },
-          {
-            "name": "presaleMode",
-            "type": "u8"
-          },
-          {
-            "name": "presaleStartTime",
-            "type": "u64"
-          },
-          {
-            "name": "presaleEndTime",
-            "type": "u64"
-          },
-          {
-            "name": "presaleMaximumCap",
-            "type": "u64"
-          },
-          {
-            "name": "presaleMinimumCap",
-            "type": "u64"
+            name: "unsoldBaseTokenAction";
+            type: "u8";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtWithdraw",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtPermissionedServerMetadataClose";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "escrow",
-            "type": "pubkey"
-          },
-          {
-            "name": "withdrawAmount",
-            "type": "u64"
-          },
-          {
-            "name": "escrowTotalDepositAmount",
-            "type": "u64"
-          },
-          {
-            "name": "presaleTotalDepositAmount",
-            "type": "u64"
-          },
-          {
-            "name": "owner",
-            "type": "pubkey"
+            name: "permissionedServerMetadata";
+            type: "pubkey";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "evtWithdrawRemainingQuote",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtPermissionedServerMetadataCreate";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "escrow",
-            "type": "pubkey"
+            name: "permissionedServerMetadata";
+            type: "pubkey";
           },
           {
-            "name": "owner",
-            "type": "pubkey"
-          },
-          {
-            "name": "amountRefunded",
-            "type": "u64"
-          },
-          {
-            "name": "presaleTotalRefundedQuoteToken",
-            "type": "u64"
+            name: "serverUrl";
+            type: "string";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "fixedPricePresaleExtraArgs",
-      "serialization": "bytemuck",
-      "repr": {
-        "kind": "c"
-      },
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtPresaleVaultCreate";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "unsoldTokenAction",
-            "type": "u8"
+            name: "baseMint";
+            type: "pubkey";
           },
           {
-            "name": "padding0",
-            "type": {
-              "array": [
-                "u8",
-                15
-              ]
-            }
+            name: "quoteMint";
+            type: "pubkey";
           },
           {
-            "name": "qPrice",
-            "type": "u128"
+            name: "presaleRegistries";
+            type: {
+              vec: {
+                defined: {
+                  name: "presaleRegistryArgs";
+                };
+              };
+            };
           },
           {
-            "name": "owner",
-            "type": "pubkey"
+            name: "lockDuration";
+            type: "u64";
           },
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "vestDuration";
+            type: "u64";
           },
           {
-            "name": "padding1",
-            "type": {
-              "array": [
-                "u128",
-                4
-              ]
-            }
+            name: "whitelistMode";
+            type: "u8";
+          },
+          {
+            name: "presaleMode";
+            type: "u8";
+          },
+          {
+            name: "presaleStartTime";
+            type: "u64";
+          },
+          {
+            name: "presaleEndTime";
+            type: "u64";
+          },
+          {
+            name: "presaleMaximumCap";
+            type: "u64";
+          },
+          {
+            name: "presaleMinimumCap";
+            type: "u64";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "initializeFixedPricePresaleExtraArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtWithdraw";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "type": "pubkey"
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "unsoldTokenAction",
-            "type": "u8"
+            name: "escrow";
+            type: "pubkey";
           },
           {
-            "name": "qPrice",
-            "type": "u128"
+            name: "withdrawAmount";
+            type: "u64";
           },
           {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                8
-              ]
-            }
+            name: "escrowTotalDepositAmount";
+            type: "u64";
+          },
+          {
+            name: "presaleTotalDepositAmount";
+            type: "u64";
+          },
+          {
+            name: "owner";
+            type: "pubkey";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "initializePresaleArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "evtWithdrawRemainingQuote";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "tokenomic",
-            "type": {
-              "defined": {
-                "name": "tokenomicArgs"
-              }
-            }
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "presaleParams",
-            "type": {
-              "defined": {
-                "name": "presaleArgs"
-              }
-            }
+            name: "escrow";
+            type: "pubkey";
           },
           {
-            "name": "lockedVestingParams",
-            "type": {
-              "defined": {
-                "name": "lockedVestingArgs"
-              }
-            }
+            name: "owner";
+            type: "pubkey";
           },
           {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                4
-              ]
-            }
+            name: "amountRefunded";
+            type: "u64";
+          },
+          {
+            name: "presaleTotalRefundedQuoteToken";
+            type: "u64";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "lockedVestingArgs",
-      "docs": [
-        "Vest user bought token"
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "fixedPricePresaleExtraArgs";
+      serialization: "bytemuck";
+      repr: {
+        kind: "c";
+      };
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "lockDuration",
-            "docs": [
-              "Lock duration until buyer can claim the token"
-            ],
-            "type": "u64"
+            name: "padding0";
+            type: {
+              array: ["u8", 16];
+            };
           },
           {
-            "name": "vestDuration",
-            "docs": [
-              "Vesting duration until buyer can claim the token"
-            ],
-            "type": "u64"
+            name: "qPrice";
+            type: "u128";
           },
           {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                4
-              ]
-            }
+            name: "owner";
+            type: "pubkey";
+          },
+          {
+            name: "presale";
+            type: "pubkey";
+          },
+          {
+            name: "padding1";
+            type: {
+              array: ["u128", 4];
+            };
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "merkleRootConfig",
-      "serialization": "bytemuck",
-      "repr": {
-        "kind": "c"
-      },
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "initializeFixedPricePresaleExtraArgs";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "root",
-            "docs": [
-              "The 256-bit merkle root."
-            ],
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
+            name: "presale";
+            type: "pubkey";
           },
           {
-            "name": "padding0",
-            "docs": [
-              "Padding for future use"
-            ],
-            "type": "u64"
+            name: "padding0";
+            type: "u8";
           },
           {
-            "name": "presale",
-            "docs": [
-              "Presale pubkey that config is belong"
-            ],
-            "type": "pubkey"
+            name: "qPrice";
+            type: "u128";
           },
           {
-            "name": "version",
-            "docs": [
-              "Version"
-            ],
-            "type": "u64"
-          },
-          {
-            "name": "padding1",
-            "docs": [
-              "Padding for further use"
-            ],
-            "type": {
-              "array": [
-                "u128",
-                4
-              ]
-            }
+            name: "padding1";
+            type: {
+              array: ["u64", 8];
+            };
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "operator",
-      "serialization": "bytemuck",
-      "repr": {
-        "kind": "c"
-      },
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "initializePresaleArgs";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "owner",
-            "type": "pubkey"
+            name: "presaleParams";
+            type: {
+              defined: {
+                name: "presaleArgs";
+              };
+            };
           },
           {
-            "name": "creator",
-            "type": "pubkey"
+            name: "lockedVestingParams";
+            type: {
+              defined: {
+                name: "lockedVestingArgs";
+              };
+            };
           },
           {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                8
-              ]
-            }
+            name: "padding";
+            type: {
+              array: ["u8", 32];
+            };
+          },
+          {
+            name: "presaleRegistries";
+            type: {
+              vec: {
+                defined: {
+                  name: "presaleRegistryArgs";
+                };
+              };
+            };
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "permissionedServerMetadata",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "lockedVestingArgs";
+      docs: ["Vest user bought token"];
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presale",
-            "docs": [
-              "Presale address"
-            ],
-            "type": "pubkey"
+            name: "immediatelyReleaseBps";
+            docs: ["How many % of the token supply is released immediately"];
+            type: "u16";
           },
           {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                16
-              ]
-            }
+            name: "lockDuration";
+            docs: ["Lock duration until buyer can claim the token"];
+            type: "u64";
           },
           {
-            "name": "serverUrl",
-            "docs": [
+            name: "vestDuration";
+            docs: ["Vesting duration until buyer can claim the token"];
+            type: "u64";
+          },
+          {
+            name: "padding";
+            type: {
+              array: ["u8", 32];
+            };
+          }
+        ];
+      };
+    },
+    {
+      name: "merkleRootConfig";
+      serialization: "bytemuck";
+      repr: {
+        kind: "c";
+      };
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "root";
+            docs: ["The 256-bit merkle root."];
+            type: {
+              array: ["u8", 32];
+            };
+          },
+          {
+            name: "padding0";
+            docs: ["Padding for future use"];
+            type: "u64";
+          },
+          {
+            name: "presale";
+            docs: ["Presale pubkey that config is belong"];
+            type: "pubkey";
+          },
+          {
+            name: "version";
+            docs: ["Version"];
+            type: "u64";
+          },
+          {
+            name: "padding1";
+            docs: ["Padding for further use"];
+            type: {
+              array: ["u128", 4];
+            };
+          }
+        ];
+      };
+    },
+    {
+      name: "operator";
+      serialization: "bytemuck";
+      repr: {
+        kind: "c";
+      };
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "owner";
+            type: "pubkey";
+          },
+          {
+            name: "creator";
+            type: "pubkey";
+          },
+          {
+            name: "padding";
+            type: {
+              array: ["u64", 8];
+            };
+          }
+        ];
+      };
+    },
+    {
+      name: "permissionedServerMetadata";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "presale";
+            docs: ["Presale address"];
+            type: "pubkey";
+          },
+          {
+            name: "padding";
+            type: {
+              array: ["u64", 16];
+            };
+          },
+          {
+            name: "serverUrl";
+            docs: [
               "Server URL to retrieve the merkle proof or partially signed transaction by the operator"
-            ],
-            "type": "string"
+            ];
+            type: "string";
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "presale",
-      "serialization": "bytemuck",
-      "repr": {
-        "kind": "c"
-      },
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "presale";
+      serialization: "bytemuck";
+      repr: {
+        kind: "c";
+      };
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "owner",
-            "docs": [
-              "Owner of presale"
-            ],
-            "type": "pubkey"
+            name: "owner";
+            docs: ["Owner of presale"];
+            type: "pubkey";
           },
           {
-            "name": "quoteMint",
-            "docs": [
-              "Quote token mint"
-            ],
-            "type": "pubkey"
+            name: "quoteMint";
+            docs: ["Quote token mint"];
+            type: "pubkey";
           },
           {
-            "name": "baseMint",
-            "docs": [
-              "Base token"
-            ],
-            "type": "pubkey"
+            name: "baseMint";
+            docs: ["Base token"];
+            type: "pubkey";
           },
           {
-            "name": "baseTokenVault",
-            "docs": [
-              "Base token vault"
-            ],
-            "type": "pubkey"
+            name: "baseTokenVault";
+            docs: ["Base token vault"];
+            type: "pubkey";
           },
           {
-            "name": "quoteTokenVault",
-            "docs": [
-              "Quote token vault"
-            ],
-            "type": "pubkey"
+            name: "quoteTokenVault";
+            docs: ["Quote token vault"];
+            type: "pubkey";
           },
           {
-            "name": "base",
-            "docs": [
-              "Base key"
-            ],
-            "type": "pubkey"
+            name: "base";
+            docs: ["Base key"];
+            type: "pubkey";
           },
           {
-            "name": "presaleMaximumCap",
-            "docs": [
-              "Presale target raised capital"
-            ],
-            "type": "u64"
+            name: "padding0";
+            docs: ["Padding"];
+            type: "u8";
           },
           {
-            "name": "presaleMinimumCap",
-            "docs": [
+            name: "presaleMode";
+            docs: ["Presale mode"];
+            type: "u8";
+          },
+          {
+            name: "whitelistMode";
+            docs: ["Whitelist mode"];
+            type: "u8";
+          },
+          {
+            name: "padding1";
+            type: {
+              array: ["u8", 5];
+            };
+          },
+          {
+            name: "presaleMaximumCap";
+            docs: ["Presale target raised capital"];
+            type: "u64";
+          },
+          {
+            name: "presaleMinimumCap";
+            docs: [
               "Presale minimum raised capital. Else, presale consider as failed."
-            ],
-            "type": "u64"
+            ];
+            type: "u64";
           },
           {
-            "name": "presaleStartTime",
-            "docs": [
-              "When presale starts"
-            ],
-            "type": "u64"
+            name: "presaleStartTime";
+            docs: ["When presale starts"];
+            type: "u64";
           },
           {
-            "name": "presaleEndTime",
-            "docs": [
-              "When presale ends. Presale can be ended earlier by creator if raised capital is reached (based on presale mode)"
-            ],
-            "type": "u64"
+            name: "presaleEndTime";
+            docs: [
+              "When presale ends. Presale can be ended earlier by creator if raised capital is reached (based on presale mode)."
+            ];
+            type: "u64";
           },
           {
-            "name": "buyerMinimumDepositCap",
-            "docs": [
-              "This is the minimum amount of quote token that a user can deposit to the presale"
-            ],
-            "type": "u64"
-          },
-          {
-            "name": "buyerMaximumDepositCap",
-            "docs": [
-              "This is the maximum amount of quote token that a user can deposit to the presale"
-            ],
-            "type": "u64"
-          },
-          {
-            "name": "presaleSupply",
-            "docs": [
+            name: "presaleSupply";
+            docs: [
               "Total base token supply that can be bought by presale participants"
-            ],
-            "type": "u64"
+            ];
+            type: "u64";
           },
           {
-            "name": "totalDeposit",
-            "docs": [
-              "Total deposited quote token"
-            ],
-            "type": "u64"
+            name: "totalDeposit";
+            docs: ["Total deposited quote token"];
+            type: "u64";
           },
           {
-            "name": "totalEscrow",
-            "docs": [
-              "Total number of depositors. For statistic purpose only"
-            ],
-            "type": "u64"
+            name: "totalEscrow";
+            docs: ["Total number of depositors. For statistic purpose only"];
+            type: "u64";
           },
           {
-            "name": "createdAt",
-            "docs": [
-              "When was the presale created"
-            ],
-            "type": "u64"
+            name: "createdAt";
+            docs: ["When was the presale created"];
+            type: "u64";
           },
           {
-            "name": "lockDuration",
-            "docs": [
-              "Duration of bought token will be locked until claimable"
-            ],
-            "type": "u64"
+            name: "lockDuration";
+            docs: ["Duration of bought token will be locked until claimable"];
+            type: "u64";
           },
           {
-            "name": "vestDuration",
-            "docs": [
-              "Duration of bought token will be vested until claimable"
-            ],
-            "type": "u64"
+            name: "vestDuration";
+            docs: ["Duration of bought token will be vested until claimable"];
+            type: "u64";
           },
           {
-            "name": "lockStartTime",
-            "docs": [
-              "When the lock starts"
-            ],
-            "type": "u64"
+            name: "lockStartTime";
+            docs: ["When the lock starts"];
+            type: "u64";
           },
           {
-            "name": "lockEndTime",
-            "docs": [
-              "When the lock ends"
-            ],
-            "type": "u64"
+            name: "lockEndTime";
+            docs: ["When the lock ends"];
+            type: "u64";
           },
           {
-            "name": "vestingStartTime",
-            "docs": [
-              "When the vesting starts"
-            ],
-            "type": "u64"
+            name: "vestingStartTime";
+            docs: ["When the vesting starts"];
+            type: "u64";
           },
           {
-            "name": "vestingEndTime",
-            "docs": [
-              "When the vesting ends"
-            ],
-            "type": "u64"
+            name: "vestingEndTime";
+            docs: ["When the vesting ends"];
+            type: "u64";
           },
           {
-            "name": "totalClaimedToken",
-            "docs": [
-              "Total claimed base token. For statistic purpose only"
-            ],
-            "type": "u64"
+            name: "totalClaimedToken";
+            docs: ["Total claimed base token. For statistic purpose only"];
+            type: "u64";
           },
           {
-            "name": "totalRefundedQuoteToken",
-            "docs": [
-              "Total refunded quote token. For statistic purpose only"
-            ],
-            "type": "u64"
+            name: "totalRefundedQuoteToken";
+            docs: ["Total refunded quote token. For statistic purpose only"];
+            type: "u64";
           },
           {
-            "name": "padding0",
-            "type": "u64"
+            name: "totalDepositFee";
+            docs: ["Total deposit fee collected"];
+            type: "u64";
           },
           {
-            "name": "whitelistMode",
-            "docs": [
-              "Whitelist mode"
-            ],
-            "type": "u8"
+            name: "depositFeeCollected";
+            docs: ["Determine whether creator collected the deposit fee"];
+            type: "u8";
           },
           {
-            "name": "presaleMode",
-            "docs": [
-              "Presale mode"
-            ],
-            "type": "u8"
+            name: "padding2";
+            docs: ["Padding"];
+            type: {
+              array: ["u8", 7];
+            };
           },
           {
-            "name": "hasCreatorWithdrawn",
-            "docs": [
-              "Determine whether creator withdrawn the raised capital"
-            ],
-            "type": "u8"
+            name: "hasCreatorWithdrawn";
+            docs: ["Determine whether creator withdrawn the raised capital"];
+            type: "u8";
           },
           {
-            "name": "baseTokenProgramFlag",
-            "docs": [
-              "Base token program flag"
-            ],
-            "type": "u8"
+            name: "baseTokenProgramFlag";
+            docs: ["Base token program flag"];
+            type: "u8";
           },
           {
-            "name": "quoteTokenProgramFlag",
-            "docs": [
-              "Quote token program flag"
-            ],
-            "type": "u8"
+            name: "quoteTokenProgramFlag";
+            docs: ["Quote token program flag"];
+            type: "u8";
           },
           {
-            "name": "fixedPricePresaleUnsoldTokenAction",
-            "docs": [
-              "What to do with unsold base token. Only applicable for fixed price presale mode"
-            ],
-            "type": "u8"
+            name: "totalPresaleRegistryCount";
+            docs: ["Total presale registry count"];
+            type: "u8";
           },
           {
-            "name": "isFixedPricePresaleUnsoldTokenActionPerformed",
-            "type": "u8"
+            name: "unsoldTokenAction";
+            docs: ["What to do with unsold base token"];
+            type: "u8";
           },
           {
-            "name": "padding2",
-            "type": {
-              "array": [
-                "u8",
-                17
-              ]
-            }
+            name: "isUnsoldTokenActionPerformed";
+            docs: [
+              "Whether the fixed price presale unsold token action has been performed"
+            ];
+            type: "u8";
           },
           {
-            "name": "fixedPricePresaleQPrice",
-            "docs": [
+            name: "immediateReleaseBps";
+            docs: ["How many % of the token supply is released immediately"];
+            type: "u16";
+          },
+          {
+            name: "fixedPricePresaleQPrice";
+            docs: [
               "Presale rate. Only applicable for fixed price presale mode"
-            ],
-            "type": "u128"
+            ];
+            type: "u128";
           },
           {
-            "name": "padding3",
-            "type": {
-              "array": [
-                "u128",
-                6
-              ]
-            }
+            name: "padding3";
+            type: {
+              array: ["u128", 6];
+            };
+          },
+          {
+            name: "presaleRegistries";
+            docs: [
+              "Presale registries. Note: Supporting more registries will causes increased account size."
+            ];
+            type: {
+              array: [
+                {
+                  defined: {
+                    name: "presaleRegistry";
+                  };
+                },
+                5
+              ];
+            };
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "presaleArgs",
-      "docs": [
-        "Presale parameters"
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "presaleArgs";
+      docs: ["Presale parameters"];
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "presaleMaximumCap",
-            "type": "u64"
+            name: "presaleMaximumCap";
+            type: "u64";
           },
           {
-            "name": "presaleMinimumCap",
-            "type": "u64"
+            name: "presaleMinimumCap";
+            type: "u64";
           },
           {
-            "name": "buyerMinimumDepositCap",
-            "type": "u64"
+            name: "presaleStartTime";
+            type: "u64";
           },
           {
-            "name": "buyerMaximumDepositCap",
-            "type": "u64"
+            name: "presaleEndTime";
+            type: "u64";
           },
           {
-            "name": "presaleStartTime",
-            "type": "u64"
+            name: "whitelistMode";
+            type: "u8";
           },
           {
-            "name": "presaleEndTime",
-            "type": "u64"
+            name: "presaleMode";
+            type: "u8";
           },
           {
-            "name": "whitelistMode",
-            "type": "u8"
+            name: "unsoldTokenAction";
+            type: "u8";
           },
           {
-            "name": "presaleMode",
-            "type": "u8"
-          },
-          {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                4
-              ]
-            }
+            name: "padding";
+            type: {
+              array: ["u8", 31];
+            };
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "remainingAccountsInfo",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "presaleRegistry";
+      serialization: "bytemuck";
+      repr: {
+        kind: "c";
+      };
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "slices",
-            "type": {
-              "vec": {
-                "defined": {
-                  "name": "remainingAccountsSlice"
-                }
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "remainingAccountsSlice",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "accountsType",
-            "type": {
-              "defined": {
-                "name": "accountsType"
-              }
-            }
+            name: "presaleSupply";
+            docs: [
+              "Total supply of tokens available for this presale registry"
+            ];
+            type: "u64";
           },
           {
-            "name": "length",
-            "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "tokenomicArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "presalePoolSupply",
-            "type": "u64"
+            name: "totalDeposit";
+            docs: ["Total amount of tokens deposited in this presale registry"];
+            type: "u64";
           },
           {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                4
-              ]
-            }
+            name: "totalEscrow";
+            docs: ["Total escrow in this presale registry"];
+            type: "u64";
+          },
+          {
+            name: "totalClaimedToken";
+            docs: ["Total claimed base token. For statistic purpose only"];
+            type: "u64";
+          },
+          {
+            name: "totalRefundedQuoteToken";
+            docs: ["Total refunded quote token. For statistic purpose only"];
+            type: "u64";
+          },
+          {
+            name: "buyerMinimumDepositCap";
+            docs: [
+              "This is the minimum amount of quote token that a user can deposit to the presale. Personal cap must within the global cap range."
+            ];
+            type: "u64";
+          },
+          {
+            name: "buyerMaximumDepositCap";
+            docs: [
+              "This is the maximum amount of quote token that a user can deposit to the presale. Personal cap must within the global cap range."
+            ];
+            type: "u64";
+          },
+          {
+            name: "totalDepositFee";
+            docs: ["Deposit fee collected"];
+            type: "u64";
+          },
+          {
+            name: "depositFeeBps";
+            docs: ["Deposit fee bps"];
+            type: "u16";
+          },
+          {
+            name: "padding0";
+            type: {
+              array: ["u8", 14];
+            };
+          },
+          {
+            name: "padding1";
+            type: {
+              array: ["u128", 5];
+            };
           }
-        ]
-      }
+        ];
+      };
+    },
+    {
+      name: "presaleRegistryArgs";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "buyerMinimumDepositCap";
+            type: "u64";
+          },
+          {
+            name: "buyerMaximumDepositCap";
+            type: "u64";
+          },
+          {
+            name: "presaleSupply";
+            type: "u64";
+          },
+          {
+            name: "depositFeeBps";
+            type: "u16";
+          },
+          {
+            name: "padding";
+            type: {
+              array: ["u8", 32];
+            };
+          }
+        ];
+      };
+    },
+    {
+      name: "remainingAccountsInfo";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "slices";
+            type: {
+              vec: {
+                defined: {
+                  name: "remainingAccountsSlice";
+                };
+              };
+            };
+          }
+        ];
+      };
+    },
+    {
+      name: "remainingAccountsSlice";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "accountsType";
+            type: {
+              defined: {
+                name: "accountsType";
+              };
+            };
+          },
+          {
+            name: "length";
+            type: "u8";
+          }
+        ];
+      };
     }
-  ]
+  ];
 };

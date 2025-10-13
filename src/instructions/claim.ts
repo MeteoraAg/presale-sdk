@@ -12,6 +12,7 @@ import {
   TransferHookAccountInfo,
 } from "../type";
 import { createRefreshEscrowIx } from "./refresh_escrow";
+import BN from "bn.js";
 
 export interface IClaimParams {
   presaleProgram: PresaleProgram;
@@ -19,6 +20,7 @@ export interface IClaimParams {
   presaleAccount: PresaleAccount;
   owner: PublicKey;
   transferHookAccountInfo: TransferHookAccountInfo;
+  registryIndex: BN;
 }
 
 export async function createClaimIx(params: IClaimParams) {
@@ -28,6 +30,7 @@ export async function createClaimIx(params: IClaimParams) {
     presaleAccount,
     owner,
     transferHookAccountInfo,
+    registryIndex,
   } = params;
 
   const { slices, extraAccountMetas } = transferHookAccountInfo;
@@ -52,7 +55,12 @@ export async function createClaimIx(params: IClaimParams) {
       baseTokenProgram
     );
 
-  const escrow = deriveEscrow(presaleAddress, owner, presaleProgram.programId);
+  const escrow = deriveEscrow(
+    presaleAddress,
+    owner,
+    registryIndex,
+    presaleProgram.programId
+  );
 
   const claimIx = await presaleProgram.methods
     .claim({
@@ -76,6 +84,7 @@ export async function createClaimIx(params: IClaimParams) {
     await createRefreshEscrowIx({
       presaleProgram,
       presaleAddress,
+      registryIndex,
       owner,
     }),
     claimIx,

@@ -13,6 +13,7 @@ import {
   TransferHookAccountInfo,
 } from "../type";
 import { wrapSOLInstruction } from "../token";
+import { DEFAULT_PERMISSIONLESS_REGISTRY_INDEX } from "../constant";
 
 export interface IDepositParams {
   presaleProgram: PresaleProgram;
@@ -21,6 +22,7 @@ export interface IDepositParams {
   owner: PublicKey;
   amount: BN;
   transferHookAccountInfo: TransferHookAccountInfo;
+  registryIndex?: BN; // only for permissioned escrow
 }
 
 export async function createDepositIx(params: IDepositParams) {
@@ -31,11 +33,17 @@ export async function createDepositIx(params: IDepositParams) {
     owner,
     amount,
     transferHookAccountInfo,
+    registryIndex,
   } = params;
 
   const { slices, extraAccountMetas } = transferHookAccountInfo;
 
-  const escrow = deriveEscrow(presaleAddress, owner, presaleProgram.programId);
+  const escrow = deriveEscrow(
+    presaleAddress,
+    owner,
+    registryIndex || DEFAULT_PERMISSIONLESS_REGISTRY_INDEX,
+    presaleProgram.programId
+  );
 
   const quoteTokenProgram = getTokenProgramIdFromFlag(
     presaleAccount.quoteTokenProgramFlag

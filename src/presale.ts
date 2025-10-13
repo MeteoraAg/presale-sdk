@@ -21,8 +21,8 @@ import {
 import { Mint, unpackMint } from "@solana/spl-token";
 import { BN } from "bn.js";
 import Decimal from "decimal.js";
-import { PRESALE_PROGRAM_ID } from ".";
-import { BalanceTree } from "../libs/merkle_tree";
+import { DEFAULT_PERMISSIONLESS_REGISTRY_INDEX, PRESALE_PROGRAM_ID } from ".";
+import { BalanceTree, WhitelistedWallet } from "../libs/merkle_tree";
 import { PresaleWrapper } from "./accounts/presale_wrapper";
 import type { Presale as PresaleTypes } from "./idl/presale";
 import PresaleIDL from "./idl/presale.json";
@@ -318,7 +318,6 @@ class Presale {
     programId: PublicKey,
     presaleParams: Omit<ICreateInitializePresaleIxParams, "program">,
     fixedPriceParams: {
-      unsoldTokenAction: UnsoldTokenAction;
       price: Decimal;
       rounding: Rounding;
     }
@@ -347,7 +346,6 @@ class Presale {
         feePayerPubkey: presaleParams.feePayerPubkey,
         basePubkey: presaleParams.basePubkey,
         ownerPubkey: presaleParams.creatorPubkey,
-        unsoldTokenAction: fixedPriceParams.unsoldTokenAction,
         qPrice: uiPriceToQPrice(
           fixedPriceParams.price.toNumber(),
           baseMint.decimals,
@@ -449,7 +447,7 @@ class Presale {
       ICreateMerkleRootConfigParams,
       "presaleProgram" | "presaleAddress" | "version" | "root"
     > & {
-      addresses: PublicKey[];
+      addresses: WhitelistedWallet[];
       addressPerTree?: number;
     }
   ) {
@@ -460,11 +458,7 @@ class Presale {
 
     while (addresses.length > 0) {
       const chunkedAddress = addresses.splice(0, addressPerTree);
-      const balanceTree = new BalanceTree(
-        chunkedAddress.map((address) => ({
-          account: address,
-        }))
-      );
+      const balanceTree = new BalanceTree(chunkedAddress);
       merkleTrees.push(balanceTree);
     }
 
@@ -502,21 +496,20 @@ class Presale {
    * @param params - The configuration parameters for generating Merkle proofs.
    * @param params.addresses - The list of public keys for which to generate Merkle proofs.
    * @param params.addressPerTree - Optional. The number of addresses per Merkle tree chunk. Defaults to 10,000.
-   * @param params.creator - The creator's public key.
    * @returns A promise that resolves to an object mapping each address (base58 string) to its Merkle proof response.
    */
   async createMerkleProofResponse(
     params: Omit<
       ICreateMerkleRootConfigParams,
-      "presaleProgram" | "presaleAddress" | "version" | "root"
+      "presaleProgram" | "presaleAddress" | "version" | "root" | "creator"
     > & {
-      addresses: PublicKey[];
+      addresses: WhitelistedWallet[];
       addressPerTree?: number;
     }
   ): Promise<{
     [address: string]: MerkleProofResponse;
   }> {
-    let { addresses, addressPerTree, creator } = params;
+    let { addresses, addressPerTree } = params;
     addressPerTree = addressPerTree || 10_000;
 
     let merkleProofs: {
@@ -527,11 +520,7 @@ class Presale {
 
     while (addresses.length > 0) {
       const chunkedAddress = addresses.splice(0, addressPerTree);
-      const balanceTree = new BalanceTree(
-        chunkedAddress.map((address) => ({
-          account: address,
-        }))
-      );
+      const balanceTree = new BalanceTree(chunkedAddress);
 
       const merkleRootConfig = deriveMerkleRootConfig(
         this.presaleAddress,
@@ -539,10 +528,16 @@ class Presale {
         new BN(version)
       );
 
-      for (const address of chunkedAddress) {
-        const proof = balanceTree.getProof(address);
+      for (const { address, depositCap, registryIndex } of chunkedAddress) {
+        const proof = balanceTree.getProof({
+          address,
+          depositCap,
+          registryIndex,
+        });
         merkleProofs[address.toBase58()] = {
           merkle_root_config: merkleRootConfig.toBase58(),
+          registry_index: registryIndex.toNumber(),
+          deposit_cap: depositCap.toString(),
           proof: proof.map((p) => Array.from(p)),
         };
       }
@@ -597,7 +592,11 @@ class Presale {
   async createPermissionedEscrowWithAutoFetchMerkleProofFromMetadata(
     params: Omit<
       ICreatePermissionedEscrowWithMerkleProofParams,
-      "presaleProgram" | "presaleAddress" | "proof" | "merkleRootConfig"
+      | "presaleProgram"
+      | "presaleAddress"
+      | "proof"
+      | "merkleRootConfig"
+      | "depositCap"
     >
   ) {
     return autoFetchProofAndCreatePermissionedEscrowWithMerkleProofIx({
@@ -796,6 +795,8 @@ class Presale {
             presaleProgram: this.program,
             owner: params.owner,
             payer: params.owner,
+            registryIndex:
+              params.registryIndex || DEFAULT_PERMISSIONLESS_REGISTRY_INDEX,
           });
 
         if (initEscrowIx) {
@@ -807,6 +808,7 @@ class Presale {
         const escrow = deriveEscrow(
           this.presaleAddress,
           params.owner,
+          params.registryIndex || DEFAULT_PERMISSIONLESS_REGISTRY_INDEX,
           this.program.programId
         );
         const escrowState = await this.program.account.escrow.fetchNullable(
@@ -821,6 +823,8 @@ class Presale {
             presaleAccount: this.presaleAccount,
             amount: params.amount,
             owner: params.owner,
+            registryIndex:
+              params.registryIndex || DEFAULT_PERMISSIONLESS_REGISTRY_INDEX,
           });
         }
       }
@@ -1130,39 +1134,43 @@ class Presale {
    * @param owner - The public key of the escrow owner.
    * @returns A promise that resolves to the escrow account data if it exists, or `null` if not found.
    */
-  async getPresaleEscrowByOwner(
-    owner: PublicKey
-  ): Promise<IEscrowWrapper | null> {
-    const escrow = deriveEscrow(
-      this.presaleAddress,
-      owner,
-      this.program.programId
-    );
+  async getPresaleEscrowByOwner(owner: PublicKey): Promise<IEscrowWrapper[]> {
+    const parsedPresale = this.getParsedPresale();
+    const registries = parsedPresale.getPresaleRegistries();
+
+    const escrows = registries.map((registry) => {
+      return deriveEscrow(
+        this.presaleAddress,
+        owner,
+        registry.registryIndex(),
+        this.program.programId
+      );
+    });
 
     const accounts =
       await this.program.provider.connection.getMultipleAccountsInfo([
-        escrow,
         this.presaleAddress,
+        ...escrows,
       ]);
 
-    const [escrowAccount, presaleAccount] = accounts;
-
-    if (!escrowAccount) {
-      return null;
-    }
+    const [presaleAccount, ...escrowAccounts] = accounts;
 
     this.updatePresaleCache(presaleAccount);
 
-    const decodedEscrow: EscrowAccount = this.program.coder.accounts.decode(
-      "escrow",
-      escrowAccount.data
-    );
+    const validEscrowAccounts = escrowAccounts.filter(Boolean);
 
-    return new EscrowWrapper(
-      decodedEscrow,
-      this.baseMint.decimals,
-      this.quoteMint.decimals
-    );
+    return validEscrowAccounts.map((account) => {
+      const decodedEscrow: EscrowAccount = this.program.coder.accounts.decode(
+        "escrow",
+        account.data
+      );
+
+      return new EscrowWrapper(
+        decodedEscrow,
+        this.baseMint.decimals,
+        this.quoteMint.decimals
+      );
+    });
   }
 
   /**

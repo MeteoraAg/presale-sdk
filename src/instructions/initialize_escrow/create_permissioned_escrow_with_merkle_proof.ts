@@ -1,6 +1,7 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { deriveEscrow, derivePermissionedServerMetadata } from "../../pda";
 import { MerkleProofResponse, PresaleProgram } from "../../type";
+import BN from "bn.js";
 
 export interface ICreatePermissionedEscrowWithMerkleProofParams {
   presaleProgram: PresaleProgram;
@@ -9,6 +10,8 @@ export interface ICreatePermissionedEscrowWithMerkleProofParams {
   payer: PublicKey;
   merkleRootConfig: PublicKey;
   proof: number[][];
+  registryIndex: BN;
+  depositCap: BN;
 }
 
 export async function createPermissionedEscrowWithMerkleProofIx(
@@ -21,12 +24,24 @@ export async function createPermissionedEscrowWithMerkleProofIx(
     proof,
     merkleRootConfig,
     payer,
+    registryIndex,
+    depositCap,
   } = params;
 
-  const escrow = deriveEscrow(presaleAddress, owner, presaleProgram.programId);
+  const escrow = deriveEscrow(
+    presaleAddress,
+    owner,
+    registryIndex,
+    presaleProgram.programId
+  );
 
   const initEscrowIx = await presaleProgram.methods
-    .createPermissionedEscrowWithMerkleProof(proof)
+    .createPermissionedEscrowWithMerkleProof({
+      registryIndex: registryIndex.toNumber(),
+      depositCap,
+      proof,
+      padding: new Array(32).fill(0),
+    })
     .accountsPartial({
       presale: presaleAddress,
       merkleRootConfig,
@@ -42,10 +57,11 @@ export async function createPermissionedEscrowWithMerkleProofIx(
 export async function autoFetchProofAndCreatePermissionedEscrowWithMerkleProofIx(
   params: Omit<
     ICreatePermissionedEscrowWithMerkleProofParams,
-    "proof" | "merkleRootConfig"
+    "proof" | "merkleRootConfig" | "depositCap"
   >
 ) {
-  const { owner, payer, presaleProgram, presaleAddress } = params;
+  const { owner, payer, presaleProgram, presaleAddress, registryIndex } =
+    params;
   const permissionedServerMetadata = derivePermissionedServerMetadata(
     presaleAddress,
     presaleProgram.programId
@@ -60,7 +76,7 @@ export async function autoFetchProofAndCreatePermissionedEscrowWithMerkleProofIx
   if (baseUrl.endsWith("/")) {
     baseUrl = baseUrl.slice(0, baseUrl.length - 1);
   }
-  const fullUrl = `${baseUrl}/${presaleAddress.toBase58()}/${owner.toBase58()}`;
+  const fullUrl = `${baseUrl}/${presaleAddress.toBase58()}/${registryIndex.toNumber()}/${owner.toBase58()}`;
 
   const response = await fetch(fullUrl);
 
@@ -81,18 +97,26 @@ export async function autoFetchProofAndCreatePermissionedEscrowWithMerkleProofIx
     payer,
     merkleRootConfig: new PublicKey(merkleProofApiResponse.merkle_root_config),
     proof: merkleProofApiResponse.proof,
+    registryIndex,
+    depositCap: new BN(merkleProofApiResponse.deposit_cap),
   });
 }
 
 export async function getOrCreatePermissionedEscrowWithMerkleProofIx(
   params: Omit<
     ICreatePermissionedEscrowWithMerkleProofParams,
-    "proof" | "merkleRootConfig"
+    "proof" | "merkleRootConfig" | "depositCap"
   >
 ): Promise<TransactionInstruction | null> {
-  const { owner, payer, presaleAddress, presaleProgram } = params;
+  const { owner, payer, presaleAddress, presaleProgram, registryIndex } =
+    params;
 
-  const escrow = deriveEscrow(presaleAddress, owner, presaleProgram.programId);
+  const escrow = deriveEscrow(
+    presaleAddress,
+    owner,
+    registryIndex,
+    presaleProgram.programId
+  );
   const escrowAccount = await presaleProgram.account.escrow.fetchNullable(
     escrow
   );
@@ -103,6 +127,7 @@ export async function getOrCreatePermissionedEscrowWithMerkleProofIx(
       payer,
       presaleAddress,
       presaleProgram,
+      registryIndex,
     });
   }
 }

@@ -1,69 +1,168 @@
 import BN from "bn.js";
 import Decimal from "decimal.js";
 import { PresaleAccount, PresaleMode, PresaleProgress, U64_MAX } from "../type";
+import {
+  IPresaleRegistryWrapper,
+  PresaleRegistryWrapper,
+} from "./presale_registry_wrapper";
 
 function getPresaleRemainingDepositQuota(presaleAccount: PresaleAccount): BN {
   const { presaleMaximumCap, totalDeposit } = presaleAccount;
   return presaleMaximumCap.sub(totalDeposit);
 }
 
-interface PresaleHandler {
-  getRemainingDepositQuota(presaleAccount: PresaleAccount): BN;
-  getTotalBasedTokenSold(presaleAccount: PresaleAccount): BN;
-  canWithdraw(): boolean;
+function getLamportPriceDynamic(presaleSupply: BN, totalDeposit: BN): Decimal {
+  if (totalDeposit.isZero()) {
+    return new Decimal(0);
+  }
+
+  const presaleSupplyDecimal = new Decimal(presaleSupply.toString());
+  const totalDepositDecimal = new Decimal(totalDeposit.toString());
+
+  return totalDepositDecimal.div(presaleSupplyDecimal);
 }
 
-class ProrataHandler implements PresaleHandler {
-  getRemainingDepositQuota(presaleAccount: PresaleAccount): BN {
+function calculateQuoteTokenWithoutSurplus(amount: BN, qPrice: BN): BN {
+  const baseTokenAmount = amount.shln(64).div(qPrice);
+  const { div: quoteTokenAmount, mod } = baseTokenAmount
+    .mul(qPrice)
+    .divmod(new BN(2).pow(new BN(64)));
+
+  return mod.isZero() ? quoteTokenAmount : quoteTokenAmount.add(new BN(1));
+}
+
+interface IPresaleHandler {
+  getRemainingDepositQuota(presaleAccount: PresaleAccount): BN;
+  getTotalBasedTokenSold(
+    presaleRegistry: IPresaleRegistryWrapper,
+    qPrice: BN
+  ): BN;
+  canWithdraw(): boolean;
+  getLamportPrice(presaleSupply: BN, totalDeposit: BN, qPrice: BN): Decimal;
+  suggestDepositAmount(
+    maxAmount: BN,
+    remainingDepositAmount: BN,
+    qPrice: BN
+  ): BN;
+  suggestWithdrawAmount(maxAmount: BN, qPrice: BN): BN;
+}
+
+class ProrataHandler implements IPresaleHandler {
+  getRemainingDepositQuota(_presaleAccount: PresaleAccount): BN {
     return U64_MAX;
   }
 
-  getTotalBasedTokenSold(presaleAccount: PresaleAccount): BN {
-    return presaleAccount.totalDeposit.isZero()
-      ? new BN(0)
-      : presaleAccount.presaleSupply;
+  getTotalBasedTokenSold(
+    presaleRegistry: IPresaleRegistryWrapper,
+    _qPrice: BN
+  ): BN {
+    if (presaleRegistry.getPresaleRegistry().totalDeposit.isZero()) {
+      return new BN(0);
+    }
+
+    return presaleRegistry.getPresaleRegistry().presaleSupply;
   }
 
   canWithdraw(): boolean {
     return true;
   }
+
+  getLamportPrice(presaleSupply: BN, totalDeposit: BN, _qPrice: BN): Decimal {
+    return getLamportPriceDynamic(presaleSupply, totalDeposit);
+  }
+
+  suggestDepositAmount(
+    maxAmount: BN,
+    remainingDepositAmount: BN,
+    _qPrice: BN
+  ): BN {
+    return BN.min(maxAmount, remainingDepositAmount);
+  }
+
+  suggestWithdrawAmount(maxAmount: BN, _qPrice: BN): BN {
+    return maxAmount;
+  }
 }
 
-class FixedPricePresaleHandler implements PresaleHandler {
+class FixedPricePresaleHandler implements IPresaleHandler {
   getRemainingDepositQuota(presaleAccount: PresaleAccount): BN {
     return getPresaleRemainingDepositQuota(presaleAccount);
   }
 
-  getTotalBasedTokenSold(presaleAccount: PresaleAccount): BN {
-    const { totalDeposit, fixedPricePresaleQPrice } = presaleAccount;
-    const qTotalDeposit = totalDeposit.shln(64);
-    return qTotalDeposit.isZero()
-      ? new BN(0)
-      : qTotalDeposit.div(fixedPricePresaleQPrice);
+  getTotalBasedTokenSold(
+    presaleRegistry: IPresaleRegistryWrapper,
+    qPrice: BN
+  ): BN {
+    const rawPresaleRegistry = presaleRegistry.getPresaleRegistry();
+
+    if (rawPresaleRegistry.totalDeposit.isZero()) {
+      return new BN(0);
+    }
+
+    return rawPresaleRegistry.totalDeposit.shln(64).div(qPrice);
   }
 
   canWithdraw(): boolean {
     return true;
   }
+
+  getLamportPrice(_presaleSupply: BN, _totalDeposit: BN, qPrice: BN): Decimal {
+    const qPriceDecimal = new Decimal(qPrice.toString());
+    return qPriceDecimal.div(new Decimal(2).pow(64));
+  }
+
+  suggestDepositAmount(
+    maxAmount: BN,
+    remainingDepositAmount: BN,
+    qPrice: BN
+  ): BN {
+    const depositAmount = BN.min(maxAmount, remainingDepositAmount);
+    return calculateQuoteTokenWithoutSurplus(depositAmount, qPrice);
+  }
+
+  suggestWithdrawAmount(maxAmount: BN, qPrice: BN): BN {
+    return calculateQuoteTokenWithoutSurplus(maxAmount, qPrice);
+  }
 }
 
-class FcfsHandler implements PresaleHandler {
+class FcfsHandler implements IPresaleHandler {
   getRemainingDepositQuota(presaleAccount: PresaleAccount): BN {
     return getPresaleRemainingDepositQuota(presaleAccount);
   }
 
-  getTotalBasedTokenSold(presaleAccount: PresaleAccount): BN {
-    return presaleAccount.totalDeposit.isZero()
-      ? new BN(0)
-      : presaleAccount.presaleSupply;
+  getTotalBasedTokenSold(
+    presaleRegistry: IPresaleRegistryWrapper,
+    _qPrice: BN
+  ): BN {
+    if (presaleRegistry.getPresaleRegistry().totalDeposit.isZero()) {
+      return new BN(0);
+    }
+
+    return presaleRegistry.getPresaleRegistry().presaleSupply;
   }
 
   canWithdraw(): boolean {
     return false;
   }
+
+  getLamportPrice(presaleSupply: BN, totalDeposit: BN, qPrice: BN): Decimal {
+    return getLamportPriceDynamic(presaleSupply, totalDeposit);
+  }
+
+  suggestDepositAmount(
+    maxAmount: BN,
+    remainingDepositAmount: BN,
+    _qPrice: BN
+  ): BN {
+    return BN.min(maxAmount, remainingDepositAmount);
+  }
+
+  suggestWithdrawAmount(_maxAmount: BN, _qPrice: BN): BN {
+    return new BN(0);
+  }
 }
 
-function getPresaleHandler(presaleMode: number): PresaleHandler {
+export function getPresaleHandler(presaleMode: number): IPresaleHandler {
   switch (presaleMode) {
     case PresaleMode.FixedPrice:
       return new FixedPricePresaleHandler();
@@ -96,7 +195,14 @@ export interface IPresaleWrapper {
   getRemainingDepositUiQuota(): number;
   getTotalDepositAmount(): BN;
   getTotalDepositUiAmount(): number;
-  getTokenPrice(): number;
+  getAverageTokenPrice(): number;
+  getRemainingDepositAmount(): BN;
+
+  getPresaleRegistries(): IPresaleRegistryWrapper[];
+  getPresaleRegistryByIndex(index: BN): IPresaleRegistryWrapper | null;
+  getTokenPriceByRegistry(registryIndex: BN): number;
+  getTotalBaseTokenSoldByRegistry(registryIndex: BN): BN;
+  getUiTotalBaseTokenSoldByRegistry(registryIndex: BN): number;
 }
 
 export class PresaleWrapper implements IPresaleWrapper {
@@ -119,9 +225,19 @@ export class PresaleWrapper implements IPresaleWrapper {
   }
 
   public getTotalBaseTokenSold(): BN {
-    return getPresaleHandler(
-      this.presaleAccount.presaleMode
-    ).getTotalBasedTokenSold(this.presaleAccount);
+    const { presaleMode, fixedPricePresaleQPrice } = this.presaleAccount;
+    const presaleHandler = getPresaleHandler(presaleMode);
+    const presaleRegistries = this.getPresaleRegistries();
+
+    const totalBaseTokenSold = presaleRegistries.reduce((acc, registry) => {
+      const tokenSold = presaleHandler.getTotalBasedTokenSold(
+        registry,
+        fixedPricePresaleQPrice
+      );
+      return acc.add(tokenSold);
+    }, new BN(0));
+
+    return totalBaseTokenSold;
   }
 
   public getUiTotalBaseTokenSold(): number {
@@ -162,9 +278,10 @@ export class PresaleWrapper implements IPresaleWrapper {
 
   public canWithdrawRemainingQuote(): boolean {
     const presaleProgress = this.getPresaleProgressState();
+    const { presaleMode } = this.presaleAccount;
     return (
       (presaleProgress === PresaleProgress.Completed &&
-        this.presaleAccount.presaleMode === PresaleMode.Prorata) ||
+        presaleMode === PresaleMode.Prorata) ||
       presaleProgress === PresaleProgress.Failed
     );
   }
@@ -175,17 +292,22 @@ export class PresaleWrapper implements IPresaleWrapper {
     }
 
     const currentTime = Date.now() / 1000; // Convert to seconds
-    const { vestingStartTime } = this.presaleAccount;
+    const { vestingStartTime, immediateReleaseBps } = this.presaleAccount;
+
+    if (immediateReleaseBps > 0) {
+      return true;
+    }
 
     return currentTime >= vestingStartTime.toNumber();
   }
 
   public canCreatorWithdraw(): boolean {
     const presaleProgress = this.getPresaleProgressState();
+    const { hasCreatorWithdrawn } = this.presaleAccount;
     return (
       (presaleProgress === PresaleProgress.Completed ||
         presaleProgress === PresaleProgress.Failed) &&
-      this.presaleAccount.hasCreatorWithdrawn != 1
+      hasCreatorWithdrawn != 1
     );
   }
 
@@ -195,11 +317,13 @@ export class PresaleWrapper implements IPresaleWrapper {
     isBaseToken: boolean;
   } {
     const presaleProgress = this.getPresaleProgressState();
+    const { totalDeposit, presaleSupply, presaleMaximumCap } =
+      this.presaleAccount;
     switch (presaleProgress) {
       case PresaleProgress.Completed: {
         return {
-          amount: this.presaleAccount.totalDeposit,
-          uiAmount: new Decimal(this.presaleAccount.totalDeposit.toString())
+          amount: BN.min(totalDeposit, presaleMaximumCap),
+          uiAmount: new Decimal(totalDeposit.toString())
             .div(new Decimal(10).pow(this.quoteDecimals))
             .toNumber(),
           isBaseToken: false,
@@ -207,8 +331,8 @@ export class PresaleWrapper implements IPresaleWrapper {
       }
       case PresaleProgress.Failed: {
         return {
-          amount: this.presaleAccount.presaleSupply,
-          uiAmount: new Decimal(this.presaleAccount.presaleSupply.toString())
+          amount: presaleSupply,
+          uiAmount: new Decimal(presaleSupply.toString())
             .div(new Decimal(10).pow(this.baseDecimals))
             .toNumber(),
           isBaseToken: true,
@@ -248,7 +372,31 @@ export class PresaleWrapper implements IPresaleWrapper {
       .toNumber();
   }
 
-  public getTokenPrice(): number {
+  public getTokenPriceByRegistry(registryIndex: BN): number {
+    const presaleRegistry = this.getPresaleRegistryByIndex(registryIndex);
+
+    if (!presaleRegistry) {
+      return 0;
+    }
+
+    const { presaleMode, fixedPricePresaleQPrice } = this.presaleAccount;
+    const { presaleSupply, totalDeposit } =
+      presaleRegistry.getPresaleRegistry();
+
+    const presaleHandler = getPresaleHandler(presaleMode);
+    const lamportPrice = presaleHandler.getLamportPrice(
+      presaleSupply,
+      totalDeposit,
+      fixedPricePresaleQPrice
+    );
+
+    return new Decimal(lamportPrice)
+      .mul(new Decimal(10).pow(this.baseDecimals - this.quoteDecimals))
+      .toNumber();
+  }
+
+  // When the presale mode is dynamic price, the aggregated token price will be weighted (presale supply) average price
+  public getAverageTokenPrice(): number {
     const { presaleMode, fixedPricePresaleQPrice } = this.presaleAccount;
     if (presaleMode === PresaleMode.FixedPrice) {
       return new Decimal(fixedPricePresaleQPrice.toString())
@@ -261,10 +409,75 @@ export class PresaleWrapper implements IPresaleWrapper {
       return 0;
     }
 
-    return new Decimal(this.presaleAccount.presaleSupply.toString())
-      .div(new Decimal(this.presaleAccount.totalDeposit.toString()))
+    const presaleRegistries = this.getPresaleRegistries();
+
+    let totalWeightedTokenPrice = new Decimal(0);
+    let totalEffectivePresaleSupply = new BN(0);
+
+    for (const registry of presaleRegistries) {
+      const rawPresaleRegistry = registry.getPresaleRegistry();
+
+      totalEffectivePresaleSupply = totalEffectivePresaleSupply.add(
+        rawPresaleRegistry.presaleSupply
+      );
+
+      const tokenPrice = this.getTokenPriceByRegistry(registry.registryIndex());
+      const weightedTokenPrice = new Decimal(tokenPrice).mul(
+        new Decimal(rawPresaleRegistry.presaleSupply.toString())
+      );
+      totalWeightedTokenPrice = totalWeightedTokenPrice.add(weightedTokenPrice);
+    }
+
+    return totalWeightedTokenPrice
+      .div(new Decimal(totalEffectivePresaleSupply.toString()))
       .mul(new Decimal(10).pow(this.baseDecimals - this.quoteDecimals))
       .toNumber();
+  }
+
+  public getPresaleRegistryByIndex(index: BN): IPresaleRegistryWrapper | null {
+    const presaleRegistries = this.getPresaleRegistries();
+    return presaleRegistries.find((registry) =>
+      registry.registryIndex().eq(index)
+    );
+  }
+
+  public getPresaleRegistries(): IPresaleRegistryWrapper[] {
+    const presaleRegistryWrappers = this.presaleAccount.presaleRegistries.map(
+      (registry, idx) => {
+        return new PresaleRegistryWrapper(registry, new BN(idx));
+      }
+    );
+
+    return presaleRegistryWrappers.filter((wrapper) => !wrapper.uninitialize());
+  }
+
+  public getTotalBaseTokenSoldByRegistry(registryIndex: BN): BN {
+    const presaleRegistry = this.getPresaleRegistryByIndex(registryIndex);
+
+    if (!presaleRegistry) {
+      return new BN(0);
+    }
+
+    const { presaleMode, fixedPricePresaleQPrice } = this.presaleAccount;
+    const presaleHandler = getPresaleHandler(presaleMode);
+    return presaleHandler.getTotalBasedTokenSold(
+      presaleRegistry,
+      fixedPricePresaleQPrice
+    );
+  }
+
+  public getUiTotalBaseTokenSoldByRegistry(registryIndex: BN): number {
+    const totalBaseTokenSold =
+      this.getTotalBaseTokenSoldByRegistry(registryIndex);
+
+    return new Decimal(totalBaseTokenSold.toString())
+      .div(new Decimal(10).pow(this.baseDecimals))
+      .toNumber();
+  }
+
+  public getRemainingDepositAmount(): BN {
+    const { presaleMaximumCap, totalDeposit } = this.presaleAccount;
+    return BN.max(presaleMaximumCap.sub(totalDeposit), new BN(0));
   }
 }
 
