@@ -5,6 +5,7 @@ import fs from "fs";
 import os from "os";
 import { PRESALE_PROGRAM_ID } from "../../src";
 import Presale from "../../src/presale";
+import { WhitelistedWallet } from "../../libs/merkle_tree";
 
 const connection = new Connection(clusterApiUrl("devnet"));
 
@@ -43,8 +44,7 @@ async function depositWithMerkleProof(
 
 async function startMerkleProofServer(
   presaleAddress: PublicKey,
-  whitelistAddresses: PublicKey[],
-  creator: Keypair,
+  whitelistAddresses: WhitelistedWallet[],
   app: express.Express
 ) {
   const presaleInstance = await Presale.create(
@@ -55,7 +55,6 @@ async function startMerkleProofServer(
 
   const merkleProofs = await presaleInstance.createMerkleProofResponse({
     addresses: whitelistAddresses,
-    creator: creator.publicKey,
   });
 
   app.get("/merkle-proof/:presaleAddress/:userAddress", (req, res) => {
@@ -92,12 +91,27 @@ const keypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(rawKeypair)));
 const presaleAddress = new PublicKey(
   "CkG4awAGBdHBQkVsJgSensJmFrt3KarMcCSLjNsXfRHN"
 );
-const whitelistedAddresses: PublicKey[] = [keypair.publicKey];
+
+const userKeypairFilepath = `${os.homedir()}/.config/solana/id2.json`;
+const userKeypair = Keypair.fromSecretKey(
+  new Uint8Array(JSON.parse(fs.readFileSync(userKeypairFilepath, "utf-8")))
+);
+
+const whitelistedAddresses: WhitelistedWallet[] = [
+  {
+    address: keypair.publicKey,
+    depositCap: new BN(100_000_000),
+    registryIndex: new BN(0),
+  },
+  {
+    address: userKeypair.publicKey,
+    depositCap: new BN(50_000_000),
+    registryIndex: new BN(1),
+  },
+];
 
 const app = express();
 
-startMerkleProofServer(presaleAddress, whitelistedAddresses, keypair, app).then(
-  () => {
-    return depositWithMerkleProof(connection, keypair, presaleAddress);
-  }
-);
+startMerkleProofServer(presaleAddress, whitelistedAddresses, app).then(() => {
+  return depositWithMerkleProof(connection, keypair, presaleAddress);
+});

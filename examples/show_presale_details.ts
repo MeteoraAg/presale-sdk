@@ -19,7 +19,7 @@ async function showPresaleDetails(
   const remainingDepositQuota = presaleWrapper.getRemainingDepositUiQuota();
   const totalDepositAmount = presaleWrapper.getTotalDepositUiAmount();
   const totalBaseTokenSold = presaleWrapper.getUiTotalBaseTokenSold();
-  const tokenPrice = presaleWrapper.getTokenPrice();
+  const averageTokenPrice = presaleWrapper.getAverageTokenPrice();
 
   console.log("Presale Details:", presaleWrapper.getPresaleAccount());
   console.log("Can Deposit:", canDeposit);
@@ -34,11 +34,23 @@ async function showPresaleDetails(
   console.log("Remaining Deposit Quota:", remainingDepositQuota);
   console.log("Total Deposit Amount:", totalDepositAmount);
   console.log("Total Base Token Sold:", totalBaseTokenSold);
-  console.log("Token Price:", tokenPrice);
+  console.log("Average Token Price:", averageTokenPrice);
   console.log(
     "Presale progress state:",
     presaleWrapper.getPresaleProgressState()
   );
+
+  const presaleRegistries = presaleWrapper.getPresaleRegistries();
+  for (const registry of presaleRegistries) {
+    console.log("Presale registry details:", registry.getPresaleRegistry());
+    console.log(
+      "Remaining deposit amount:",
+      registry.getRemainingDepositAmount(
+        presaleWrapper.getRemainingDepositAmount(),
+        presaleWrapper.getTotalDepositAmount()
+      )
+    );
+  }
 }
 
 const connection = new Connection(clusterApiUrl("devnet"));

@@ -8,7 +8,13 @@ export type RemainingAccountsSlice =
   IdlTypes<PresaleTypes>["remainingAccountsSlice"];
 export type PresaleAccount = IdlAccounts<PresaleTypes>["presale"];
 export type EscrowAccount = IdlAccounts<PresaleTypes>["escrow"];
+
 export type PresaleRegistryArgs = IdlTypes<PresaleTypes>["presaleRegistryArgs"];
+export type PresaleRegistryArgsWithoutPadding = Omit<
+  IdlTypes<PresaleTypes>["presaleRegistryArgs"],
+  "padding"
+>;
+
 export type PresaleRegistry = IdlTypes<PresaleTypes>["presaleRegistry"];
 
 export enum UnsoldTokenAction {

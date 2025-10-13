@@ -3,6 +3,7 @@ import fs from "fs";
 import os from "os";
 import { PRESALE_PROGRAM_ID } from "../src";
 import Presale from "../src/presale";
+import { BN } from "bn.js";
 
 const connection = new Connection(clusterApiUrl("devnet"));
 
@@ -17,23 +18,29 @@ async function claim(
     PRESALE_PROGRAM_ID
   );
 
-  const claimTx = await presaleInstance.claim({
-    owner: user.publicKey,
-  });
+  const escrows = await presaleInstance.getPresaleEscrowByOwner(user.publicKey);
 
-  claimTx.sign(user);
-  const txSig = await connection.sendRawTransaction(claimTx.serialize());
+  for (const escrow of escrows) {
+    const rawEscrowState = escrow.getEscrowAccount();
+    const claimTx = await presaleInstance.claim({
+      owner: user.publicKey,
+      registryIndex: new BN(rawEscrowState.registryIndex),
+    });
 
-  console.log("Claim transaction sent:", txSig);
+    claimTx.sign(user);
+    const txSig = await connection.sendRawTransaction(claimTx.serialize());
 
-  await connection.confirmTransaction(
-    {
-      signature: txSig,
-      lastValidBlockHeight: claimTx.lastValidBlockHeight,
-      blockhash: claimTx.recentBlockhash,
-    },
-    "finalized"
-  );
+    console.log("Claim transaction sent:", txSig);
+
+    await connection.confirmTransaction(
+      {
+        signature: txSig,
+        lastValidBlockHeight: claimTx.lastValidBlockHeight,
+        blockhash: claimTx.recentBlockhash,
+      },
+      "finalized"
+    );
+  }
 }
 
 const keypairFilepath = `${os.homedir()}/.config/solana/id.json`;

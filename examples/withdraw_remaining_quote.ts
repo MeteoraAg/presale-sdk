@@ -3,6 +3,7 @@ import fs from "fs";
 import os from "os";
 import { PRESALE_PROGRAM_ID } from "../src";
 import Presale from "../src/presale";
+import { BN } from "bn.js";
 
 const connection = new Connection(clusterApiUrl("devnet"));
 
@@ -17,22 +18,28 @@ async function withdrawRemainingQuote(
     PRESALE_PROGRAM_ID
   );
 
-  const withdrawTx = await presaleInstance.withdrawRemainingQuote({
-    owner: user.publicKey,
-  });
+  const escrows = await presaleInstance.getPresaleEscrowByOwner(user.publicKey);
 
-  withdrawTx.sign(user);
-  const txSig = await connection.sendRawTransaction(withdrawTx.serialize());
+  for (const escrow of escrows) {
+    const rawEscrowState = escrow.getEscrowAccount();
+    const withdrawTx = await presaleInstance.withdrawRemainingQuote({
+      owner: user.publicKey,
+      registryIndex: new BN(rawEscrowState.registryIndex),
+    });
 
-  console.log("Withdraw remaining quote transaction sent:", txSig);
-  await connection.confirmTransaction(
-    {
-      signature: txSig,
-      lastValidBlockHeight: withdrawTx.lastValidBlockHeight,
-      blockhash: withdrawTx.recentBlockhash,
-    },
-    "finalized"
-  );
+    withdrawTx.sign(user);
+    const txSig = await connection.sendRawTransaction(withdrawTx.serialize());
+
+    console.log("Withdraw remaining quote transaction sent:", txSig);
+    await connection.confirmTransaction(
+      {
+        signature: txSig,
+        lastValidBlockHeight: withdrawTx.lastValidBlockHeight,
+        blockhash: withdrawTx.recentBlockhash,
+      },
+      "finalized"
+    );
+  }
 }
 
 const keypairFilepath = `${os.homedir()}/.config/solana/id.json`;

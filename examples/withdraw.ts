@@ -19,24 +19,30 @@ async function withdraw(
     PRESALE_PROGRAM_ID
   );
 
-  const withdrawTx = await presaleInstance.withdraw({
-    amount,
-    owner: user.publicKey,
-  });
+  const escrows = await presaleInstance.getPresaleEscrowByOwner(user.publicKey);
 
-  withdrawTx.sign(user);
+  for (const escrow of escrows) {
+    const rawEscrowState = escrow.getEscrowAccount();
+    const withdrawTx = await presaleInstance.withdraw({
+      amount,
+      owner: user.publicKey,
+      registryIndex: new BN(rawEscrowState.registryIndex),
+    });
 
-  const txSig = await connection.sendRawTransaction(withdrawTx.serialize());
-  console.log("Withdraw transaction sent:", txSig);
+    withdrawTx.sign(user);
 
-  await connection.confirmTransaction(
-    {
-      signature: txSig,
-      lastValidBlockHeight: withdrawTx.lastValidBlockHeight,
-      blockhash: withdrawTx.recentBlockhash,
-    },
-    "finalized"
-  );
+    const txSig = await connection.sendRawTransaction(withdrawTx.serialize());
+    console.log("Withdraw transaction sent:", txSig);
+
+    await connection.confirmTransaction(
+      {
+        signature: txSig,
+        lastValidBlockHeight: withdrawTx.lastValidBlockHeight,
+        blockhash: withdrawTx.recentBlockhash,
+      },
+      "finalized"
+    );
+  }
 }
 
 const keypairFilepath = `${os.homedir()}/.config/solana/id.json`;

@@ -4,14 +4,16 @@ import { BN } from "bn.js";
 import Decimal from "decimal.js";
 import fs from "fs";
 import os from "os";
+import { WhitelistedWallet } from "../../libs/merkle_tree";
 import { derivePresale, PRESALE_PROGRAM_ID } from "../../src";
-import {
-  ILockedVestingArgs,
-  IPresaleArgs,
-  ITokenomicArgs,
-} from "../../src/instructions";
+import { ILockedVestingArgs, IPresaleArgs } from "../../src/instructions";
 import Presale from "../../src/presale";
-import { Rounding, UnsoldTokenAction, WhitelistMode } from "../../src/type";
+import {
+  PresaleRegistryArgsWithoutPadding,
+  Rounding,
+  UnsoldTokenAction,
+  WhitelistMode,
+} from "../../src/type";
 
 const connection = new Connection(clusterApiUrl("devnet"));
 
@@ -23,9 +25,9 @@ async function initializeMerkleTreePermissionedFixedPricePresale(
   baseKeypair: Keypair,
   price: Decimal,
   unsoldTokenAction: UnsoldTokenAction,
-  tokenomicArgs: ITokenomicArgs,
+  presaleRegistries: PresaleRegistryArgsWithoutPadding[],
   presaleArgs: Omit<IPresaleArgs, "presaleMode">,
-  whitelistedAddresses: PublicKey[],
+  whitelistedAddresses: WhitelistedWallet[],
   merkleProofServerUrl: string,
   lockedVestingArgs?: ILockedVestingArgs
 ) {
@@ -38,13 +40,12 @@ async function initializeMerkleTreePermissionedFixedPricePresale(
       basePubkey: baseKeypair.publicKey,
       creatorPubkey: keypair.publicKey,
       feePayerPubkey: keypair.publicKey,
-      tokenomicArgs,
+      presaleRegistries,
       presaleArgs,
       lockedVestingArgs,
     },
     {
       price,
-      unsoldTokenAction,
       rounding: Rounding.Down,
     }
   );
@@ -137,17 +138,46 @@ const keypairFilepath = `${os.homedir()}/.config/solana/id.json`;
 const rawKeypair = fs.readFileSync(keypairFilepath, "utf-8");
 const keypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(rawKeypair)));
 
-const tokenomicArgs: ITokenomicArgs = {
-  presalePoolSupply: new BN(2000000000),
-};
+const userKeypairFilepath = `${os.homedir()}/.config/solana/id2.json`;
+const userKeypair = Keypair.fromSecretKey(
+  new Uint8Array(JSON.parse(fs.readFileSync(userKeypairFilepath, "utf-8")))
+);
+
+const whitelistedAddresses: WhitelistedWallet[] = [
+  {
+    address: keypair.publicKey,
+    depositCap: new BN(100_000_000),
+    registryIndex: new BN(0),
+  },
+  {
+    address: userKeypair.publicKey,
+    depositCap: new BN(50_000_000),
+    registryIndex: new BN(1),
+  },
+];
+
+const presaleRegistries: PresaleRegistryArgsWithoutPadding[] = [
+  {
+    buyerMinimumDepositCap: new BN(10000000),
+    buyerMaximumDepositCap: new BN(500000000),
+    presaleSupply: new BN(1000000000),
+    depositFeeBps: 100,
+  },
+  {
+    buyerMinimumDepositCap: new BN(10000000),
+    buyerMaximumDepositCap: new BN(500000000),
+    presaleSupply: new BN(2000000000),
+    depositFeeBps: 0,
+  },
+];
+
 const presaleArgs: Omit<IPresaleArgs, "presaleMode"> = {
   presaleMaximumCap: new BN(100000000000),
   presaleMinimumCap: new BN(1000000000),
-  buyerMaximumDepositCap: new BN(1000000000),
-  buyerMinimumDepositCap: new BN(10000000),
   presaleStartTime: new BN(0),
   presaleEndTime: new BN(Math.floor(Date.now() / 1000 + 86400)),
-  whitelistMode: WhitelistMode.PermissionWithMerkleProof,
+  whitelistMode: WhitelistMode.PermissionWithAuthority,
+  unsoldTokenAction: UnsoldTokenAction.Refund,
 };
 
 const lockedVestingArgs: ILockedVestingArgs = {
@@ -160,10 +190,7 @@ const baseMintPubkey = new PublicKey(
 );
 
 const quoteMintPubkey = NATIVE_MINT;
-
 const baseKeypair = Keypair.generate();
-
-const whitelistedAddresses: PublicKey[] = [keypair.publicKey];
 
 const merkleProofServerUrl = "http://localhost:8080/merkle-proof";
 
@@ -175,7 +202,7 @@ initializeMerkleTreePermissionedFixedPricePresale(
   baseKeypair,
   new Decimal(0.1),
   UnsoldTokenAction.Refund,
-  tokenomicArgs,
+  presaleRegistries,
   presaleArgs,
   whitelistedAddresses,
   merkleProofServerUrl,
