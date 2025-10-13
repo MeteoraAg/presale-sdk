@@ -24,7 +24,6 @@ async function deposit(
   const depositTx = await presaleInstance.deposit({
     amount: new BN(500000000),
     owner: keypair.publicKey,
-    registryIndex: DEFAULT_PERMISSIONLESS_REGISTRY_INDEX,
   });
 
   depositTx.sign(keypair);

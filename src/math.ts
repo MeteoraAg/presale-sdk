@@ -22,16 +22,12 @@ export function qPriceToPrice(qPrice: BN): Decimal {
   return new Decimal(qPrice.toString()).div(new Decimal(2).pow(64));
 }
 
-export function calculateDynamicPrice(
+export function calculateDynamicLamportPrice(
   presaleSupply: BN,
   totalDeposit: BN
 ): Decimal {
-  if (totalDeposit.isZero()) {
-    return new Decimal(U64_MAX.toString());
-  }
-
-  return new Decimal(presaleSupply.toString()).div(
-    new Decimal(totalDeposit.toString())
+  return new Decimal(totalDeposit.toString()).div(
+    new Decimal(presaleSupply.toString())
   );
 }
 

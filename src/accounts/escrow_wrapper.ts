@@ -8,11 +8,14 @@ import {
 import BN from "bn.js";
 import { IPresaleWrapper } from "./presale_wrapper";
 import { calculateImmediateReleaseToken } from "../math";
+import { getPresaleHandler } from "../presale_mode_handler";
 
 export interface IEscrowWrapper {
   getEscrowAccount(): EscrowAccount;
   getDepositUiAmount(): number;
   getDepositRawAmount(): BN;
+  getDepositFeeRawAmount(): BN;
+  getDepositFeeUiAmount(): number;
   getIndividualDepositCap(): BN;
   getIndividualDepositUiCap(): number;
   getRemainingDepositAmount(presaleWrapper: IPresaleWrapper): BN;
@@ -28,6 +31,17 @@ export interface IEscrowWrapper {
   getWithdrawableRemainingQuoteUiAmount(
     presaleWrapper: IPresaleWrapper
   ): number;
+  suggestDepositAmount(presaleWrapper: IPresaleWrapper, maxAmount: BN): BN;
+  suggestDepositUiAmount(
+    presaleWrapper: IPresaleWrapper,
+    maxAmount: BN
+  ): number;
+  suggestWithdrawAmount(presaleWrapper: IPresaleWrapper, maxAmount: BN): BN;
+  suggestWithdrawUiAmount(
+    presaleWrapper: IPresaleWrapper,
+    maxAmount: BN
+  ): number;
+  canClose(presaleWrapper: IPresaleWrapper): boolean;
 }
 
 export class EscrowWrapper implements IEscrowWrapper {
@@ -36,9 +50,12 @@ export class EscrowWrapper implements IEscrowWrapper {
   public quoteDecimals: number;
   public baseMultiplier: number;
   public quoteMultiplier: number;
+  private presaleMode: PresaleMode;
+  private fixedPricePresaleQPrice: BN;
 
   constructor(
     escrowAccount: EscrowAccount,
+    presaleAccount: PresaleAccount,
     baseDecimals: number,
     quoteDecimals: number
   ) {
@@ -47,6 +64,8 @@ export class EscrowWrapper implements IEscrowWrapper {
     this.quoteDecimals = quoteDecimals;
     this.baseMultiplier = 10 ** baseDecimals;
     this.quoteMultiplier = 10 ** quoteDecimals;
+    this.presaleMode = presaleAccount.presaleMode;
+    this.fixedPricePresaleQPrice = presaleAccount.fixedPricePresaleQPrice;
   }
 
   public getEscrowAccount(): EscrowAccount {
@@ -261,5 +280,111 @@ export class EscrowWrapper implements IEscrowWrapper {
     return new Decimal(this.getIndividualDepositCap().toString())
       .div(new Decimal(this.quoteMultiplier))
       .toNumber();
+  }
+
+  public suggestDepositAmount(
+    presaleWrapper: IPresaleWrapper,
+    maxAmount: BN
+  ): BN {
+    const remainingDepositAmount =
+      this.getRemainingDepositAmount(presaleWrapper);
+
+    const presaleHandler = getPresaleHandler(
+      this.presaleMode,
+      this.fixedPricePresaleQPrice
+    );
+
+    return presaleHandler.suggestDepositAmount(
+      maxAmount,
+      remainingDepositAmount
+    );
+  }
+
+  public suggestDepositUiAmount(
+    presaleWrapper: IPresaleWrapper,
+    maxAmount: BN
+  ): number {
+    const suggestDepositAmount = this.suggestDepositAmount(
+      presaleWrapper,
+      maxAmount
+    );
+    return new Decimal(suggestDepositAmount.toString())
+      .div(new Decimal(this.quoteMultiplier))
+      .toNumber();
+  }
+
+  public suggestWithdrawAmount(
+    presaleWrapper: IPresaleWrapper,
+    maxAmount: BN
+  ): BN {
+    const withdrawAmount = BN.min(maxAmount, this.getDepositRawAmount());
+
+    const presaleHandler = getPresaleHandler(
+      this.presaleMode,
+      this.fixedPricePresaleQPrice
+    );
+
+    return presaleHandler.suggestWithdrawAmount(withdrawAmount);
+  }
+
+  public suggestWithdrawUiAmount(
+    presaleWrapper: IPresaleWrapper,
+    maxAmount: BN
+  ): number {
+    const suggestWithdrawAmount = this.suggestWithdrawAmount(
+      presaleWrapper,
+      maxAmount
+    );
+    return new Decimal(suggestWithdrawAmount.toString())
+      .div(new Decimal(this.quoteMultiplier))
+      .toNumber();
+  }
+
+  public getDepositFeeRawAmount(): BN {
+    return this.escrowAccount.totalDepositFee;
+  }
+
+  public getDepositFeeUiAmount(): number {
+    return new Decimal(this.escrowAccount.totalDepositFee.toString())
+      .div(new Decimal(this.quoteMultiplier))
+      .toNumber();
+  }
+
+  public canClose(presaleWrapper: IPresaleWrapper): boolean {
+    const currentTimestamp = new Date().getTime() / 1000; // Convert to seconds
+    const presaleProgress = presaleWrapper.getPresaleProgressState();
+
+    switch (presaleProgress) {
+      case PresaleProgress.Ongoing: {
+        return (
+          this.getDepositRawAmount().isZero() &&
+          this.getDepositFeeRawAmount().isZero()
+        );
+      }
+      case PresaleProgress.Failed: {
+        return (
+          this.escrowAccount.isRemainingQuoteWithdrawn == 1 ||
+          (this.getDepositRawAmount().isZero() &&
+            this.getDepositFeeRawAmount().isZero())
+        );
+      }
+      case PresaleProgress.Completed: {
+        const presaleMode = presaleWrapper.getPresaleAccount().presaleMode;
+        if (presaleMode === PresaleMode.Prorata) {
+          if (
+            !this.getWithdrawableRemainingQuoteAmount(
+              presaleWrapper
+            ).isZero() &&
+            !this.escrowAccount.isRemainingQuoteWithdrawn
+          ) {
+            return false;
+          }
+        }
+
+        return this.getTotalClaimableRawAmount(presaleWrapper).eq(
+          this.escrowAccount.totalClaimedToken
+        );
+      }
+    }
   }
 }

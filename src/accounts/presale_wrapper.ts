@@ -44,6 +44,7 @@ export interface IPresaleWrapper {
   getImmediateReleaseRawAmount(): BN;
   getImmediateReleaseUiAmount(): number;
   getPresaleRegistry(registryIndex: BN): IPresaleRegistryWrapper | null;
+  getAverageTokenPrice(): number;
   canDeposit(): boolean;
   canWithdraw(): boolean;
   canWithdrawRemainingQuote(): boolean;
@@ -359,6 +360,31 @@ export class PresaleWrapper implements IPresaleWrapper {
     return this.getAllPresaleRegistries().find(
       (r) => r.getRegistryIndex() == registryIndex.toNumber()
     );
+  }
+
+  // When the presale mode is dynamic price, the aggregated token price will be weighted (presale supply) average price
+  public getAverageTokenPrice(): number {
+    const presaleRegistries = this.getAllPresaleRegistries();
+
+    let totalWeightedTokenPrice = new Decimal(0);
+    let totalEffectivePresaleSupply = new BN(0);
+
+    for (const registry of presaleRegistries) {
+      totalEffectivePresaleSupply = totalEffectivePresaleSupply.add(
+        registry.getPresaleRawSupply()
+      );
+
+      const tokenPrice = registry.getTokenPrice();
+      const weightedTokenPrice = new Decimal(tokenPrice).mul(
+        new Decimal(registry.getPresaleRawSupply().toString())
+      );
+      totalWeightedTokenPrice = totalWeightedTokenPrice.add(weightedTokenPrice);
+    }
+
+    return totalWeightedTokenPrice
+      .div(new Decimal(totalEffectivePresaleSupply.toString()))
+      .mul(new Decimal(10).pow(this.baseDecimals - this.quoteDecimals))
+      .toNumber();
   }
 }
 

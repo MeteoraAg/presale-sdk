@@ -1,7 +1,7 @@
 import BN from "bn.js";
 import { PresaleAccount, PresaleMode, PresaleRegistry } from "../type";
 import Decimal from "decimal.js";
-import { calculateDynamicPrice, qPriceToPrice } from "../math";
+import { calculateDynamicLamportPrice, qPriceToPrice } from "../math";
 import { getPresaleHandler } from "../presale_mode_handler";
 
 export interface IPresaleRegistryWrapper {
@@ -138,6 +138,10 @@ export class PresaleRegistryWrapper implements IPresaleRegistryWrapper {
   }
 
   public getTokenPrice(): number {
+    if (this.getTotalDepositRawAmount().isZero()) {
+      return 0;
+    }
+
     switch (this.presaleMode) {
       case PresaleMode.FixedPrice: {
         const rawPrice = qPriceToPrice(this.presaleQPrice);
@@ -147,10 +151,13 @@ export class PresaleRegistryWrapper implements IPresaleRegistryWrapper {
           .toNumber();
       }
       default:
-        return calculateDynamicPrice(
+        return calculateDynamicLamportPrice(
           this.getPresaleRawSupply(),
           this.getTotalDepositRawAmount()
-        ).toNumber();
+        )
+          .mul(this.baseLamportToUiMultiplierFactor)
+          .div(this.quoteLamportToUiMultiplierFactor)
+          .toNumber();
     }
   }
 

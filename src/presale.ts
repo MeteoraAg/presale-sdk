@@ -21,7 +21,7 @@ import {
 import { Mint, unpackMint } from "@solana/spl-token";
 import BN from "bn.js";
 import Decimal from "decimal.js";
-import { PRESALE_PROGRAM_ID } from ".";
+import { DEFAULT_PERMISSIONLESS_REGISTRY_INDEX, PRESALE_PROGRAM_ID } from ".";
 import { BalanceTree, WhitelistedWallet } from "../libs/merkle_tree";
 import {
   getEscrowFilter,
@@ -817,7 +817,8 @@ class Presale {
             presaleProgram: this.program,
             owner: params.owner,
             payer: params.owner,
-            registryIndex: params.registryIndex,
+            registryIndex:
+              params.registryIndex || DEFAULT_PERMISSIONLESS_REGISTRY_INDEX,
           });
 
         if (initEscrowIx) {
@@ -829,7 +830,7 @@ class Presale {
         const escrow = deriveEscrow(
           this.presaleAddress,
           params.owner,
-          params.registryIndex,
+          params.registryIndex || DEFAULT_PERMISSIONLESS_REGISTRY_INDEX,
           this.program.programId
         );
         const escrowState = await this.program.account.escrow.fetchNullable(
@@ -844,7 +845,8 @@ class Presale {
             presaleAccount: this.presaleAccount,
             amount: params.amount,
             owner: params.owner,
-            registryIndex: params.registryIndex,
+            registryIndex:
+              params.registryIndex || DEFAULT_PERMISSIONLESS_REGISTRY_INDEX,
           });
         }
       }
@@ -1220,6 +1222,7 @@ class Presale {
 
       return new EscrowWrapper(
         decodedEscrow,
+        this.presaleAccount,
         this.baseMint.decimals,
         this.quoteMint.decimals
       );

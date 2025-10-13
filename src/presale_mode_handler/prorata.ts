@@ -6,13 +6,11 @@ import {
 } from ".";
 import { IPresaleRegistryWrapper } from "../accounts/presale_registry_wrapper";
 import { IPresaleWrapper } from "../accounts/presale_wrapper";
+import { U64_MAX } from "../type";
 
 export class ProrataHandler implements PresaleHandler {
   getRemainingDepositQuota(presaleWrapper: IPresaleWrapper): BN {
-    return getPresaleRemainingDepositQuota(
-      presaleWrapper.getPresaleMaximumRawCap(),
-      presaleWrapper.getTotalDepositRawAmount()
-    );
+    return U64_MAX;
   }
 
   getTotalBaseTokenSold(presaleWrapper: IPresaleWrapper): BN {
@@ -30,5 +28,13 @@ export class ProrataHandler implements PresaleHandler {
   }
   canWithdraw(): boolean {
     return true;
+  }
+
+  suggestDepositAmount(maxAmount: BN, remainingDepositAmount: BN): BN {
+    return BN.min(maxAmount, remainingDepositAmount);
+  }
+
+  suggestWithdrawAmount(maxAmount: BN): BN {
+    return maxAmount;
   }
 }

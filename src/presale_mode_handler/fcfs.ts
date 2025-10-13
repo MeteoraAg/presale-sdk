@@ -32,4 +32,12 @@ export class FcfsHandler implements PresaleHandler {
   canWithdraw(): boolean {
     return false;
   }
+
+  suggestDepositAmount(maxAmount: BN, remainingDepositAmount: BN): BN {
+    return BN.min(maxAmount, remainingDepositAmount);
+  }
+
+  suggestWithdrawAmount(_maxAmount: BN): BN {
+    return new BN(0);
+  }
 }
