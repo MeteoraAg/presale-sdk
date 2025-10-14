@@ -6,6 +6,14 @@ Meteora token presale enables users conduct a token presale with any tokens.
 
 It does not manage the deployment of liquidity for the raised capital. This means the presale creator must manually withdraw the raised funds and deploy the liquidity themselves.
 
+# Program ID
+
+The same program ID applies to both mainnet and devnet:
+
+```
+presSVxnf9UU8jMxhgSMqaRwNiT36qeBdNeTRKjTdbj
+```
+
 ## Presale Mode
 
 ### Fixed price
@@ -83,8 +91,6 @@ API specification for permissioned escrow creation
 | Request                                                | Description                                                                                                                                                                                             | Type | Response                                                           | Example                                                                                             |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
 | /auth-sign/:presaleAddress/:registryIndex/:userAddress | presaleAddress is a string represent the presale account address. registryIndex is an integer which presale registry user is depositing to. userAddress is a string represent the user who's depositing | GET  | A base64 encoded transaction that partially signed by the operator | [permissioned_with_authority_deposit.ts](./examples/deposit/permissioned_with_authority_deposit.ts) |
-
-|
 
 ### Merkle Tree
 
