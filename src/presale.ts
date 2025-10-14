@@ -531,7 +531,7 @@ class Presale {
   async createMerkleProofResponse(
     params: Omit<
       ICreateMerkleRootConfigParams,
-      "presaleProgram" | "presaleAddress" | "version" | "root"
+      "presaleProgram" | "presaleAddress" | "version" | "root" | "creator"
     > & {
       whitelistWallets: WhitelistedWallet[];
       walletPerTree?: number;
@@ -539,7 +539,7 @@ class Presale {
   ): Promise<{
     [address: string]: MerkleProofResponse;
   }> {
-    let { whitelistWallets, walletPerTree, creator } = params;
+    let { whitelistWallets, walletPerTree } = params;
     walletPerTree = walletPerTree || 10_000;
 
     let merkleProofs: {
@@ -560,8 +560,9 @@ class Presale {
 
       for (const whitelistWallet of chunkedWhitelistWallets) {
         const proof = balanceTree.getProof(whitelistWallet);
-        const { account, depositCap } = whitelistWallet;
-        merkleProofs[account.toBase58()] = {
+        const { account, depositCap, registryIndex } = whitelistWallet;
+        const key = `${account.toBase58()}-${registryIndex.toString()}`;
+        merkleProofs[key] = {
           merkle_root_config: merkleRootConfig.toBase58(),
           proof: proof.map((p) => Array.from(p)),
           deposit_cap: depositCap.toNumber(),

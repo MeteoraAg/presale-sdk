@@ -69,6 +69,7 @@ export async function createInitializeFixedPricePresaleArgsIx(
   const ix = await program.methods
     .initializeFixedPricePresaleArgs({
       presale,
+      padding0: 0,
       qPrice,
       padding1: new Array(8).fill(new BN(0)),
     })

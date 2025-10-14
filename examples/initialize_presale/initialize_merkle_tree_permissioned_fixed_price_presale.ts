@@ -136,12 +136,24 @@ const keypairFilepath = `${os.homedir()}/.config/solana/id.json`;
 const rawKeypair = fs.readFileSync(keypairFilepath, "utf-8");
 const keypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(rawKeypair)));
 
+const userKeypairFilepath = `${os.homedir()}/.config/solana/id2.json`;
+const userKeypair = Keypair.fromSecretKey(
+  new Uint8Array(JSON.parse(fs.readFileSync(userKeypairFilepath, "utf-8")))
+);
+
 const presaleRegistriesArgs: IPresaleRegistryArgs[] = [];
 
 presaleRegistriesArgs.push({
   presaleSupply: new BN(2000000000),
   buyerMaximumDepositCap: new BN(1000000000),
   buyerMinimumDepositCap: new BN(10000000),
+  depositFeeBps: new BN(0),
+});
+
+presaleRegistriesArgs.push({
+  presaleSupply: new BN(1000000000),
+  buyerMaximumDepositCap: new BN(500000000),
+  buyerMinimumDepositCap: new BN(5000000),
   depositFeeBps: new BN(0),
 });
 
@@ -171,8 +183,13 @@ const baseKeypair = Keypair.generate();
 const whitelistedWallets: WhitelistedWallet[] = [
   {
     account: keypair.publicKey,
-    depositCap: presaleRegistriesArgs[0].buyerMaximumDepositCap,
     registryIndex: new BN(0),
+    depositCap: new BN(1000000000),
+  },
+  {
+    account: userKeypair.publicKey,
+    registryIndex: new BN(1),
+    depositCap: new BN(500000000),
   },
 ];
 

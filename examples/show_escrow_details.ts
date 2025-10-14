@@ -2,6 +2,7 @@ import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
 import fs from "fs";
 import os from "os";
 import Presale from "../src/presale";
+import { BN } from "bn.js";
 
 async function showEscrowDetails(
   connection: Connection,
@@ -38,6 +39,10 @@ async function showEscrowDetails(
     );
     console.log("Claimed amount", escrow.getClaimedUiAmount());
     console.log("Individual cap:", escrow.getIndividualDepositUiCap());
+    console.log(
+      "Suggested deposit amount:",
+      escrow.suggestDepositAmount(presaleWrapper, new BN(333_333)).toString()
+    );
   }
 }
 
@@ -48,7 +53,7 @@ const keypair = Keypair.fromSecretKey(
 );
 
 const presaleAddress = new PublicKey(
-  "H7pDwguN8f2mxg8gtyBwbKopW5ENRFMnWxYHGAG1hM6L"
+  "mGm5yNaFp2Q1GvtRcDZLykUGXoCH29gUgizq2UbE71G"
 );
 
 showEscrowDetails(connection, presaleAddress, keypair.publicKey);

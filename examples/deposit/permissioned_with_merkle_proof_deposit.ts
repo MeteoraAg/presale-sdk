@@ -53,14 +53,11 @@ async function depositWithMerkleProof(
       );
     })
   );
-
-  process.exit(process.exitCode);
 }
 
 async function startMerkleProofServer(
   presaleAddress: PublicKey,
   whitelistWallets: WhitelistedWallet[],
-  creator: Keypair,
   app: express.Express
 ) {
   const presaleInstance = await Presale.create(
@@ -71,7 +68,6 @@ async function startMerkleProofServer(
 
   const merkleProofs = await presaleInstance.createMerkleProofResponse({
     whitelistWallets,
-    creator: creator.publicKey,
   });
 
   app.get(
@@ -89,7 +85,8 @@ async function startMerkleProofServer(
       }
 
       const parsedUserAddress = new PublicKey(userAddress);
-      const proof = merkleProofs[parsedUserAddress.toBase58()];
+      const key = `${parsedUserAddress.toBase58()}-${registryIndex}`;
+      const proof = merkleProofs[key];
 
       if (!proof) {
         return res.status(404).send("User not found");
@@ -108,8 +105,13 @@ const keypairFilepath = `${os.homedir()}/.config/solana/id.json`;
 const rawKeypair = fs.readFileSync(keypairFilepath, "utf-8");
 const keypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(rawKeypair)));
 
+const userKeypairFilepath = `${os.homedir()}/.config/solana/id2.json`;
+const userKeypair = Keypair.fromSecretKey(
+  new Uint8Array(JSON.parse(fs.readFileSync(userKeypairFilepath, "utf-8")))
+);
+
 const presaleAddress = new PublicKey(
-  "H7pDwguN8f2mxg8gtyBwbKopW5ENRFMnWxYHGAG1hM6L"
+  "8qAJWcsNBcD7Mh8vTYxPKbQyZYwneUT9AMuTMK99t82A"
 );
 const whitelistedAddresses: WhitelistedWallet[] = [
   {
@@ -117,12 +119,19 @@ const whitelistedAddresses: WhitelistedWallet[] = [
     registryIndex: new BN(0),
     depositCap: new BN(1000000000),
   },
+  {
+    account: userKeypair.publicKey,
+    registryIndex: new BN(1),
+    depositCap: new BN(500000000),
+  },
 ];
 
 const app = express();
 
-startMerkleProofServer(presaleAddress, whitelistedAddresses, keypair, app).then(
-  () => {
-    return depositWithMerkleProof(connection, keypair, presaleAddress);
+startMerkleProofServer(presaleAddress, whitelistedAddresses, app).then(
+  async () => {
+    await depositWithMerkleProof(connection, keypair, presaleAddress);
+    await depositWithMerkleProof(connection, userKeypair, presaleAddress);
+    process.exit(process.exitCode);
   }
 );
