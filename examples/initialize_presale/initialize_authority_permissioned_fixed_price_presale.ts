@@ -158,6 +158,13 @@ presaleRegistriesArgs.push({
   depositFeeBps: new BN(0),
 });
 
+presaleRegistriesArgs.push({
+  presaleSupply: new BN(1000000000),
+  buyerMaximumDepositCap: new BN(500000000),
+  buyerMinimumDepositCap: new BN(5000000),
+  depositFeeBps: new BN(0),
+});
+
 const presaleArgs: Omit<IPresaleArgs, "presaleMode"> = {
   presaleMaximumCap: new BN(100000000000),
   presaleMinimumCap: new BN(1000000000),

@@ -79,14 +79,5 @@ export async function createClaimIx(params: IClaimParams) {
     .remainingAccounts(extraAccountMetas)
     .instruction();
 
-  return [
-    createOwnerBaseTokenAtaIx,
-    await createRefreshEscrowIx({
-      presaleProgram,
-      presaleAddress,
-      owner,
-      registryIndex,
-    }),
-    claimIx,
-  ];
+  return [createOwnerBaseTokenAtaIx, claimIx];
 }

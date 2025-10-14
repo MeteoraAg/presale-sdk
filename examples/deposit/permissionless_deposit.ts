@@ -1,12 +1,9 @@
 import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { BN } from "bn.js";
 import fs from "fs";
 import os from "os";
+import { PRESALE_PROGRAM_ID } from "../../src";
 import Presale from "../../src/presale";
-import {
-  DEFAULT_PERMISSIONLESS_REGISTRY_INDEX,
-  PRESALE_PROGRAM_ID,
-} from "../../src";
-import { BN } from "bn.js";
 
 const connection = new Connection(clusterApiUrl("devnet"));
 
@@ -24,7 +21,6 @@ async function deposit(
   const depositTx = await presaleInstance.deposit({
     amount: new BN(500000000),
     owner: keypair.publicKey,
-    registryIndex: DEFAULT_PERMISSIONLESS_REGISTRY_INDEX,
   });
 
   depositTx.sign(keypair);

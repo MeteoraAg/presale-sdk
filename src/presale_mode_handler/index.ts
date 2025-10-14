@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import { PresaleAccount, PresaleMode, PresaleRegistry } from "../type";
+import { PresaleMode } from "../type";
 import { FixedPricePresaleHandler } from "./fixed_price";
 import { ProrataHandler } from "./prorata";
 import { FcfsHandler } from "./fcfs";
@@ -29,6 +29,8 @@ export interface PresaleHandler {
   getTotalBaseTokenSold(presaleWrapper: IPresaleWrapper): BN;
   getRegistryTotalBaseTokenSold(presaleRegistry: IPresaleRegistryWrapper): BN;
   canWithdraw(): boolean;
+  suggestDepositAmount(maxAmount: BN, remainingDepositAmount: BN): BN;
+  suggestWithdrawAmount(maxAmount: BN): BN;
 }
 
 export function getPresaleHandler(

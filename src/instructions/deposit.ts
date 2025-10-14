@@ -21,7 +21,7 @@ export interface IDepositParams {
   owner: PublicKey;
   amount: BN;
   transferHookAccountInfo: TransferHookAccountInfo;
-  registryIndex: BN;
+  registryIndex?: BN;
 }
 
 export async function createDepositIx(params: IDepositParams) {

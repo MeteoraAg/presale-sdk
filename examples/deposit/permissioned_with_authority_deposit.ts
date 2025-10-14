@@ -61,8 +61,6 @@ async function depositWithAuthority(
       await connection.confirmTransaction(txSig, "finalized");
     })
   );
-
-  process.exit(process.exitCode);
 }
 
 async function startAuthSignServer(
@@ -176,14 +174,24 @@ const operatorKeypair = Keypair.fromSecretKey(
   new Uint8Array(JSON.parse(fs.readFileSync(operatorKeypairFilepath, "utf-8")))
 );
 
+const userKeypairFilepath = `${os.homedir()}/.config/solana/id2.json`;
+const userKeypair = Keypair.fromSecretKey(
+  new Uint8Array(JSON.parse(fs.readFileSync(userKeypairFilepath, "utf-8")))
+);
+
 const presaleAddress = new PublicKey(
-  "DpRrSp5tMv31cpa19bNHELGtFH6tymNGNBvLPCHxFezt"
+  "m6VN1HDJQUHSauSU6s4yvPfpxbSZYfW1NwhZixVneJD"
 );
 const whitelistedAddresses: WhitelistedWallet[] = [
   {
     account: creatorKeypair.publicKey,
     depositCap: new BN(1000000000),
     registryIndex: new BN(0),
+  },
+  {
+    account: userKeypair.publicKey,
+    depositCap: new BN(500000000),
+    registryIndex: new BN(1),
   },
 ];
 
@@ -194,6 +202,8 @@ startAuthSignServer(
   whitelistedAddresses,
   operatorKeypair,
   app
-).then(() => {
-  return depositWithAuthority(connection, creatorKeypair, presaleAddress);
+).then(async () => {
+  await depositWithAuthority(connection, creatorKeypair, presaleAddress);
+  await depositWithAuthority(connection, userKeypair, presaleAddress);
+  process.exit(process.exitCode);
 });

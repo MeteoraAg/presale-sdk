@@ -3,6 +3,15 @@ import { getPresaleRemainingDepositQuota, PresaleHandler } from ".";
 import { IPresaleRegistryWrapper } from "../accounts/presale_registry_wrapper";
 import { IPresaleWrapper } from "../accounts/presale_wrapper";
 
+function calculateQuoteTokenWithoutSurplus(amount: BN, qPrice: BN): BN {
+  const baseTokenAmount = amount.shln(64).div(qPrice);
+  const { div: quoteTokenAmount, mod } = baseTokenAmount
+    .mul(qPrice)
+    .divmod(new BN(2).pow(new BN(64)));
+
+  return mod.isZero() ? quoteTokenAmount : quoteTokenAmount.add(new BN(1));
+}
+
 export class FixedPricePresaleHandler implements PresaleHandler {
   public qPrice: BN;
 
@@ -38,5 +47,14 @@ export class FixedPricePresaleHandler implements PresaleHandler {
 
   canWithdraw(): boolean {
     return true;
+  }
+
+  suggestDepositAmount(maxAmount: BN, remainingDepositAmount: BN): BN {
+    const depositAmount = BN.min(maxAmount, remainingDepositAmount);
+    return calculateQuoteTokenWithoutSurplus(depositAmount, this.qPrice);
+  }
+
+  suggestWithdrawAmount(maxAmount: BN): BN {
+    return calculateQuoteTokenWithoutSurplus(maxAmount, this.qPrice);
   }
 }
