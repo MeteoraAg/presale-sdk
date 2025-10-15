@@ -5,6 +5,8 @@ export * from "./pda";
 export * from "./presale";
 export * from "./instructions";
 export * from "./constant";
+export * from "./type";
+export * from "./math";
 
 export const PRESALE_PROGRAM_ID = new PublicKey(PresaleIDL.address);
 export const MEMO_PROGRAM_ID = new PublicKey(

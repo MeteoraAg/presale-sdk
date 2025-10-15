@@ -220,7 +220,7 @@ async function buildTransaction(
   }).add(...instructions);
 }
 
-class Presale {
+export class Presale {
   constructor(
     public program: PresaleProgram,
     public presaleAddress: PublicKey,
