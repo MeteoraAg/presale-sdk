@@ -138,10 +138,6 @@ export class PresaleRegistryWrapper implements IPresaleRegistryWrapper {
   }
 
   public getTokenPrice(): number {
-    if (this.getTotalDepositRawAmount().isZero()) {
-      return 0;
-    }
-
     switch (this.presaleMode) {
       case PresaleMode.FixedPrice: {
         const rawPrice = qPriceToPrice(this.presaleQPrice);
@@ -151,6 +147,10 @@ export class PresaleRegistryWrapper implements IPresaleRegistryWrapper {
           .toNumber();
       }
       default:
+        if (this.getTotalDepositRawAmount().isZero()) {
+          return 0;
+        }
+
         return calculateDynamicLamportPrice(
           this.getPresaleRawSupply(),
           this.getTotalDepositRawAmount()

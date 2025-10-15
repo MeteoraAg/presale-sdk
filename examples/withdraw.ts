@@ -57,9 +57,9 @@ const keypair = Keypair.fromSecretKey(
 );
 
 const presaleAddress = new PublicKey(
-  "DpRrSp5tMv31cpa19bNHELGtFH6tymNGNBvLPCHxFezt"
+  "59Av19ft9HjpitcN2VoEXvMiA8nrTh7WvNHVtZRhdaoi"
 );
 
-const amount = new BN(1000000);
+const amount = new BN(100000);
 
 withdraw(connection, presaleAddress, amount, keypair);

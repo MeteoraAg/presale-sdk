@@ -9,13 +9,13 @@ export function uiPriceToQPrice(
   rounding: Rounding
 ): BN {
   let lamportPrice = price * Math.pow(10, quoteTokenDecimal - baseTokenDecimal);
-  lamportPrice =
-    rounding == Rounding.Up
-      ? Math.ceil(lamportPrice)
-      : Math.floor(lamportPrice);
+  const lamportPriceDecimal = new Decimal(lamportPrice);
 
-  const lamportPriceBN = new BN(lamportPrice);
-  return lamportPriceBN.shln(64);
+  const qPriceDecimal = lamportPriceDecimal.mul(new Decimal(2).pow(64));
+  const qPrice =
+    rounding === Rounding.Up ? qPriceDecimal.ceil() : qPriceDecimal.floor();
+
+  return new BN(qPrice.toString());
 }
 
 export function qPriceToPrice(qPrice: BN): Decimal {
