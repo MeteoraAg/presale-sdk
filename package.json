@@ -1,6 +1,6 @@
 {
   "name": "@meteora-ag/presale",
-  "veresion": "0.0.1",
+  "version": "0.0.1",
   "description": "Presale client for Meteora AG",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -9,6 +9,9 @@
   "files": [
     "dist/**"
   ],
+  "scripts": {
+    "build": "tsup"
+  },
   "devDependencies": {
     "@types/bn.js": "^5.2.0",
     "@types/express": "^5.0.3",
