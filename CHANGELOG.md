@@ -18,3 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## presale [0.0.2] PR #6
+
+### Fixed
+
+- Export `Presale` class
