@@ -125,6 +125,11 @@ export class EscrowWrapper implements IEscrowWrapper {
       return new BN(0);
     }
 
+    const presaleProgress = presaleWrapper.getPresaleProgressState();
+    if (presaleProgress !== PresaleProgress.Completed) {
+      return new BN(0);
+    }
+
     const tokenSold = presaleRegistry.getTotalBaseTokenSold();
     const currentTimestamp = new Date().getTime() / 1000; // Convert to seconds
 
@@ -145,9 +150,11 @@ export class EscrowWrapper implements IEscrowWrapper {
       0
     );
 
-    const drippedToken = vestedAmount
-      .mul(new BN(elapsedSeconds))
-      .div(presaleAccount.vestDuration);
+    const drippedToken = presaleAccount.vestDuration.isZero()
+      ? vestedAmount
+      : vestedAmount
+          .mul(new BN(elapsedSeconds))
+          .div(presaleAccount.vestDuration);
 
     const userDrippedToken = drippedToken
       .mul(this.escrowAccount.totalDeposit)

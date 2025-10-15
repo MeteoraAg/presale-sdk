@@ -796,6 +796,8 @@ export class Presale {
     const whitelistMode = this.presaleAccount.whitelistMode;
 
     const preInstructions: TransactionInstruction[] = [];
+    const registryIndex =
+      params.registryIndex || DEFAULT_PERMISSIONLESS_REGISTRY_INDEX;
 
     switch (whitelistMode) {
       case WhitelistMode.Permissionless: {
@@ -818,8 +820,7 @@ export class Presale {
             presaleProgram: this.program,
             owner: params.owner,
             payer: params.owner,
-            registryIndex:
-              params.registryIndex || DEFAULT_PERMISSIONLESS_REGISTRY_INDEX,
+            registryIndex,
           });
 
         if (initEscrowIx) {
@@ -831,7 +832,7 @@ export class Presale {
         const escrow = deriveEscrow(
           this.presaleAddress,
           params.owner,
-          params.registryIndex || DEFAULT_PERMISSIONLESS_REGISTRY_INDEX,
+          registryIndex,
           this.program.programId
         );
         const escrowState = await this.program.account.escrow.fetchNullable(
@@ -846,8 +847,7 @@ export class Presale {
             presaleAccount: this.presaleAccount,
             amount: params.amount,
             owner: params.owner,
-            registryIndex:
-              params.registryIndex || DEFAULT_PERMISSIONLESS_REGISTRY_INDEX,
+            registryIndex,
           });
         }
       }
@@ -858,6 +858,7 @@ export class Presale {
       presaleProgram: this.program,
       presaleAddress: this.presaleAddress,
       transferHookAccountInfo: this.quoteTransferHookAccountInfo,
+      registryIndex,
       ...params,
     });
 

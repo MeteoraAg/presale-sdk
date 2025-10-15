@@ -93,27 +93,27 @@ const presaleRegistriesArgs: IPresaleRegistryArgs[] = [];
 presaleRegistriesArgs.push({
   presaleSupply: new BN(2000000000),
   depositFeeBps: new BN(0),
-  buyerMaximumDepositCap: new BN(1000000000),
-  buyerMinimumDepositCap: new BN(10000000),
+  buyerMaximumDepositCap: new BN(100000000),
+  buyerMinimumDepositCap: new BN(100000),
 });
 
 const presaleArgs: Omit<IPresaleArgs, "presaleMode"> = {
-  presaleMaximumCap: new BN(100000000000),
-  presaleMinimumCap: new BN(100000000),
+  presaleMaximumCap: new BN(100000000),
+  presaleMinimumCap: new BN(1000000),
   presaleStartTime: new BN(0),
-  presaleEndTime: new BN(Math.floor(Date.now() / 1000 + 300)),
+  presaleEndTime: new BN(Math.floor(Date.now() / 1000 + 3600)),
   whitelistMode: WhitelistMode.Permissionless,
   unsoldTokenAction: UnsoldTokenAction.Refund,
 };
 
 const lockedVestingArgs: ILockedVestingArgs = {
-  lockDuration: new BN(60),
-  vestDuration: new BN(60),
-  immediateReleaseBps: new BN(0),
+  lockDuration: new BN(0),
+  vestDuration: new BN(0),
+  immediateReleaseBps: new BN(10_000),
 };
 
 const baseMintPubkey = new PublicKey(
-  "Bn3KEckvpzxD5qxPArYPQMX9PGswZd6QypXqWPob79S"
+  "FQuMNJ6UcrkA3xMLsmmLL8sk47RkZYod57mX3a8w1brg"
 );
 
 const quoteMintPubkey = NATIVE_MINT;

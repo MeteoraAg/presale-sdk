@@ -57,7 +57,7 @@ const keypair = Keypair.fromSecretKey(
 );
 
 const presaleAddress = new PublicKey(
-  "GStMrk5xbeYXM2fvoHUCd6qyyFyegZRfnADsQec1xviA"
+  "59Av19ft9HjpitcN2VoEXvMiA8nrTh7WvNHVtZRhdaoi"
 );
 
 claim(connection, presaleAddress, keypair);

@@ -57,7 +57,7 @@ const keypair = Keypair.fromSecretKey(
 );
 
 const presaleAddress = new PublicKey(
-  "DpRrSp5tMv31cpa19bNHELGtFH6tymNGNBvLPCHxFezt"
+  "59Av19ft9HjpitcN2VoEXvMiA8nrTh7WvNHVtZRhdaoi"
 );
 
 closeEscrow(connection, presaleAddress, keypair);
