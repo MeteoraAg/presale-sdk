@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-## presale [0.0.2] PR #6
+## presale [0.0.2] [PR #6](https://github.com/MeteoraAg/presale-sdk/pull/6)
 
 ### Fixed
 
