@@ -19,6 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## presale [0.0.4] [PR #8](https://github.com/MeteoraAg/presale-sdk/pull/8)
+
+### Fixed
+
+- Presale progress end timing
+
+### Added
+
+- Allow integrator to disable compute unit instruction prepend by using `setComputeUnitOptimization`
+
 ## presale [0.0.3] [PR #6](https://github.com/MeteoraAg/presale-sdk/pull/7)
 
 ### Fixed
