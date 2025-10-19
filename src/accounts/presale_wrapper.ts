@@ -395,7 +395,7 @@ export function getPresaleProgressState(
 
   if (currentTime < presaleAccount.presaleStartTime.toNumber()) {
     return PresaleProgress.NotStarted;
-  } else if (currentTime <= presaleAccount.presaleEndTime.toNumber()) {
+  } else if (currentTime < presaleAccount.presaleEndTime.toNumber()) {
     return PresaleProgress.Ongoing;
   }
 

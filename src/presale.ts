@@ -186,26 +186,31 @@ async function fetchAccountsForCache(
   };
 }
 
-async function buildTransactionWithOptimizedComputeUnit(
+async function buildTransactionWithOptionalComputeUnitOptimization(
   connection: Connection,
   instructions: TransactionInstruction[],
-  feePayer: PublicKey
+  feePayer: PublicKey,
+  optimizeCu: boolean
 ) {
-  const estimatedComputeUnit = await getSimulationComputeUnits(
-    connection,
-    instructions,
-    feePayer,
-    []
-  ).catch((_e) => {
-    // Follow default behavior of default CU
-    return Math.min(1_400_000, instructions.length * 200_000);
-  });
+  if (optimizeCu) {
+    const estimatedComputeUnit = await getSimulationComputeUnits(
+      connection,
+      instructions,
+      feePayer,
+      []
+    ).catch((_e) => {
+      // Follow default behavior of default CU
+      return Math.min(1_400_000, instructions.length * 200_000);
+    });
 
-  const setCuIx = ComputeBudgetProgram.setComputeUnitLimit({
-    units: estimatedComputeUnit,
-  });
+    const setCuIx = ComputeBudgetProgram.setComputeUnitLimit({
+      units: estimatedComputeUnit,
+    });
 
-  return buildTransaction(connection, [setCuIx, ...instructions], feePayer);
+    return buildTransaction(connection, [setCuIx, ...instructions], feePayer);
+  } else {
+    return buildTransaction(connection, instructions, feePayer);
+  }
 }
 
 async function buildTransaction(
@@ -228,7 +233,8 @@ export class Presale {
     public baseMint: Mint,
     public quoteMint: Mint,
     public baseTransferHookAccountInfo: TransferHookAccountInfo,
-    public quoteTransferHookAccountInfo: TransferHookAccountInfo
+    public quoteTransferHookAccountInfo: TransferHookAccountInfo,
+    public shouldOptimizeComputeUnit: boolean
   ) {}
 
   /**
@@ -265,7 +271,8 @@ export class Presale {
       baseMint,
       quoteMint,
       baseMintSliceAndTransferHookAccounts,
-      quoteMintSliceAndTransferHookAccounts
+      quoteMintSliceAndTransferHookAccounts,
+      true
     );
   }
 
@@ -284,17 +291,19 @@ export class Presale {
   static async createProrataPresale(
     connection: Connection,
     programId: PublicKey,
-    params: Omit<ICreateInitializePresaleIxParams, "program">
+    params: Omit<ICreateInitializePresaleIxParams, "program">,
+    shouldOptimizeComputeUnit?: boolean
   ) {
     const initializePresaleIx = await createInitializeProrataPresaleIx({
       program: createPresaleProgram(connection, programId),
       ...params,
     });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       connection,
       [initializePresaleIx],
-      params.feePayerPubkey
+      params.feePayerPubkey,
+      shouldOptimizeComputeUnit ?? true
     );
   }
 
@@ -313,17 +322,19 @@ export class Presale {
   static async createFcfsPresale(
     connection: Connection,
     programId: PublicKey,
-    params: Omit<ICreateInitializePresaleIxParams, "program">
+    params: Omit<ICreateInitializePresaleIxParams, "program">,
+    shouldOptimizeComputeUnit?: boolean
   ) {
     const initializePresaleIx = await createInitializeFcfsPresaleIx({
       program: createPresaleProgram(connection, programId),
       ...params,
     });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       connection,
       [initializePresaleIx],
-      params.feePayerPubkey
+      params.feePayerPubkey,
+      shouldOptimizeComputeUnit ?? true
     );
   }
 
@@ -346,7 +357,8 @@ export class Presale {
     fixedPriceParams: {
       price: Decimal;
       rounding: Rounding;
-    }
+    },
+    shouldOptimizeComputeUnit?: boolean
   ) {
     const [baseMintAccount, quoteMintAccount] =
       await connection.getMultipleAccountsInfo([
@@ -382,10 +394,11 @@ export class Presale {
       }
     );
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       connection,
       initializePresaleIxs,
-      presaleParams.feePayerPubkey
+      presaleParams.feePayerPubkey,
+      shouldOptimizeComputeUnit ?? true
     );
   }
 
@@ -404,7 +417,8 @@ export class Presale {
   static async closeFixedPricePresaleArgs(
     connection: Connection,
     params: Omit<ICreateCloseFixedPriceArgsParams, "presaleProgram">,
-    programId: PublicKey
+    programId: PublicKey,
+    shouldOptimizeComputeUnit?: boolean
   ) {
     const presaleProgram = createPresaleProgram(connection, programId);
 
@@ -418,11 +432,25 @@ export class Presale {
       owner,
     });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       connection,
       [closeFixedPricePresaleArgsIx],
-      params.owner
+      params.owner,
+      shouldOptimizeComputeUnit ?? true
     );
+  }
+
+  /**
+   * Enable or disable compute unit optimization.
+   *
+   * When enabled (enable = true), the internal flag `disableComputeUnitOptimization` is set to
+   * `false` so compute unit optimization can be applied by automatically appending set compute unit instruction
+   *
+   * @param enable - true to enable compute unit optimization; false to disable it.
+   * @returns void
+   */
+  setComputeUnitOptimization(enable: boolean) {
+    this.shouldOptimizeComputeUnit = enable;
   }
 
   /**
@@ -448,10 +476,11 @@ export class Presale {
 
     const { creator } = params;
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       this.program.provider.connection,
       [initMerkleRootConfigIx],
-      creator
+      creator,
+      this.shouldOptimizeComputeUnit
     );
   }
 
@@ -596,10 +625,11 @@ export class Presale {
       ...params,
     });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       this.program.provider.connection,
       [initPermissionlessEscrowIx],
-      params.payer
+      params.payer,
+      this.shouldOptimizeComputeUnit
     );
   }
 
@@ -652,10 +682,11 @@ export class Presale {
         ...params,
       });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       this.program.provider.connection,
       [initPermissionedEscrowIx],
-      params.payer
+      params.payer,
+      this.shouldOptimizeComputeUnit
     );
   }
 
@@ -683,10 +714,11 @@ export class Presale {
         ...params,
       });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       this.program.provider.connection,
       [initPermissionedEscrowWithCreatorIx],
-      params.payer
+      params.payer,
+      this.shouldOptimizeComputeUnit
     );
   }
 
@@ -730,7 +762,8 @@ export class Presale {
     params: Omit<IRevokeOperatorParams, "presaleProgram"> & {
       connection: Connection;
       programId?: PublicKey;
-    }
+    },
+    shouldOptimizeComputeUnit?: boolean
   ) {
     const { operator, creator, connection, programId } = params;
     const program = createPresaleProgram(
@@ -744,10 +777,11 @@ export class Presale {
       creator,
     });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       program.provider.connection,
       [revokeOperatorIx],
-      creator
+      creator,
+      shouldOptimizeComputeUnit ?? true
     );
   }
 
@@ -862,10 +896,11 @@ export class Presale {
       ...params,
     });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       this.program.provider.connection,
       [...preInstructions, ...depositIx],
-      params.owner
+      params.owner,
+      this.shouldOptimizeComputeUnit
     );
   }
 
@@ -898,10 +933,11 @@ export class Presale {
       ...params,
     });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       this.program.provider.connection,
       withdrawIxs,
-      params.owner
+      params.owner,
+      this.shouldOptimizeComputeUnit
     );
   }
 
@@ -933,10 +969,11 @@ export class Presale {
       ...params,
     });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       this.program.provider.connection,
       claimIxs,
-      params.owner
+      params.owner,
+      this.shouldOptimizeComputeUnit
     );
   }
 
@@ -970,10 +1007,11 @@ export class Presale {
       ...params,
     });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       this.program.provider.connection,
       withdrawRemainingQuoteIxs,
-      params.owner
+      params.owner,
+      this.shouldOptimizeComputeUnit
     );
   }
 
@@ -996,10 +1034,11 @@ export class Presale {
         creator: this.presaleAccount.owner,
       });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       this.program.provider.connection,
       performUnsoldBaseTokenActionIxs,
-      payer
+      payer,
+      this.shouldOptimizeComputeUnit
     );
   }
 
@@ -1033,10 +1072,11 @@ export class Presale {
       ...params,
     });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       this.program.provider.connection,
       withdrawIxs,
-      params.creator
+      params.creator,
+      this.shouldOptimizeComputeUnit
     );
   }
 
@@ -1059,10 +1099,11 @@ export class Presale {
       ...params,
     });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       this.program.provider.connection,
       [closeEscrowIx],
-      params.owner
+      params.owner,
+      this.shouldOptimizeComputeUnit
     );
   }
 
@@ -1089,10 +1130,11 @@ export class Presale {
         ...params,
       });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       this.program.provider.connection,
       [createPermissionedServerMetadataIx],
-      params.owner
+      params.owner,
+      this.shouldOptimizeComputeUnit
     );
   }
 
@@ -1120,10 +1162,11 @@ export class Presale {
         ...params,
       });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       this.program.provider.connection,
       [closePermissionedServerMetadataIx],
-      params.owner
+      params.owner,
+      this.shouldOptimizeComputeUnit
     );
   }
 
@@ -1145,10 +1188,11 @@ export class Presale {
       ...params,
     });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       this.program.provider.connection,
       [refreshEscrowIx],
-      params.owner
+      params.owner,
+      this.shouldOptimizeComputeUnit
     );
   }
 
@@ -1172,10 +1216,11 @@ export class Presale {
       quoteTransferHookAccountInfo: this.quoteTransferHookAccountInfo,
     });
 
-    return buildTransactionWithOptimizedComputeUnit(
+    return buildTransactionWithOptionalComputeUnitOptimization(
       this.program.provider.connection,
       creatorCollectFeeIxs,
-      this.presaleAccount.owner
+      this.presaleAccount.owner,
+      this.shouldOptimizeComputeUnit
     );
   }
 
