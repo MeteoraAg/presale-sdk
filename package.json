@@ -1,6 +1,6 @@
 {
   "name": "@meteora-ag/presale",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Presale client for Meteora AG",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -10,13 +10,20 @@
     "dist/**"
   ],
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "test": "ts-mocha -p tsconfig.json 'tests/**/*.ts'"
   },
   "devDependencies": {
     "@types/bn.js": "^5.2.0",
+    "@types/chai": "^4.3.20",
     "@types/express": "^5.0.3",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^24.1.0",
+    "chai": "^4.5.0",
     "express": "^5.1.0",
+    "fast-check": "^4.3.0",
+    "mocha": "^11.7.4",
+    "ts-mocha": "^11.1.0",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3"
   },

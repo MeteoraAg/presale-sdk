@@ -1,5 +1,5 @@
 import Decimal from "decimal.js";
-import { Rounding, U64_MAX } from "./type";
+import { Rounding, U128_MAX, U64_MAX } from "./type";
 import { BN } from "@coral-xyz/anchor";
 
 export function uiPriceToQPrice(
@@ -8,12 +8,21 @@ export function uiPriceToQPrice(
   quoteTokenDecimal: number,
   rounding: Rounding
 ): BN {
+  Decimal.set({ toExpPos: 40 });
   let lamportPrice = price * Math.pow(10, quoteTokenDecimal - baseTokenDecimal);
   const lamportPriceDecimal = new Decimal(lamportPrice);
 
   const qPriceDecimal = lamportPriceDecimal.mul(new Decimal(2).pow(64));
+
   const qPrice =
     rounding === Rounding.Up ? qPriceDecimal.ceil() : qPriceDecimal.floor();
+
+  if (
+    qPrice.lessThan(new Decimal(1)) ||
+    qPrice.greaterThan(new Decimal(U128_MAX.toString()))
+  ) {
+    return new BN(0);
+  }
 
   return new BN(qPrice.toString());
 }

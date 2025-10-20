@@ -60,3 +60,4 @@ export interface TransferHookAccountInfo {
 }
 
 export const U64_MAX = new BN("18446744073709551615");
+export const U128_MAX = U64_MAX.mul(U64_MAX);
