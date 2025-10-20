@@ -45,6 +45,7 @@ async function initializeMerkleTreePermissionedFixedPricePresale(
     {
       price,
       rounding: Rounding.Down,
+      disableWithdraw: false,
     }
   );
 
@@ -164,6 +165,7 @@ const presaleArgs: Omit<IPresaleArgs, "presaleMode"> = {
   presaleEndTime: new BN(Math.floor(Date.now() / 1000 + 86400)),
   whitelistMode: WhitelistMode.PermissionWithMerkleProof,
   unsoldTokenAction: UnsoldTokenAction.Refund,
+  disableEarlierPresaleEndOnceCapReached: false,
 };
 
 const lockedVestingArgs: ILockedVestingArgs = {

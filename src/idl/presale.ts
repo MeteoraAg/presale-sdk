@@ -8,7 +8,7 @@ export type Presale = {
   "address": "presSVxnf9UU8jMxhgSMqaRwNiT36qeBdNeTRKjTdbj",
   "metadata": {
     "name": "presale",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
@@ -2472,6 +2472,11 @@ export type Presale = {
       "code": 6040,
       "name": "presaleNotOpenForCollectFee",
       "msg": "Presale is not open for collect fee"
+    },
+    {
+      "code": 6041,
+      "name": "invalidType",
+      "msg": "Invalid type"
     }
   ],
   "types": [
@@ -3116,9 +3121,13 @@ export type Presale = {
             "type": {
               "array": [
                 "u8",
-                16
+                15
               ]
             }
+          },
+          {
+            "name": "disableWithdraw",
+            "type": "u8"
           },
           {
             "name": "qPrice",
@@ -3154,7 +3163,7 @@ export type Presale = {
             "type": "pubkey"
           },
           {
-            "name": "padding0",
+            "name": "disableWithdraw",
             "type": "u8"
           },
           {
@@ -3426,9 +3435,9 @@ export type Presale = {
             "type": "pubkey"
           },
           {
-            "name": "padding0",
+            "name": "fixedPricePresaleFlags",
             "docs": [
-              "Padding"
+              "Fixed price presale extra flags. Only applicable for fixed price presale mode"
             ],
             "type": "u8"
           },
@@ -3447,11 +3456,18 @@ export type Presale = {
             "type": "u8"
           },
           {
+            "name": "presaleFlags",
+            "docs": [
+              "Presale flags. Applicable for various presale modes"
+            ],
+            "type": "u8"
+          },
+          {
             "name": "padding1",
             "type": {
               "array": [
                 "u8",
-                5
+                4
               ]
             }
           },
@@ -3714,11 +3730,15 @@ export type Presale = {
             "type": "u8"
           },
           {
+            "name": "disableEarlierPresaleEndOnceCapReached",
+            "type": "u8"
+          },
+          {
             "name": "padding",
             "type": {
               "array": [
                 "u8",
-                31
+                30
               ]
             }
           }

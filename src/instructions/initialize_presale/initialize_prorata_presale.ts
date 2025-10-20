@@ -8,7 +8,11 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import BN from "bn.js";
-import { ICreateInitializePresaleIxParams } from ".";
+import {
+  ICreateInitializePresaleIxParams,
+  toIdlLockedVestingParams,
+  toIdlPresaleParams,
+} from ".";
 import {
   deriveMetaplexMetadata,
   derivePresale,
@@ -103,22 +107,8 @@ export async function createInitializeProrataPresaleIx(
     .initializePresale(
       // @ts-expect-error
       {
-        presaleParams: {
-          ...presaleArgs,
-          presaleMode: PresaleMode.Prorata,
-          padding: new Array(4).fill(new BN(0)),
-        },
-        lockedVestingParams: lockedVestingArgs
-          ? {
-              ...lockedVestingArgs,
-              padding: new Array(4).fill(new BN(0)),
-            }
-          : {
-              immediatelyReleaseBps: 0,
-              lockDuration: new BN(0),
-              vestDuration: new BN(0),
-              padding: new Array(4).fill(new BN(0)),
-            },
+        presaleParams: toIdlPresaleParams(presaleArgs, PresaleMode.Prorata),
+        lockedVestingParams: toIdlLockedVestingParams(lockedVestingArgs),
         padding: new Array(4).fill(new BN(0)),
         presaleRegistries,
       },

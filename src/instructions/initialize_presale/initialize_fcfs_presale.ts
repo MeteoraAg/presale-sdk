@@ -1,7 +1,12 @@
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { SystemProgram, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
-import { ICreateInitializePresaleIxParams } from ".";
+import {
+  ICreateInitializePresaleIxParams,
+  INITIALIZE_PRESALE_PARAMS_PADDING,
+  toIdlLockedVestingParams,
+  toIdlPresaleParams,
+} from ".";
 import {
   derivePresale,
   derivePresaleAuthority,
@@ -85,23 +90,9 @@ export async function createInitializeFcfsPresaleIx(
     .initializePresale(
       // @ts-expect-error
       {
-        presaleParams: {
-          ...presaleArgs,
-          presaleMode: PresaleMode.Fcfs,
-          padding: new Array(4).fill(new BN(0)),
-        },
-        lockedVestingParams: lockedVestingArgs
-          ? {
-              ...lockedVestingArgs,
-              padding: new Array(4).fill(new BN(0)),
-            }
-          : {
-              immediatelyReleaseBps: 0,
-              lockDuration: new BN(0),
-              vestDuration: new BN(0),
-              padding: new Array(4).fill(new BN(0)),
-            },
-        padding: new Array(4).fill(new BN(0)),
+        presaleParams: toIdlPresaleParams(presaleArgs, PresaleMode.Fcfs),
+        lockedVestingParams: toIdlLockedVestingParams(lockedVestingArgs),
+        padding: INITIALIZE_PRESALE_PARAMS_PADDING,
         presaleRegistries,
       },
       {
