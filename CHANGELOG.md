@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## presale [0.0.5] [PR #10](https://github.com/MeteoraAg/presale-sdk/pull/10)
+
+- Fix on qPrice conversion failed on edge prices due to scientific notation
+
 ## presale [0.0.4] [PR #8](https://github.com/MeteoraAg/presale-sdk/pull/8)
 
 ### Fixed
