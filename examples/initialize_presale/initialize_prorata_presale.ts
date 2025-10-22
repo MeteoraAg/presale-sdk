@@ -92,12 +92,14 @@ const presaleArgs: Omit<IPresaleArgs, "presaleMode"> = {
   presaleEndTime: new BN(Math.floor(Date.now() / 1000 + 300)),
   whitelistMode: WhitelistMode.Permissionless,
   unsoldTokenAction: UnsoldTokenAction.Refund,
+  disableEarlierPresaleEndOnceCapReached: false,
 };
 
 const lockedVestingArgs: ILockedVestingArgs = {
   immediateReleaseBps: new BN(0),
   lockDuration: new BN(3600),
   vestDuration: new BN(3600),
+  immediateReleaseTimestamp: presaleArgs.presaleEndTime,
 };
 
 const baseMintPubkey = new PublicKey(

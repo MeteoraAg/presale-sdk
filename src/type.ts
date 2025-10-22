@@ -1,4 +1,4 @@
-import { IdlAccounts, IdlTypes, Program } from "@coral-xyz/anchor";
+import { Idl, IdlAccounts, IdlTypes, Program } from "@coral-xyz/anchor";
 import { AccountMeta } from "@solana/web3.js";
 import type { Presale as PresaleTypes } from "./idl/presale";
 import { BN } from "bn.js";
@@ -9,6 +9,8 @@ export type RemainingAccountsSlice =
 export type PresaleAccount = IdlAccounts<PresaleTypes>["presale"];
 export type EscrowAccount = IdlAccounts<PresaleTypes>["escrow"];
 export type PresaleRegistry = IdlTypes<PresaleTypes>["presaleRegistry"];
+export type IdlPresaleArgs = IdlTypes<PresaleTypes>["presaleArgs"];
+export type IdlLockedVestingArgs = IdlTypes<PresaleTypes>["lockedVestingArgs"];
 
 export enum UnsoldTokenAction {
   Refund = 0,

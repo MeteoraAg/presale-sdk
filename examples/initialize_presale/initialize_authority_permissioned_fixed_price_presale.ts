@@ -4,7 +4,12 @@ import { BN } from "bn.js";
 import Decimal from "decimal.js";
 import fs from "fs";
 import os from "os";
-import { deriveOperator, derivePresale, PRESALE_PROGRAM_ID } from "../../src";
+import {
+  calculateMinimumQuoteAmountForBaseLamport,
+  deriveOperator,
+  derivePresale,
+  PRESALE_PROGRAM_ID,
+} from "../../src";
 import {
   ILockedVestingArgs,
   IPresaleArgs,
@@ -26,6 +31,7 @@ async function initializeAuthorityPermissionedFixedPricePresale(
   presaleArgs: Omit<IPresaleArgs, "presaleMode">,
   serverSigningUrl: string,
   operatorAddress: PublicKey,
+  priceRounding: Rounding,
   lockedVestingArgs?: ILockedVestingArgs
 ) {
   const initializeFixedPricePresaleTx = await Presale.createFixedPricePresale(
@@ -43,7 +49,8 @@ async function initializeAuthorityPermissionedFixedPricePresale(
     },
     {
       price,
-      rounding: Rounding.Down,
+      disableWithdraw: false,
+      rounding: priceRounding,
     }
   );
 
@@ -149,21 +156,10 @@ const operatorKeypair = Keypair.fromSecretKey(
   new Uint8Array(JSON.parse(fs.readFileSync(operatorKeypairFilepath, "utf-8")))
 );
 
-const presaleRegistriesArgs: IPresaleRegistryArgs[] = [];
-
-presaleRegistriesArgs.push({
-  presaleSupply: new BN(2000000000),
-  buyerMaximumDepositCap: new BN(1000000000),
-  buyerMinimumDepositCap: new BN(10000000),
-  depositFeeBps: new BN(0),
-});
-
-presaleRegistriesArgs.push({
-  presaleSupply: new BN(1000000000),
-  buyerMaximumDepositCap: new BN(500000000),
-  buyerMinimumDepositCap: new BN(5000000),
-  depositFeeBps: new BN(0),
-});
+const uiPrice = new Decimal(0.1);
+const priceRounding = Rounding.Down;
+const baseMintDecimals = 6;
+const quoteMintDecimals = 9;
 
 const presaleArgs: Omit<IPresaleArgs, "presaleMode"> = {
   presaleMaximumCap: new BN(100000000000),
@@ -172,13 +168,38 @@ const presaleArgs: Omit<IPresaleArgs, "presaleMode"> = {
   presaleEndTime: new BN(Math.floor(Date.now() / 1000 + 86400)),
   whitelistMode: WhitelistMode.PermissionWithAuthority,
   unsoldTokenAction: UnsoldTokenAction.Refund,
+  disableEarlierPresaleEndOnceCapReached: false,
 };
 
 const lockedVestingArgs: ILockedVestingArgs = {
   immediateReleaseBps: new BN(0),
   lockDuration: new BN(3600),
   vestDuration: new BN(3600),
+  immediateReleaseTimestamp: presaleArgs.presaleEndTime,
 };
+
+const buyerMinimumDepositCap = calculateMinimumQuoteAmountForBaseLamport(
+  uiPrice,
+  new BN(baseMintDecimals),
+  new BN(quoteMintDecimals),
+  priceRounding
+);
+
+const presaleRegistriesArgs: IPresaleRegistryArgs[] = [];
+
+presaleRegistriesArgs.push({
+  presaleSupply: new BN(2000000000),
+  buyerMaximumDepositCap: presaleArgs.presaleMaximumCap,
+  buyerMinimumDepositCap: buyerMinimumDepositCap,
+  depositFeeBps: new BN(0),
+});
+
+presaleRegistriesArgs.push({
+  presaleSupply: new BN(1000000000),
+  buyerMaximumDepositCap: presaleArgs.presaleMaximumCap,
+  buyerMinimumDepositCap: buyerMinimumDepositCap,
+  depositFeeBps: new BN(0),
+});
 
 const baseMintPubkey = new PublicKey(
   "Bn3KEckvpzxD5qxPArYPQMX9PGswZd6QypXqWPob79S"
@@ -196,10 +217,11 @@ initializeAuthorityPermissionedFixedPricePresale(
   quoteMintPubkey,
   creatorKeypair,
   baseKeypair,
-  new Decimal(0.1),
+  uiPrice,
   presaleRegistriesArgs,
   presaleArgs,
   serverSigningUrl,
   operatorKeypair.publicKey,
+  priceRounding,
   lockedVestingArgs
 );

@@ -356,6 +356,7 @@ export class Presale {
     presaleParams: Omit<ICreateInitializePresaleIxParams, "program">,
     fixedPriceParams: {
       price: Decimal;
+      disableWithdraw: boolean;
       rounding: Rounding;
     },
     shouldOptimizeComputeUnit?: boolean
@@ -390,6 +391,7 @@ export class Presale {
           quoteMint.decimals,
           fixedPriceParams.rounding
         ),
+        disableWithdraw: fixedPriceParams.disableWithdraw,
         program,
       }
     );

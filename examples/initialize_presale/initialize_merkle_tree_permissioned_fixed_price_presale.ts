@@ -5,7 +5,12 @@ import Decimal from "decimal.js";
 import fs from "fs";
 import os from "os";
 import { WhitelistedWallet } from "../../libs/merkle_tree";
-import { derivePresale, PRESALE_PROGRAM_ID } from "../../src";
+import {
+  calculateLockAndVestDurationFromTimestamps,
+  calculateMinimumQuoteAmountForBaseLamport,
+  derivePresale,
+  PRESALE_PROGRAM_ID,
+} from "../../src";
 import {
   ILockedVestingArgs,
   IPresaleArgs,
@@ -27,6 +32,7 @@ async function initializeMerkleTreePermissionedFixedPricePresale(
   presaleArgs: Omit<IPresaleArgs, "presaleMode">,
   whitelistWallets: WhitelistedWallet[],
   merkleProofServerUrl: string,
+  priceRounding: Rounding,
   lockedVestingArgs?: ILockedVestingArgs
 ) {
   const initializeFixedPricePresaleTx = await Presale.createFixedPricePresale(
@@ -44,7 +50,8 @@ async function initializeMerkleTreePermissionedFixedPricePresale(
     },
     {
       price,
-      rounding: Rounding.Down,
+      rounding: priceRounding,
+      disableWithdraw: false,
     }
   );
 
@@ -141,21 +148,8 @@ const userKeypair = Keypair.fromSecretKey(
   new Uint8Array(JSON.parse(fs.readFileSync(userKeypairFilepath, "utf-8")))
 );
 
-const presaleRegistriesArgs: IPresaleRegistryArgs[] = [];
-
-presaleRegistriesArgs.push({
-  presaleSupply: new BN(2000000000),
-  buyerMaximumDepositCap: new BN(1000000000),
-  buyerMinimumDepositCap: new BN(10000000),
-  depositFeeBps: new BN(0),
-});
-
-presaleRegistriesArgs.push({
-  presaleSupply: new BN(1000000000),
-  buyerMaximumDepositCap: new BN(500000000),
-  buyerMinimumDepositCap: new BN(5000000),
-  depositFeeBps: new BN(0),
-});
+const uiPrice = new Decimal(0.1);
+const priceRounding = Rounding.Down;
 
 const presaleArgs: Omit<IPresaleArgs, "presaleMode"> = {
   presaleMaximumCap: new BN(100000000000),
@@ -164,13 +158,52 @@ const presaleArgs: Omit<IPresaleArgs, "presaleMode"> = {
   presaleEndTime: new BN(Math.floor(Date.now() / 1000 + 86400)),
   whitelistMode: WhitelistMode.PermissionWithMerkleProof,
   unsoldTokenAction: UnsoldTokenAction.Refund,
+  disableEarlierPresaleEndOnceCapReached: false,
 };
 
+const lockEndTime = presaleArgs.presaleEndTime.add(new BN(3600));
+const vestEndTime = lockEndTime.add(new BN(3600));
+
+const { lockDuration, vestDuration } =
+  calculateLockAndVestDurationFromTimestamps(
+    presaleArgs.presaleEndTime,
+    lockEndTime,
+    vestEndTime
+  );
+
+const immediateReleaseTimestamp = presaleArgs.presaleEndTime.add(
+  lockEndTime.sub(presaleArgs.presaleEndTime).div(new BN(2))
+);
+
 const lockedVestingArgs: ILockedVestingArgs = {
-  lockDuration: new BN(3600),
-  vestDuration: new BN(3600),
-  immediateReleaseBps: new BN(0),
+  lockDuration,
+  vestDuration,
+  immediateReleaseBps: new BN(5000),
+  immediateReleaseTimestamp,
 };
+
+const buyerMinimumDepositCap = calculateMinimumQuoteAmountForBaseLamport(
+  uiPrice,
+  new BN(6),
+  new BN(9),
+  priceRounding
+);
+
+const presaleRegistriesArgs: IPresaleRegistryArgs[] = [];
+
+presaleRegistriesArgs.push({
+  presaleSupply: new BN(2000000000),
+  buyerMaximumDepositCap: presaleArgs.presaleMaximumCap,
+  buyerMinimumDepositCap: buyerMinimumDepositCap,
+  depositFeeBps: new BN(0),
+});
+
+presaleRegistriesArgs.push({
+  presaleSupply: new BN(1000000000),
+  buyerMaximumDepositCap: presaleArgs.presaleMaximumCap,
+  buyerMinimumDepositCap: buyerMinimumDepositCap,
+  depositFeeBps: new BN(0),
+});
 
 const baseMintPubkey = new PublicKey(
   "Bn3KEckvpzxD5qxPArYPQMX9PGswZd6QypXqWPob79S"
@@ -201,10 +234,11 @@ initializeMerkleTreePermissionedFixedPricePresale(
   quoteMintPubkey,
   keypair,
   baseKeypair,
-  new Decimal(0.1),
+  uiPrice,
   presaleRegistriesArgs,
   presaleArgs,
   whitelistedWallets,
   merkleProofServerUrl,
+  priceRounding,
   lockedVestingArgs
 );
