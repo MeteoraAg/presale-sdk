@@ -86,3 +86,20 @@ export function calculateLockAndVestDurationFromTimestamps(
     vestDuration,
   };
 }
+
+export function calculateMinimumQuoteAmountForBaseLamport(
+  uiPrice: Decimal,
+  baseDecimal: BN,
+  quoteDecimal: BN,
+  rounding: Rounding
+) {
+  const qPrice = uiPriceToQPrice(
+    uiPrice.toNumber(),
+    baseDecimal.toNumber(),
+    quoteDecimal.toNumber(),
+    rounding
+  );
+
+  const scaleMultiplier = new BN(2).pow(new BN(64));
+  return qPrice.add(scaleMultiplier).sub(new BN(1)).div(scaleMultiplier);
+}
