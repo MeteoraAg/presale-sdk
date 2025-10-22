@@ -46,6 +46,7 @@ export function toIdlLockedVestingParams(
         lockDuration: new BN(0),
         vestDuration: new BN(0),
         padding,
+        immediateReleaseTimestamp: new BN(0),
       };
 }
 
@@ -64,6 +65,7 @@ export interface ILockedVestingArgs {
   immediateReleaseBps: BN;
   lockDuration: BN;
   vestDuration: BN;
+  immediateReleaseTimestamp: BN;
 }
 
 export interface IPresaleRegistryArgs {

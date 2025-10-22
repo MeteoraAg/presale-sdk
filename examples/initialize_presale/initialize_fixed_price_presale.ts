@@ -112,6 +112,7 @@ const lockedVestingArgs: ILockedVestingArgs = {
   lockDuration: new BN(0),
   vestDuration: new BN(0),
   immediateReleaseBps: new BN(10_000),
+  immediateReleaseTimestamp: presaleArgs.presaleEndTime,
 };
 
 const baseMintPubkey = new PublicKey(

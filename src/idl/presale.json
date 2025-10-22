@@ -2471,6 +2471,11 @@
       "code": 6041,
       "name": "InvalidType",
       "msg": "Invalid type"
+    },
+    {
+      "code": 6042,
+      "name": "InvalidBuyerCapRange",
+      "msg": "Invalid buyer cap range"
     }
   ],
   "types": [
@@ -3249,11 +3254,18 @@
             "type": "u64"
           },
           {
+            "name": "immediate_release_timestamp",
+            "docs": [
+              "Timestamp when the immediate release portion is released"
+            ],
+            "type": "u64"
+          },
+          {
             "name": "padding",
             "type": {
               "array": [
                 "u8",
-                32
+                24
               ]
             }
           }
@@ -3489,7 +3501,7 @@
           {
             "name": "presale_end_time",
             "docs": [
-              "When presale ends. Presale can be ended earlier by creator if raised capital is reached (based on presale mode)."
+              "When presale ends. Presale can be ended earlier by creator if raised capital is reached (based on presale mode). This is also the lock start time."
             ],
             "type": "u64"
           },
@@ -3536,23 +3548,18 @@
             "type": "u64"
           },
           {
-            "name": "lock_start_time",
-            "docs": [
-              "When the lock starts"
-            ],
-            "type": "u64"
-          },
-          {
-            "name": "lock_end_time",
-            "docs": [
-              "When the lock ends"
-            ],
-            "type": "u64"
+            "name": "padding0",
+            "type": {
+              "array": [
+                "u64",
+                2
+              ]
+            }
           },
           {
             "name": "vesting_start_time",
             "docs": [
-              "When the vesting starts"
+              "When the vesting starts. This is also lock end time."
             ],
             "type": "u64"
           },
@@ -3660,11 +3667,22 @@
             "type": "u128"
           },
           {
+            "name": "immediate_release_timestamp",
+            "docs": [
+              "Timestamp when the immediate release portion is released"
+            ],
+            "type": "u64"
+          },
+          {
             "name": "padding3",
+            "type": "u64"
+          },
+          {
+            "name": "padding4",
             "type": {
               "array": [
                 "u128",
-                6
+                5
               ]
             }
           },

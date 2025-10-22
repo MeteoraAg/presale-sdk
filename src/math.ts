@@ -1,6 +1,7 @@
 import Decimal from "decimal.js";
 import { Rounding, U128_MAX, U64_MAX } from "./type";
 import { BN } from "@coral-xyz/anchor";
+import invariant from "tiny-invariant";
 
 export function uiPriceToQPrice(
   price: number,
@@ -61,5 +62,27 @@ export function calculateImmediateReleaseToken(
   return {
     immediateReleasedAmount,
     vestedAmount: totalSoldToken.sub(immediateReleasedAmount),
+  };
+}
+
+// Calculates lock duration and vest duration in seconds from the given timestamps. Vest start immediately follows lock end.
+export function calculateLockAndVestDurationFromTimestamps(
+  presaleEndTime: BN,
+  lockEndTime: BN,
+  vestEndTime: BN
+) {
+  invariant(
+    presaleEndTime.lte(lockEndTime),
+    "Lock end must be after presale end"
+  );
+
+  invariant(lockEndTime.lte(vestEndTime), "Vest end must be after lock end");
+
+  const lockDuration = lockEndTime.sub(presaleEndTime);
+  const vestDuration = vestEndTime.sub(lockEndTime);
+
+  return {
+    lockDuration,
+    vestDuration,
   };
 }

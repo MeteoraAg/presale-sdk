@@ -5,7 +5,11 @@ import Decimal from "decimal.js";
 import fs from "fs";
 import os from "os";
 import { WhitelistedWallet } from "../../libs/merkle_tree";
-import { derivePresale, PRESALE_PROGRAM_ID } from "../../src";
+import {
+  calculateLockAndVestDurationFromTimestamps,
+  derivePresale,
+  PRESALE_PROGRAM_ID,
+} from "../../src";
 import {
   ILockedVestingArgs,
   IPresaleArgs,
@@ -168,10 +172,25 @@ const presaleArgs: Omit<IPresaleArgs, "presaleMode"> = {
   disableEarlierPresaleEndOnceCapReached: false,
 };
 
+const lockEndTime = presaleArgs.presaleEndTime.add(new BN(3600));
+const vestEndTime = lockEndTime.add(new BN(3600));
+
+const { lockDuration, vestDuration } =
+  calculateLockAndVestDurationFromTimestamps(
+    presaleArgs.presaleEndTime,
+    lockEndTime,
+    vestEndTime
+  );
+
+const immediateReleaseTimestamp = lockEndTime
+  .sub(presaleArgs.presaleEndTime)
+  .div(new BN(2));
+
 const lockedVestingArgs: ILockedVestingArgs = {
-  lockDuration: new BN(3600),
-  vestDuration: new BN(3600),
-  immediateReleaseBps: new BN(0),
+  lockDuration,
+  vestDuration,
+  immediateReleaseBps: new BN(5000),
+  immediateReleaseTimestamp,
 };
 
 const baseMintPubkey = new PublicKey(

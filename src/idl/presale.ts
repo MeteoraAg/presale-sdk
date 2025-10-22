@@ -2477,6 +2477,11 @@ export type Presale = {
       "code": 6041,
       "name": "invalidType",
       "msg": "Invalid type"
+    },
+    {
+      "code": 6042,
+      "name": "invalidBuyerCapRange",
+      "msg": "Invalid buyer cap range"
     }
   ],
   "types": [
@@ -3255,11 +3260,18 @@ export type Presale = {
             "type": "u64"
           },
           {
+            "name": "immediateReleaseTimestamp",
+            "docs": [
+              "Timestamp when the immediate release portion is released"
+            ],
+            "type": "u64"
+          },
+          {
             "name": "padding",
             "type": {
               "array": [
                 "u8",
-                32
+                24
               ]
             }
           }
@@ -3495,7 +3507,7 @@ export type Presale = {
           {
             "name": "presaleEndTime",
             "docs": [
-              "When presale ends. Presale can be ended earlier by creator if raised capital is reached (based on presale mode)."
+              "When presale ends. Presale can be ended earlier by creator if raised capital is reached (based on presale mode). This is also the lock start time."
             ],
             "type": "u64"
           },
@@ -3542,23 +3554,18 @@ export type Presale = {
             "type": "u64"
           },
           {
-            "name": "lockStartTime",
-            "docs": [
-              "When the lock starts"
-            ],
-            "type": "u64"
-          },
-          {
-            "name": "lockEndTime",
-            "docs": [
-              "When the lock ends"
-            ],
-            "type": "u64"
+            "name": "padding0",
+            "type": {
+              "array": [
+                "u64",
+                2
+              ]
+            }
           },
           {
             "name": "vestingStartTime",
             "docs": [
-              "When the vesting starts"
+              "When the vesting starts. This is also lock end time."
             ],
             "type": "u64"
           },
@@ -3666,11 +3673,22 @@ export type Presale = {
             "type": "u128"
           },
           {
+            "name": "immediateReleaseTimestamp",
+            "docs": [
+              "Timestamp when the immediate release portion is released"
+            ],
+            "type": "u64"
+          },
+          {
             "name": "padding3",
+            "type": "u64"
+          },
+          {
+            "name": "padding4",
             "type": {
               "array": [
                 "u128",
-                6
+                5
               ]
             }
           },
