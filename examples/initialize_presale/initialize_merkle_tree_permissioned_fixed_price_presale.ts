@@ -152,8 +152,8 @@ const uiPrice = new Decimal(0.1);
 const priceRounding = Rounding.Down;
 
 const presaleArgs: Omit<IPresaleArgs, "presaleMode"> = {
-  presaleMaximumCap: new BN(100000000000),
-  presaleMinimumCap: new BN(1000000000),
+  presaleMaximumCap: new BN(1000000),
+  presaleMinimumCap: new BN(100000),
   presaleStartTime: new BN(0),
   presaleEndTime: new BN(Math.floor(Date.now() / 1000 + 86400)),
   whitelistMode: WhitelistMode.PermissionWithMerkleProof,
@@ -185,21 +185,14 @@ const lockedVestingArgs: ILockedVestingArgs = {
 const buyerMinimumDepositCap = calculateMinimumQuoteAmountForBaseLamport(
   uiPrice,
   new BN(6),
-  new BN(9),
+  new BN(6),
   priceRounding
 );
 
 const presaleRegistriesArgs: IPresaleRegistryArgs[] = [];
 
 presaleRegistriesArgs.push({
-  presaleSupply: new BN(2000000000),
-  buyerMaximumDepositCap: presaleArgs.presaleMaximumCap,
-  buyerMinimumDepositCap: buyerMinimumDepositCap,
-  depositFeeBps: new BN(0),
-});
-
-presaleRegistriesArgs.push({
-  presaleSupply: new BN(1000000000),
+  presaleSupply: new BN(10000000),
   buyerMaximumDepositCap: presaleArgs.presaleMaximumCap,
   buyerMinimumDepositCap: buyerMinimumDepositCap,
   depositFeeBps: new BN(0),
@@ -209,7 +202,9 @@ const baseMintPubkey = new PublicKey(
   "Bn3KEckvpzxD5qxPArYPQMX9PGswZd6QypXqWPob79S"
 );
 
-const quoteMintPubkey = NATIVE_MINT;
+const quoteMintPubkey = new PublicKey(
+  "5UjL1ZbANhHrYwMWahgcdwGcHsnf4mzU78SQKvBMeb6C"
+);
 
 const baseKeypair = Keypair.generate();
 

@@ -105,7 +105,7 @@ async function showPresaleDetails(
 const connection = new Connection(clusterApiUrl("devnet"));
 
 const presaleAddress = new PublicKey(
-  "4RJGBQxnADpKj3mLo99Lw16RuXaPAAtsh35GVMn4zBPt"
+  "AYb7uKV5n1qXoZticLPTiHjpXsHmCyw56uvwqchQYu5a"
 );
 
 showPresaleDetails(connection, presaleAddress);
