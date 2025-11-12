@@ -53,11 +53,15 @@ async function showPresaleDetails(
     "Immediate release amount",
     presaleWrapper.getImmediateReleaseUiAmount()
   );
-  console.log(
-    "Presale Start Time:",
-    presaleAccount.presaleStartTime.toString()
-  );
-  console.log("Presale End Time:", presaleAccount.presaleEndTime.toString());
+  const presaleTimings = presaleWrapper.getTimings();
+  console.log("Presale Start Time:", presaleTimings.presaleStartTime);
+  console.log("Presale End Time:", presaleTimings.presaleEndTime);
+  console.log("Immediate Release Time:", presaleTimings.immediateReleaseTime);
+  console.log("Lock Start Time:", presaleTimings.lockStartTime);
+  console.log("Lock End Time:", presaleTimings.lockEndTime);
+  console.log("Vesting Start Time:", presaleTimings.vestingStartTime);
+  console.log("Vesting End Time:", presaleTimings.vestingEndTime);
+  console.log("Subject to early end:", presaleTimings.subjectToEarlyEnd);
 
   const presaleRegistries = presaleWrapper.getAllPresaleRegistries();
   console.log("Total Registries:", presaleRegistries.length);
@@ -101,7 +105,7 @@ async function showPresaleDetails(
 const connection = new Connection(clusterApiUrl("devnet"));
 
 const presaleAddress = new PublicKey(
-  "Cu1u3UK9wFmYnp9iT9uXYQGevTU9FS9ajstpmaJ3KYSA"
+  "4RJGBQxnADpKj3mLo99Lw16RuXaPAAtsh35GVMn4zBPt"
 );
 
 showPresaleDetails(connection, presaleAddress);

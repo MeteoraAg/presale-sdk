@@ -12,6 +12,17 @@ import {
 } from "./presale_registry_wrapper";
 import { getPresaleHandler } from "../presale_mode_handler";
 
+export interface IPresaleTimings {
+  presaleStartTime: number;
+  presaleEndTime: number;
+  immediateReleaseTime: number;
+  lockStartTime: number;
+  lockEndTime: number;
+  vestingStartTime: number;
+  vestingEndTime: number;
+  subjectToEarlyEnd: boolean;
+}
+
 export interface IPresaleWrapper {
   getPresaleAccount(): PresaleAccount;
   getTotalBaseTokenSold(): BN;
@@ -45,6 +56,7 @@ export interface IPresaleWrapper {
   getImmediateReleaseUiAmount(): number;
   getPresaleRegistry(registryIndex: BN): IPresaleRegistryWrapper | null;
   getAverageTokenPrice(): number;
+  getTimings(): IPresaleTimings;
   canDeposit(): boolean;
   canWithdraw(): boolean;
   canWithdrawRemainingQuote(): boolean;
@@ -80,7 +92,7 @@ export class PresaleWrapper implements IPresaleWrapper {
   public getTotalBaseTokenSold(): BN {
     return getPresaleHandler(
       this.presaleAccount.presaleMode,
-      this.presaleAccount.fixedPricePresaleQPrice
+      this.presaleAccount.presaleModeRawData
     ).getTotalBaseTokenSold(this);
   }
 
@@ -126,7 +138,7 @@ export class PresaleWrapper implements IPresaleWrapper {
   public canWithdraw(): boolean {
     const isPresaleModeSupportWithdraw = getPresaleHandler(
       this.presaleAccount.presaleMode,
-      this.presaleAccount.fixedPricePresaleQPrice
+      this.presaleAccount.presaleModeRawData
     ).canWithdraw();
 
     return isPresaleModeSupportWithdraw
@@ -205,7 +217,7 @@ export class PresaleWrapper implements IPresaleWrapper {
   public getRemainingDepositRawQuota(): BN {
     return getPresaleHandler(
       this.presaleAccount.presaleMode,
-      this.presaleAccount.fixedPricePresaleQPrice
+      this.presaleAccount.presaleModeRawData
     ).getRemainingDepositQuota(this);
   }
 
@@ -385,6 +397,25 @@ export class PresaleWrapper implements IPresaleWrapper {
       .div(new Decimal(totalEffectivePresaleSupply.toString()))
       .mul(new Decimal(10).pow(this.baseDecimals - this.quoteDecimals))
       .toNumber();
+  }
+
+  public getTimings(): IPresaleTimings {
+    const presaleHandler = getPresaleHandler(
+      this.presaleAccount.presaleMode,
+      this.presaleAccount.presaleModeRawData
+    );
+
+    return {
+      presaleStartTime: this.presaleAccount.presaleStartTime.toNumber(),
+      presaleEndTime: this.presaleAccount.presaleEndTime.toNumber(),
+      immediateReleaseTime:
+        this.presaleAccount.immediateReleaseTimestamp.toNumber(),
+      lockStartTime: this.presaleAccount.presaleEndTime.toNumber(),
+      lockEndTime: this.presaleAccount.vestingStartTime.toNumber(),
+      vestingStartTime: this.presaleAccount.vestingStartTime.toNumber(),
+      vestingEndTime: this.presaleAccount.vestingEndTime.toNumber(),
+      subjectToEarlyEnd: presaleHandler.earlierEndOnceCapReached(),
+    };
   }
 }
 

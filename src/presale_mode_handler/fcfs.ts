@@ -2,12 +2,36 @@ import BN from "bn.js";
 import {
   getBaseTokenSoldByDynamicPrice,
   getPresaleRemainingDepositQuota,
+  getSchemaFromRawData,
   PresaleHandler,
 } from ".";
 import { IPresaleRegistryWrapper } from "../accounts/presale_registry_wrapper";
 import { IPresaleWrapper } from "../accounts/presale_wrapper";
+import { seq, struct, u8 } from "@solana/buffer-layout";
+import { u128 } from "@solana/buffer-layout-utils";
+
+interface ISchema {
+  disableEarlierPresaleEndOnceCapReached: number;
+  padding0: number[];
+  padding1: bigint[];
+}
+
+const SCHEMA_DATA = struct<ISchema>([
+  u8("disableEarlierPresaleEndOnceCapReached"),
+  seq(u8(), 15, "padding0"),
+  seq(u128(), 2, "padding1"),
+]);
 
 export class FcfsHandler implements PresaleHandler {
+  private disableEarlierPresaleEndOnceCapReached: boolean;
+
+  constructor(presaleModRawData: BN[]) {
+    const decoded = getSchemaFromRawData(SCHEMA_DATA, presaleModRawData);
+
+    this.disableEarlierPresaleEndOnceCapReached =
+      decoded.disableEarlierPresaleEndOnceCapReached == 1;
+  }
+
   getRemainingDepositQuota(presaleWrapper: IPresaleWrapper): BN {
     return getPresaleRemainingDepositQuota(
       presaleWrapper.getPresaleMaximumRawCap(),
@@ -39,5 +63,9 @@ export class FcfsHandler implements PresaleHandler {
 
   suggestWithdrawAmount(_maxAmount: BN): BN {
     return new BN(0);
+  }
+
+  earlierEndOnceCapReached(): boolean {
+    return !this.disableEarlierPresaleEndOnceCapReached;
   }
 }

@@ -51,7 +51,7 @@ export class EscrowWrapper implements IEscrowWrapper {
   public baseMultiplier: number;
   public quoteMultiplier: number;
   private presaleMode: PresaleMode;
-  private fixedPricePresaleQPrice: BN;
+  private presaleModeRawData: BN[];
 
   constructor(
     escrowAccount: EscrowAccount,
@@ -65,7 +65,7 @@ export class EscrowWrapper implements IEscrowWrapper {
     this.baseMultiplier = 10 ** baseDecimals;
     this.quoteMultiplier = 10 ** quoteDecimals;
     this.presaleMode = presaleAccount.presaleMode;
-    this.fixedPricePresaleQPrice = presaleAccount.fixedPricePresaleQPrice;
+    this.presaleModeRawData = presaleAccount.presaleModeRawData;
   }
 
   public getEscrowAccount(): EscrowAccount {
@@ -298,7 +298,7 @@ export class EscrowWrapper implements IEscrowWrapper {
 
     const presaleHandler = getPresaleHandler(
       this.presaleMode,
-      this.fixedPricePresaleQPrice
+      this.presaleModeRawData
     );
 
     return presaleHandler.suggestDepositAmount(
@@ -328,7 +328,7 @@ export class EscrowWrapper implements IEscrowWrapper {
 
     const presaleHandler = getPresaleHandler(
       this.presaleMode,
-      this.fixedPricePresaleQPrice
+      this.presaleModeRawData
     );
 
     return presaleHandler.suggestWithdrawAmount(withdrawAmount);

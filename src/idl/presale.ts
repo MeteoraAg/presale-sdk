@@ -3447,9 +3447,9 @@ export type Presale = {
             "type": "pubkey"
           },
           {
-            "name": "fixedPricePresaleFlags",
+            "name": "padding0",
             "docs": [
-              "Fixed price presale extra flags. Only applicable for fixed price presale mode"
+              "Padding"
             ],
             "type": "u8"
           },
@@ -3468,18 +3468,11 @@ export type Presale = {
             "type": "u8"
           },
           {
-            "name": "presaleFlags",
-            "docs": [
-              "Presale flags. Applicable for various presale modes"
-            ],
-            "type": "u8"
-          },
-          {
             "name": "padding1",
             "type": {
               "array": [
                 "u8",
-                4
+                5
               ]
             }
           },
@@ -3554,13 +3547,15 @@ export type Presale = {
             "type": "u64"
           },
           {
-            "name": "padding0",
-            "type": {
-              "array": [
-                "u64",
-                2
-              ]
-            }
+            "name": "immediateReleaseTimestamp",
+            "docs": [
+              "Timestamp when the immediate release portion is released"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "padding2",
+            "type": "u64"
           },
           {
             "name": "vestingStartTime",
@@ -3605,7 +3600,7 @@ export type Presale = {
             "type": "u8"
           },
           {
-            "name": "padding2",
+            "name": "padding3",
             "docs": [
               "Padding"
             ],
@@ -3666,29 +3661,20 @@ export type Presale = {
             "type": "u16"
           },
           {
-            "name": "fixedPricePresaleQPrice",
-            "docs": [
-              "Presale rate. Only applicable for fixed price presale mode"
-            ],
-            "type": "u128"
-          },
-          {
-            "name": "immediateReleaseTimestamp",
-            "docs": [
-              "Timestamp when the immediate release portion is released"
-            ],
-            "type": "u64"
-          },
-          {
-            "name": "padding3",
-            "type": "u64"
+            "name": "presaleModeRawData",
+            "type": {
+              "array": [
+                "u128",
+                3
+              ]
+            }
           },
           {
             "name": "padding4",
             "type": {
               "array": [
                 "u128",
-                5
+                4
               ]
             }
           },

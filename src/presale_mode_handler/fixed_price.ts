@@ -1,7 +1,13 @@
 import BN from "bn.js";
-import { getPresaleRemainingDepositQuota, PresaleHandler } from ".";
+import {
+  getPresaleRemainingDepositQuota,
+  getSchemaFromRawData,
+  PresaleHandler,
+} from ".";
 import { IPresaleRegistryWrapper } from "../accounts/presale_registry_wrapper";
 import { IPresaleWrapper } from "../accounts/presale_wrapper";
+import { seq, struct, u8 } from "@solana/buffer-layout";
+import { u128 } from "@solana/buffer-layout-utils";
 
 function calculateQuoteTokenWithoutSurplus(amount: BN, qPrice: BN): BN {
   const baseTokenAmount = amount.shln(64).div(qPrice);
@@ -12,11 +18,34 @@ function calculateQuoteTokenWithoutSurplus(amount: BN, qPrice: BN): BN {
   return mod.isZero() ? quoteTokenAmount : quoteTokenAmount.add(new BN(1));
 }
 
+interface ISchema {
+  qPrice: bigint;
+  disableWithdraw: number;
+  disableEarlierPresaleEndOnceCapReached: number;
+  padding0: number[];
+  padding1: bigint;
+}
+
+const SCHEMA_DATA = struct<ISchema>([
+  u128("qPrice"),
+  u8("disableWithdraw"),
+  u8("disableEarlierPresaleEndOnceCapReached"),
+  seq(u8(), 14, "padding0"),
+  u128("padding1"),
+]);
+
 export class FixedPricePresaleHandler implements PresaleHandler {
   public qPrice: BN;
+  private disableWithdraw: boolean;
+  private disableEarlierPresaleEndOnceCapReached: boolean;
 
-  constructor(qPrice: BN) {
-    this.qPrice = qPrice;
+  constructor(presaleModRawData: BN[]) {
+    const decoded = getSchemaFromRawData(SCHEMA_DATA, presaleModRawData);
+
+    this.qPrice = new BN(decoded.qPrice.toString());
+    this.disableWithdraw = decoded.disableWithdraw == 1;
+    this.disableEarlierPresaleEndOnceCapReached =
+      decoded.disableEarlierPresaleEndOnceCapReached == 1;
   }
 
   getRemainingDepositQuota(presaleWrapper: IPresaleWrapper): BN {
@@ -46,7 +75,7 @@ export class FixedPricePresaleHandler implements PresaleHandler {
   }
 
   canWithdraw(): boolean {
-    return true;
+    return !this.disableWithdraw;
   }
 
   suggestDepositAmount(maxAmount: BN, remainingDepositAmount: BN): BN {
@@ -56,5 +85,9 @@ export class FixedPricePresaleHandler implements PresaleHandler {
 
   suggestWithdrawAmount(maxAmount: BN): BN {
     return calculateQuoteTokenWithoutSurplus(maxAmount, this.qPrice);
+  }
+
+  earlierEndOnceCapReached(): boolean {
+    return !this.disableEarlierPresaleEndOnceCapReached;
   }
 }

@@ -3441,9 +3441,9 @@
             "type": "pubkey"
           },
           {
-            "name": "fixed_price_presale_flags",
+            "name": "padding0",
             "docs": [
-              "Fixed price presale extra flags. Only applicable for fixed price presale mode"
+              "Padding"
             ],
             "type": "u8"
           },
@@ -3462,18 +3462,11 @@
             "type": "u8"
           },
           {
-            "name": "presale_flags",
-            "docs": [
-              "Presale flags. Applicable for various presale modes"
-            ],
-            "type": "u8"
-          },
-          {
             "name": "padding1",
             "type": {
               "array": [
                 "u8",
-                4
+                5
               ]
             }
           },
@@ -3548,13 +3541,15 @@
             "type": "u64"
           },
           {
-            "name": "padding0",
-            "type": {
-              "array": [
-                "u64",
-                2
-              ]
-            }
+            "name": "immediate_release_timestamp",
+            "docs": [
+              "Timestamp when the immediate release portion is released"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "padding2",
+            "type": "u64"
           },
           {
             "name": "vesting_start_time",
@@ -3599,7 +3594,7 @@
             "type": "u8"
           },
           {
-            "name": "padding2",
+            "name": "padding3",
             "docs": [
               "Padding"
             ],
@@ -3660,29 +3655,20 @@
             "type": "u16"
           },
           {
-            "name": "fixed_price_presale_q_price",
-            "docs": [
-              "Presale rate. Only applicable for fixed price presale mode"
-            ],
-            "type": "u128"
-          },
-          {
-            "name": "immediate_release_timestamp",
-            "docs": [
-              "Timestamp when the immediate release portion is released"
-            ],
-            "type": "u64"
-          },
-          {
-            "name": "padding3",
-            "type": "u64"
+            "name": "presale_mode_raw_data",
+            "type": {
+              "array": [
+                "u128",
+                3
+              ]
+            }
           },
           {
             "name": "padding4",
             "type": {
               "array": [
                 "u128",
-                5
+                4
               ]
             }
           },

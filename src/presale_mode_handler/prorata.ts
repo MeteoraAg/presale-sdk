@@ -37,4 +37,8 @@ export class ProrataHandler implements PresaleHandler {
   suggestWithdrawAmount(maxAmount: BN): BN {
     return maxAmount;
   }
+
+  earlierEndOnceCapReached(): boolean {
+    return false;
+  }
 }
