@@ -10,7 +10,7 @@
     "dist/**"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "rm -rf dist && tsup",
     "test": "ts-mocha -p tsconfig.json 'tests/**/*.ts'",
     "start-validator": "rm -rf test-ledger && solana-test-validator --bpf-program presSVxnf9UU8jMxhgSMqaRwNiT36qeBdNeTRKjTdbj ./tests/fixtures/presale.so --reset"
   },

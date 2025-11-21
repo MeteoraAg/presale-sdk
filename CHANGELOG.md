@@ -28,7 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `immediateReleaseTimestamp`. Allow creator to configure the timing of immediate release portion of token.
 - `calculateLockAndVestDurationFromTimestamps` helper function to calculate lock and vest duration from presale end time, lock end time, and vest end time.
 - `getOnChainTimestamp` helper function to get current unix timestamp from on chain clock.
-- `getRegistryRemainingDepositQuota` function to return remaining deposit-able amount on specific registry.
+- `getRegistryRemainingDepositQuota` function on `IPresaleWrapper` to return remaining deposit-able amount on specific registry.
+- `closeMerkleRootConfig` function to be able to close merkle root config account.
 
 ### Changed
 

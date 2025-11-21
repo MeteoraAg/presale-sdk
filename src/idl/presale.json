@@ -241,6 +241,72 @@
       "args": []
     },
     {
+      "name": "close_merkle_root_config",
+      "discriminator": [
+        157,
+        174,
+        38,
+        193,
+        204,
+        253,
+        3,
+        12
+      ],
+      "accounts": [
+        {
+          "name": "presale",
+          "relations": [
+            "merkle_root_config"
+          ]
+        },
+        {
+          "name": "merkle_root_config",
+          "writable": true
+        },
+        {
+          "name": "rent_receiver",
+          "writable": true
+        },
+        {
+          "name": "creator",
+          "signer": true
+        },
+        {
+          "name": "event_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  95,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "close_permissioned_server_metadata",
       "discriminator": [
         226,
@@ -2053,6 +2119,19 @@
       ]
     },
     {
+      "name": "EvtCloseMerkleRootConfig",
+      "discriminator": [
+        53,
+        163,
+        181,
+        111,
+        52,
+        57,
+        17,
+        250
+      ]
+    },
+    {
       "name": "EvtCreatorCollectFee",
       "discriminator": [
         47,
@@ -2476,6 +2555,16 @@
       "code": 6042,
       "name": "InvalidBuyerCapRange",
       "msg": "Invalid buyer cap range"
+    },
+    {
+      "code": 6043,
+      "name": "PresaleOngoing",
+      "msg": "Presale is ongoing"
+    },
+    {
+      "code": 6044,
+      "name": "PresaleMinMaxCapGapTooSmall",
+      "msg": "Presale min/max cap gap too small"
     }
   ],
   "types": [
@@ -2679,6 +2768,26 @@
           {
             "name": "presale_total_claim_amount",
             "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EvtCloseMerkleRootConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "presale",
+            "type": "pubkey"
+          },
+          {
+            "name": "merkle_root_config",
+            "type": "pubkey"
           },
           {
             "name": "owner",

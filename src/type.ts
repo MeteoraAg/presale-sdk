@@ -1,4 +1,4 @@
-import { Idl, IdlAccounts, IdlTypes, Program } from "@coral-xyz/anchor";
+import { IdlAccounts, IdlTypes, Program } from "@coral-xyz/anchor";
 import { AccountMeta } from "@solana/web3.js";
 import type { Presale as PresaleTypes } from "./idl/presale";
 import { BN } from "bn.js";

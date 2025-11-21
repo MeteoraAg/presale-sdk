@@ -35,6 +35,7 @@ import type { Presale as PresaleTypes } from "./idl/presale";
 import PresaleIDL from "./idl/presale.json";
 import {
   autoFetchProofAndCreatePermissionedEscrowWithMerkleProofIx,
+  closeMerkleRootConfigIx,
   createClaimIx,
   createCloseEscrowIx,
   createCloseFixedPriceArgsIx,
@@ -59,6 +60,7 @@ import {
   getOrCreatePermissionlessEscrowIx,
   IClaimParams,
   ICloseEscrowParams,
+  ICloseMerkleRootConfigParams,
   IClosePermissionedServerMetadataParams,
   ICreateCloseFixedPriceArgsParams,
   ICreateInitializePresaleIxParams,
@@ -487,6 +489,44 @@ export class Presale {
   }
 
   /**
+   * Closes the merkle root configuration for the presale.
+   *
+   * This method creates a transaction instruction to close the merkle root configuration
+   * and builds a transaction with optional compute unit optimization.
+   *
+   * @param params - The parameters for closing the merkle root configuration, excluding presaleProgram and presaleAddress
+   * @param params.creator - The public key of the creator who is closing the configuration
+   * @returns A promise that resolves to a transaction with the close merkle root configuration instruction
+   *
+   * @example
+   * ```typescript
+   * const transaction = await presale.closeMerkleRootConfig({
+   *   creator: creatorPublicKey
+   * });
+   * ```
+   */
+  async closeMerkleRootConfig(
+    params: Omit<
+      ICloseMerkleRootConfigParams,
+      "presaleProgram" | "presaleAddress"
+    >
+  ) {
+    const closeIx = await closeMerkleRootConfigIx({
+      presaleProgram: this.program,
+      presaleAddress: this.presaleAddress,
+      ...params,
+    });
+
+    const { creator } = params;
+    return buildTransactionWithOptionalComputeUnitOptimization(
+      this.program.provider.connection,
+      [closeIx],
+      creator,
+      this.shouldOptimizeComputeUnit
+    );
+  }
+
+  /**
    * Creates Merkle root configuration transactions from a list of addresses.
    *
    * Splits the provided addresses into chunks (default size: 10,000), constructs a Merkle tree for each chunk,
@@ -501,7 +541,7 @@ export class Presale {
    */
   async createMerkleRootConfigFromAddresses(
     params: Omit<
-      ICreateMerkleRootConfigParams,
+      ICloseMerkleRootConfigParams,
       "presaleProgram" | "presaleAddress" | "version" | "root"
     > & {
       whitelistWallets: WhitelistedWallet[];
@@ -563,7 +603,7 @@ export class Presale {
    */
   async createMerkleProofResponse(
     params: Omit<
-      ICreateMerkleRootConfigParams,
+      ICloseMerkleRootConfigParams,
       "presaleProgram" | "presaleAddress" | "version" | "root" | "creator"
     > & {
       whitelistWallets: WhitelistedWallet[];

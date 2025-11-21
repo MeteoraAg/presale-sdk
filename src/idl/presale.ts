@@ -247,6 +247,72 @@ export type Presale = {
       "args": []
     },
     {
+      "name": "closeMerkleRootConfig",
+      "discriminator": [
+        157,
+        174,
+        38,
+        193,
+        204,
+        253,
+        3,
+        12
+      ],
+      "accounts": [
+        {
+          "name": "presale",
+          "relations": [
+            "merkleRootConfig"
+          ]
+        },
+        {
+          "name": "merkleRootConfig",
+          "writable": true
+        },
+        {
+          "name": "rentReceiver",
+          "writable": true
+        },
+        {
+          "name": "creator",
+          "signer": true
+        },
+        {
+          "name": "eventAuthority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  95,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "closePermissionedServerMetadata",
       "discriminator": [
         226,
@@ -2059,6 +2125,19 @@ export type Presale = {
       ]
     },
     {
+      "name": "evtCloseMerkleRootConfig",
+      "discriminator": [
+        53,
+        163,
+        181,
+        111,
+        52,
+        57,
+        17,
+        250
+      ]
+    },
+    {
       "name": "evtCreatorCollectFee",
       "discriminator": [
         47,
@@ -2482,6 +2561,16 @@ export type Presale = {
       "code": 6042,
       "name": "invalidBuyerCapRange",
       "msg": "Invalid buyer cap range"
+    },
+    {
+      "code": 6043,
+      "name": "presaleOngoing",
+      "msg": "Presale is ongoing"
+    },
+    {
+      "code": 6044,
+      "name": "presaleMinMaxCapGapTooSmall",
+      "msg": "Presale min/max cap gap too small"
     }
   ],
   "types": [
@@ -2685,6 +2774,26 @@ export type Presale = {
           {
             "name": "presaleTotalClaimAmount",
             "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "evtCloseMerkleRootConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "presale",
+            "type": "pubkey"
+          },
+          {
+            "name": "merkleRootConfig",
+            "type": "pubkey"
           },
           {
             "name": "owner",
