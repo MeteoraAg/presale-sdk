@@ -1,7 +1,6 @@
 import BN from "bn.js";
 import {
   getBaseTokenSoldByDynamicPrice,
-  getPresaleRemainingDepositQuota,
   getSchemaFromRawData,
   PresaleHandler,
 } from ".";
@@ -33,9 +32,22 @@ export class FcfsHandler implements PresaleHandler {
   }
 
   getRemainingDepositQuota(presaleWrapper: IPresaleWrapper): BN {
-    return getPresaleRemainingDepositQuota(
-      presaleWrapper.getPresaleMaximumRawCap(),
-      presaleWrapper.getTotalDepositRawAmount()
+    const globalRemainingQuota = presaleWrapper
+      .getPresaleMaximumRawCap()
+      .sub(presaleWrapper.getTotalDepositRawAmount());
+
+    return globalRemainingQuota;
+  }
+
+  getRegistryRemainingDepositQuota(
+    presaleWrapper: IPresaleWrapper,
+    registryIndex: BN
+  ): BN {
+    const globalRemainingQuota = this.getRemainingDepositQuota(presaleWrapper);
+    const presaleRegistry = presaleWrapper.getPresaleRegistry(registryIndex);
+    return BN.min(
+      globalRemainingQuota,
+      presaleRegistry.getBuyerMaximumRawDepositCap()
     );
   }
 

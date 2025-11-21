@@ -204,7 +204,7 @@ async function buildTransactionWithOptionalComputeUnitOptimization(
     });
 
     const setCuIx = ComputeBudgetProgram.setComputeUnitLimit({
-      units: estimatedComputeUnit,
+      units: Math.min(estimatedComputeUnit * 1.1, 1_400_000), // Some buffer
     });
 
     return buildTransaction(connection, [setCuIx, ...instructions], feePayer);
@@ -508,7 +508,9 @@ export class Presale {
       walletPerTree?: number;
     }
   ) {
-    let { whitelistWallets, walletPerTree, creator } = params;
+    let { walletPerTree, creator } = params;
+    let whitelistWallets = [...params.whitelistWallets]; // Clone the array to avoid mutating the original
+
     walletPerTree = walletPerTree || 10_000;
 
     const merkleTrees: BalanceTree[] = [];

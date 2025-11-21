@@ -18,13 +18,6 @@ export function getSchemaFromRawData<T>(
   return decoded;
 }
 
-export function getPresaleRemainingDepositQuota(
-  presaleMaximumCap: BN,
-  totalDeposit: BN
-): BN {
-  return BN.max(presaleMaximumCap.sub(totalDeposit), new BN(0));
-}
-
 export function getBaseTokenSoldByDynamicPrice(
   totalDeposit: BN,
   presaleSupply: BN
@@ -37,6 +30,10 @@ export function getBaseTokenSoldByDynamicPrice(
 }
 
 export interface PresaleHandler {
+  getRegistryRemainingDepositQuota(
+    presaleWrapper: IPresaleWrapper,
+    registryIndex: BN
+  ): BN;
   getRemainingDepositQuota(presaleWrapper: IPresaleWrapper): BN;
   getTotalBaseTokenSold(presaleWrapper: IPresaleWrapper): BN;
   getRegistryTotalBaseTokenSold(presaleRegistry: IPresaleRegistryWrapper): BN;

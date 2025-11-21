@@ -103,3 +103,24 @@ export function calculateMinimumQuoteAmountForBaseLamport(
   const scaleMultiplier = new BN(2).pow(new BN(64));
   return qPrice.add(scaleMultiplier).sub(new BN(1)).div(scaleMultiplier);
 }
+
+export function calculateDepositFeeIncludedAmount(
+  depositAmount: BN,
+  feeBps: BN,
+  rounding: Rounding
+) {
+  if (feeBps.isZero()) {
+    return depositAmount;
+  }
+
+  const denominator = new BN(10000).sub(feeBps);
+  let adjustedDepositAmount = depositAmount.mul(new BN(10000));
+
+  if (rounding === Rounding.Up) {
+    adjustedDepositAmount = adjustedDepositAmount
+      .add(denominator)
+      .sub(new BN(1));
+  }
+
+  return adjustedDepositAmount.div(denominator);
+}

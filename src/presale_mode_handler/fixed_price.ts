@@ -1,9 +1,5 @@
 import BN from "bn.js";
-import {
-  getPresaleRemainingDepositQuota,
-  getSchemaFromRawData,
-  PresaleHandler,
-} from ".";
+import { getSchemaFromRawData, PresaleHandler } from ".";
 import { IPresaleRegistryWrapper } from "../accounts/presale_registry_wrapper";
 import { IPresaleWrapper } from "../accounts/presale_wrapper";
 import { seq, struct, u8 } from "@solana/buffer-layout";
@@ -49,10 +45,40 @@ export class FixedPricePresaleHandler implements PresaleHandler {
   }
 
   getRemainingDepositQuota(presaleWrapper: IPresaleWrapper): BN {
-    return getPresaleRemainingDepositQuota(
-      presaleWrapper.getPresaleMaximumRawCap(),
-      presaleWrapper.getTotalDepositRawAmount()
-    );
+    const totalRegistryRemainingQuota = presaleWrapper
+      .getAllPresaleRegistries()
+      .reduce((acc, registry) => {
+        const registryRemainingQuota = this.getRegistryRemainingDepositQuota(
+          presaleWrapper,
+          new BN(registry.getRegistryIndex())
+        );
+        return acc.add(registryRemainingQuota);
+      }, new BN(0));
+    return totalRegistryRemainingQuota;
+  }
+
+  getRegistryRemainingDepositQuota(
+    presaleWrapper: IPresaleWrapper,
+    registryIndex: BN
+  ): BN {
+    const presaleRegistry = presaleWrapper.getPresaleRegistry(registryIndex);
+    const globalRemainingQuota = presaleWrapper
+      .getPresaleMaximumRawCap()
+      .sub(presaleWrapper.getTotalDepositRawAmount());
+
+    const totalBaseTokenSold =
+      this.getRegistryTotalBaseTokenSold(presaleRegistry);
+
+    const remainingBaseToken = presaleRegistry
+      .getPresaleRawSupply()
+      .sub(totalBaseTokenSold);
+
+    const { div, mod } = remainingBaseToken
+      .mul(this.qPrice)
+      .divmod(new BN(2).pow(new BN(64)));
+
+    const remainingQuoteToken = mod.isZero() ? div : div.add(new BN(1));
+    return BN.min(globalRemainingQuota, remainingQuoteToken);
   }
 
   getTotalBaseTokenSold(presaleWrapper: IPresaleWrapper): BN {
@@ -71,7 +97,8 @@ export class FixedPricePresaleHandler implements PresaleHandler {
     }
 
     const qTotalDeposit = depositAmount.shln(64);
-    return qTotalDeposit.div(this.qPrice);
+    const totalTokenSold = qTotalDeposit.div(this.qPrice);
+    return BN.min(totalTokenSold, presaleSupply);
   }
 
   canWithdraw(): boolean {

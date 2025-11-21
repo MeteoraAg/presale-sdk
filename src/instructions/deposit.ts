@@ -10,9 +10,11 @@ import { getTokenProgramIdFromFlag } from "../token2022";
 import {
   PresaleAccount,
   PresaleProgram,
+  Rounding,
   TransferHookAccountInfo,
 } from "../type";
-import { wrapSOLInstruction } from "../token";
+import { unwrapSOLInstruction, wrapSOLInstruction } from "../token";
+import { calculateDepositFeeIncludedAmount } from "../math";
 
 export interface IDepositParams {
   presaleProgram: PresaleProgram;
@@ -80,12 +82,24 @@ export async function createDepositIx(params: IDepositParams) {
     .instruction();
 
   if (presaleAccount.quoteMint.equals(NATIVE_MINT)) {
+    const presaleRegistry =
+      presaleAccount.presaleRegistries[registryIndex.toNumber()];
+
+    const depositFeeIncludedAmount = calculateDepositFeeIncludedAmount(
+      amount,
+      new BN(presaleRegistry.depositFeeBps),
+      Rounding.Up
+    );
+
     const wrapSolIx = await wrapSOLInstruction(
       owner,
       ownerQuoteToken,
-      BigInt(amount.toString())
+      BigInt(depositFeeIncludedAmount.toString())
     );
-    return [createOwnerQuoteTokenIx, ...wrapSolIx, depositIx];
+
+    const unwrapSolIx = await unwrapSOLInstruction(owner);
+
+    return [createOwnerQuoteTokenIx, ...wrapSolIx, depositIx, unwrapSolIx];
   } else {
     return [createOwnerQuoteTokenIx, depositIx];
   }
