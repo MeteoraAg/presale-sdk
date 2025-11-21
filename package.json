@@ -12,6 +12,8 @@
   "scripts": {
     "build": "rm -rf dist && tsup",
     "test": "ts-mocha -p tsconfig.json 'tests/**/*.ts'",
+    "publish-pre-release": "npm publish --tag next",
+    "publish": "npm publish --access public",
     "start-validator": "rm -rf test-ledger && solana-test-validator --bpf-program presSVxnf9UU8jMxhgSMqaRwNiT36qeBdNeTRKjTdbj ./tests/fixtures/presale.so --reset"
   },
   "devDependencies": {
