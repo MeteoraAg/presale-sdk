@@ -27,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `disableEarlierPresaleEndOnceCapReached` option. Allow creator to prevent the presale end immediately once the target cap reached on FCFS and fixed price presale.
 - `immediateReleaseTimestamp`. Allow creator to configure the timing of immediate release portion of token.
 - `calculateLockAndVestDurationFromTimestamps` helper function to calculate lock and vest duration from presale end time, lock end time, and vest end time.
+- `getOnChainTimestamp` helper function to get current unix timestamp from on chain clock.
+- `getRegistryRemainingDepositQuota` function to return remaining deposit-able amount on specific registry.
+
+### Changed
+
+- `getPendingClaimableUiAmount` and `getPendingClaimableRawAmount` of `IEscrowWrapper` added `currentTimestamp` parameter. Can be retrieved from on chain clock using `getOnChainTimestamp` helper function.
 
 ## presale [0.0.5] [PR #10](https://github.com/MeteoraAg/presale-sdk/pull/10)
 
