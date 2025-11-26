@@ -104,11 +104,6 @@ export class MerkleTree {
   }
 
   getRoot(): Buffer {
-    for (const layer of this._layers) {
-      for (const el of layer) {
-        console.log(bs58.encode(el));
-      }
-    }
     const root = this._layers[this._layers.length - 1]?.[0];
     invariant(root, "root");
     return root;

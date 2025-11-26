@@ -8,7 +8,7 @@ export type Presale = {
   "address": "presSVxnf9UU8jMxhgSMqaRwNiT36qeBdNeTRKjTdbj",
   "metadata": {
     "name": "presale",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
@@ -210,6 +210,72 @@ export type Presale = {
           "relations": [
             "fixedPricePresaleArgs"
           ]
+        },
+        {
+          "name": "eventAuthority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  95,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "closeMerkleRootConfig",
+      "discriminator": [
+        157,
+        174,
+        38,
+        193,
+        204,
+        253,
+        3,
+        12
+      ],
+      "accounts": [
+        {
+          "name": "presale",
+          "relations": [
+            "merkleRootConfig"
+          ]
+        },
+        {
+          "name": "merkleRootConfig",
+          "writable": true
+        },
+        {
+          "name": "rentReceiver",
+          "writable": true
+        },
+        {
+          "name": "creator",
+          "signer": true
         },
         {
           "name": "eventAuthority",
@@ -2059,6 +2125,19 @@ export type Presale = {
       ]
     },
     {
+      "name": "evtCloseMerkleRootConfig",
+      "discriminator": [
+        53,
+        163,
+        181,
+        111,
+        52,
+        57,
+        17,
+        250
+      ]
+    },
+    {
       "name": "evtCreatorCollectFee",
       "discriminator": [
         47,
@@ -2472,6 +2551,26 @@ export type Presale = {
       "code": 6040,
       "name": "presaleNotOpenForCollectFee",
       "msg": "Presale is not open for collect fee"
+    },
+    {
+      "code": 6041,
+      "name": "invalidType",
+      "msg": "Invalid type"
+    },
+    {
+      "code": 6042,
+      "name": "invalidBuyerCapRange",
+      "msg": "Invalid buyer cap range"
+    },
+    {
+      "code": 6043,
+      "name": "presaleOngoing",
+      "msg": "Presale is ongoing"
+    },
+    {
+      "code": 6044,
+      "name": "presaleMinMaxCapGapTooSmall",
+      "msg": "Presale min/max cap gap too small"
     }
   ],
   "types": [
@@ -2675,6 +2774,26 @@ export type Presale = {
           {
             "name": "presaleTotalClaimAmount",
             "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "evtCloseMerkleRootConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "presale",
+            "type": "pubkey"
+          },
+          {
+            "name": "merkleRootConfig",
+            "type": "pubkey"
           },
           {
             "name": "owner",
@@ -3116,9 +3235,13 @@ export type Presale = {
             "type": {
               "array": [
                 "u8",
-                16
+                15
               ]
             }
+          },
+          {
+            "name": "disableWithdraw",
+            "type": "u8"
           },
           {
             "name": "qPrice",
@@ -3154,7 +3277,7 @@ export type Presale = {
             "type": "pubkey"
           },
           {
-            "name": "padding0",
+            "name": "disableWithdraw",
             "type": "u8"
           },
           {
@@ -3246,11 +3369,18 @@ export type Presale = {
             "type": "u64"
           },
           {
+            "name": "immediateReleaseTimestamp",
+            "docs": [
+              "Timestamp when the immediate release portion is released"
+            ],
+            "type": "u64"
+          },
+          {
             "name": "padding",
             "type": {
               "array": [
                 "u8",
-                32
+                24
               ]
             }
           }
@@ -3479,7 +3609,7 @@ export type Presale = {
           {
             "name": "presaleEndTime",
             "docs": [
-              "When presale ends. Presale can be ended earlier by creator if raised capital is reached (based on presale mode)."
+              "When presale ends. Presale can be ended earlier by creator if raised capital is reached (based on presale mode). This is also the lock start time."
             ],
             "type": "u64"
           },
@@ -3526,23 +3656,20 @@ export type Presale = {
             "type": "u64"
           },
           {
-            "name": "lockStartTime",
+            "name": "immediateReleaseTimestamp",
             "docs": [
-              "When the lock starts"
+              "Timestamp when the immediate release portion is released"
             ],
             "type": "u64"
           },
           {
-            "name": "lockEndTime",
-            "docs": [
-              "When the lock ends"
-            ],
+            "name": "padding2",
             "type": "u64"
           },
           {
             "name": "vestingStartTime",
             "docs": [
-              "When the vesting starts"
+              "When the vesting starts. This is also lock end time."
             ],
             "type": "u64"
           },
@@ -3582,7 +3709,7 @@ export type Presale = {
             "type": "u8"
           },
           {
-            "name": "padding2",
+            "name": "padding3",
             "docs": [
               "Padding"
             ],
@@ -3643,18 +3770,20 @@ export type Presale = {
             "type": "u16"
           },
           {
-            "name": "fixedPricePresaleQPrice",
-            "docs": [
-              "Presale rate. Only applicable for fixed price presale mode"
-            ],
-            "type": "u128"
-          },
-          {
-            "name": "padding3",
+            "name": "presaleModeRawData",
             "type": {
               "array": [
                 "u128",
-                6
+                3
+              ]
+            }
+          },
+          {
+            "name": "padding4",
+            "type": {
+              "array": [
+                "u128",
+                4
               ]
             }
           },
@@ -3714,11 +3843,15 @@ export type Presale = {
             "type": "u8"
           },
           {
+            "name": "disableEarlierPresaleEndOnceCapReached",
+            "type": "u8"
+          },
+          {
             "name": "padding",
             "type": {
               "array": [
                 "u8",
-                31
+                30
               ]
             }
           }

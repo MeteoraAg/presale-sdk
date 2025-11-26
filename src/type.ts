@@ -9,6 +9,8 @@ export type RemainingAccountsSlice =
 export type PresaleAccount = IdlAccounts<PresaleTypes>["presale"];
 export type EscrowAccount = IdlAccounts<PresaleTypes>["escrow"];
 export type PresaleRegistry = IdlTypes<PresaleTypes>["presaleRegistry"];
+export type IdlPresaleArgs = IdlTypes<PresaleTypes>["presaleArgs"];
+export type IdlLockedVestingArgs = IdlTypes<PresaleTypes>["lockedVestingArgs"];
 
 export enum UnsoldTokenAction {
   Refund = 0,

@@ -22,8 +22,14 @@ export interface IEscrowWrapper {
   getRemainingDepositUiAmount(presaleWrapper: IPresaleWrapper): number;
   getTotalClaimableRawAmount(presaleWrapper: IPresaleWrapper): BN;
   getTotalClaimableUiAmount(presaleWrapper: IPresaleWrapper): number;
-  getPendingClaimableRawAmount(presaleWrapper: IPresaleWrapper);
-  getPendingClaimableUiAmount(presaleWrapper: IPresaleWrapper): number;
+  getPendingClaimableRawAmount(
+    presaleWrapper: IPresaleWrapper,
+    currentTimestamp: number
+  ): BN;
+  getPendingClaimableUiAmount(
+    presaleWrapper: IPresaleWrapper,
+    currentTimestamp: number
+  ): number;
   getClaimedRawAmount(): BN;
   getClaimedUiAmount(): number;
   canWithdrawRemainingQuoteAmount(presaleWrapper: IPresaleWrapper): boolean;
@@ -51,7 +57,7 @@ export class EscrowWrapper implements IEscrowWrapper {
   public baseMultiplier: number;
   public quoteMultiplier: number;
   private presaleMode: PresaleMode;
-  private fixedPricePresaleQPrice: BN;
+  private presaleModeRawData: BN[];
 
   constructor(
     escrowAccount: EscrowAccount,
@@ -65,7 +71,7 @@ export class EscrowWrapper implements IEscrowWrapper {
     this.baseMultiplier = 10 ** baseDecimals;
     this.quoteMultiplier = 10 ** quoteDecimals;
     this.presaleMode = presaleAccount.presaleMode;
-    this.fixedPricePresaleQPrice = presaleAccount.fixedPricePresaleQPrice;
+    this.presaleModeRawData = presaleAccount.presaleModeRawData;
   }
 
   public getEscrowAccount(): EscrowAccount {
@@ -116,7 +122,11 @@ export class EscrowWrapper implements IEscrowWrapper {
       .toNumber();
   }
 
-  public getPendingClaimableRawAmount(presaleWrapper: IPresaleWrapper): BN {
+  public getPendingClaimableRawAmount(
+    presaleWrapper: IPresaleWrapper,
+    // Retrievable from getOnChainTimestamp function
+    currentTimestamp: number
+  ): BN {
     const presaleRegistry = presaleWrapper.getPresaleRegistry(
       new BN(this.escrowAccount.registryIndex)
     );
@@ -131,7 +141,6 @@ export class EscrowWrapper implements IEscrowWrapper {
     }
 
     const tokenSold = presaleRegistry.getTotalBaseTokenSold();
-    const currentTimestamp = new Date().getTime() / 1000; // Convert to seconds
 
     const presaleAccount = presaleWrapper.getPresaleAccount();
 
@@ -145,9 +154,9 @@ export class EscrowWrapper implements IEscrowWrapper {
       .mul(this.escrowAccount.totalDeposit)
       .div(presaleRegistry.getTotalDepositRawAmount());
 
-    const elapsedSeconds = Math.max(
+    const elapsedSeconds = Math.min(
       currentTimestamp - presaleAccount.vestingStartTime.toNumber(),
-      0
+      presaleAccount.vestDuration.toNumber()
     );
 
     const drippedToken = presaleAccount.vestDuration.isZero()
@@ -158,8 +167,7 @@ export class EscrowWrapper implements IEscrowWrapper {
 
     const userDrippedToken = drippedToken
       .mul(this.escrowAccount.totalDeposit)
-      .div(presaleAccount.totalDeposit)
-      .sub(this.escrowAccount.totalClaimedToken);
+      .div(presaleAccount.totalDeposit);
 
     const cumulativeClaimableAmount =
       userImmediateReleaseToken.add(userDrippedToken);
@@ -167,9 +175,14 @@ export class EscrowWrapper implements IEscrowWrapper {
     return cumulativeClaimableAmount.sub(this.escrowAccount.totalClaimedToken);
   }
 
-  public getPendingClaimableUiAmount(presaleWrapper: IPresaleWrapper): number {
-    const pendingClaimableRawAmount =
-      this.getPendingClaimableRawAmount(presaleWrapper);
+  public getPendingClaimableUiAmount(
+    presaleWrapper: IPresaleWrapper,
+    currentTimestamp: number
+  ): number {
+    const pendingClaimableRawAmount = this.getPendingClaimableRawAmount(
+      presaleWrapper,
+      currentTimestamp
+    );
     return new Decimal(pendingClaimableRawAmount.toString())
       .div(new Decimal(this.baseMultiplier))
       .toNumber();
@@ -248,27 +261,22 @@ export class EscrowWrapper implements IEscrowWrapper {
   }
 
   public getRemainingDepositAmount(presaleWrapper: IPresaleWrapper): BN {
-    const presaleRegistry = presaleWrapper.getPresaleRegistry(
-      new BN(this.escrowAccount.registryIndex)
+    const presaleHandler = getPresaleHandler(
+      this.presaleMode,
+      this.presaleModeRawData
     );
 
-    const buyerMaximumDepositCap = BN.min(
-      presaleRegistry.getBuyerMaximumRawDepositCap(),
-      this.getIndividualDepositCap()
+    const registryRemainingQuote =
+      presaleHandler.getRegistryRemainingDepositQuota(
+        presaleWrapper,
+        new BN(this.escrowAccount.registryIndex)
+      );
+
+    const escrowRemainingDepositQuote = this.getIndividualDepositCap().sub(
+      this.getDepositRawAmount()
     );
 
-    const buyerCap = buyerMaximumDepositCap.sub(this.getDepositRawAmount());
-
-    const presaleAccount = presaleWrapper.getPresaleAccount();
-    if (presaleAccount.presaleMode === PresaleMode.Prorata) {
-      return buyerCap;
-    }
-
-    const globalCap = presaleAccount.presaleMaximumCap.sub(
-      presaleAccount.totalDeposit
-    );
-
-    return BN.min(globalCap, buyerCap);
+    return BN.min(registryRemainingQuote, escrowRemainingDepositQuote);
   }
 
   public getRemainingDepositUiAmount(presaleWrapper: IPresaleWrapper): number {
@@ -298,7 +306,7 @@ export class EscrowWrapper implements IEscrowWrapper {
 
     const presaleHandler = getPresaleHandler(
       this.presaleMode,
-      this.fixedPricePresaleQPrice
+      this.presaleModeRawData
     );
 
     return presaleHandler.suggestDepositAmount(
@@ -328,7 +336,7 @@ export class EscrowWrapper implements IEscrowWrapper {
 
     const presaleHandler = getPresaleHandler(
       this.presaleMode,
-      this.fixedPricePresaleQPrice
+      this.presaleModeRawData
     );
 
     return presaleHandler.suggestWithdrawAmount(withdrawAmount);
@@ -358,7 +366,6 @@ export class EscrowWrapper implements IEscrowWrapper {
   }
 
   public canClose(presaleWrapper: IPresaleWrapper): boolean {
-    const currentTimestamp = new Date().getTime() / 1000; // Convert to seconds
     const presaleProgress = presaleWrapper.getPresaleProgressState();
 
     switch (presaleProgress) {

@@ -1,6 +1,7 @@
 import Decimal from "decimal.js";
 import { Rounding, U128_MAX, U64_MAX } from "./type";
 import { BN } from "@coral-xyz/anchor";
+import invariant from "tiny-invariant";
 
 export function uiPriceToQPrice(
   price: number,
@@ -62,4 +63,64 @@ export function calculateImmediateReleaseToken(
     immediateReleasedAmount,
     vestedAmount: totalSoldToken.sub(immediateReleasedAmount),
   };
+}
+
+// Calculates lock duration and vest duration in seconds from the given timestamps. Vest start immediately follows lock end.
+export function calculateLockAndVestDurationFromTimestamps(
+  presaleEndTime: BN,
+  lockEndTime: BN,
+  vestEndTime: BN
+) {
+  invariant(
+    presaleEndTime.lte(lockEndTime),
+    "Lock end must be after presale end"
+  );
+
+  invariant(lockEndTime.lte(vestEndTime), "Vest end must be after lock end");
+
+  const lockDuration = lockEndTime.sub(presaleEndTime);
+  const vestDuration = vestEndTime.sub(lockEndTime);
+
+  return {
+    lockDuration,
+    vestDuration,
+  };
+}
+
+export function calculateMinimumQuoteAmountForBaseLamport(
+  uiPrice: Decimal,
+  baseDecimal: BN,
+  quoteDecimal: BN,
+  rounding: Rounding
+) {
+  const qPrice = uiPriceToQPrice(
+    uiPrice.toNumber(),
+    baseDecimal.toNumber(),
+    quoteDecimal.toNumber(),
+    rounding
+  );
+
+  const scaleMultiplier = new BN(2).pow(new BN(64));
+  return qPrice.add(scaleMultiplier).sub(new BN(1)).div(scaleMultiplier);
+}
+
+export function calculateDepositFeeIncludedAmount(
+  depositAmount: BN,
+  feeBps: BN,
+  rounding: Rounding
+) {
+  if (feeBps.isZero()) {
+    return depositAmount;
+  }
+
+  const denominator = new BN(10000).sub(feeBps);
+  let adjustedDepositAmount = depositAmount.mul(new BN(10000));
+
+  if (rounding === Rounding.Up) {
+    adjustedDepositAmount = adjustedDepositAmount
+      .add(denominator)
+      .sub(new BN(1));
+  }
+
+  return adjustedDepositAmount.div(denominator);
 }

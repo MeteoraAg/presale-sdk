@@ -4,10 +4,16 @@ import {
   ComputeBudgetProgram,
   Connection,
   PublicKey,
+  SYSVAR_CLOCK_PUBKEY,
   TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
+
+export async function getOnChainTimestamp(connection: Connection) {
+  const clock = await connection.getAccountInfo(SYSVAR_CLOCK_PUBKEY);
+  return clock.data.readBigInt64LE(32);
+}
 
 export async function fetchMultipleAccountsAutoChunk(
   connection: Connection,

@@ -3,6 +3,7 @@ import { PresaleAccount, PresaleMode, PresaleRegistry } from "../type";
 import Decimal from "decimal.js";
 import { calculateDynamicLamportPrice, qPriceToPrice } from "../math";
 import { getPresaleHandler } from "../presale_mode_handler";
+import { FixedPricePresaleHandler } from "../presale_mode_handler/fixed_price";
 
 export interface IPresaleRegistryWrapper {
   isInitialized(): boolean;
@@ -33,10 +34,10 @@ export class PresaleRegistryWrapper implements IPresaleRegistryWrapper {
   public baseLamportToUiMultiplierFactor: number;
   public quoteLamportToUiMultiplierFactor: number;
   public presaleMode: PresaleMode;
-  public presaleQPrice: BN;
   public presaleTotalDeposit: BN;
   public presaleMaximumCap: BN;
   public presaleTotalDepositFee: BN;
+  private presaleModeRawData: BN[];
 
   constructor(
     presaleRegistry: PresaleRegistry,
@@ -52,17 +53,17 @@ export class PresaleRegistryWrapper implements IPresaleRegistryWrapper {
 
     const {
       presaleMode,
-      fixedPricePresaleQPrice,
       totalDeposit,
       presaleMaximumCap,
       totalDepositFee,
+      presaleModeRawData,
     } = presaleAccount;
 
     this.presaleMode = presaleMode;
-    this.presaleQPrice = fixedPricePresaleQPrice;
     this.presaleTotalDeposit = totalDeposit;
     this.presaleMaximumCap = presaleMaximumCap;
     this.presaleTotalDepositFee = totalDepositFee;
+    this.presaleModeRawData = presaleModeRawData;
   }
 
   public isInitialized(): boolean {
@@ -140,7 +141,10 @@ export class PresaleRegistryWrapper implements IPresaleRegistryWrapper {
   public getTokenPrice(): number {
     switch (this.presaleMode) {
       case PresaleMode.FixedPrice: {
-        const rawPrice = qPriceToPrice(this.presaleQPrice);
+        const fixedPricePresaleHandler = new FixedPricePresaleHandler(
+          this.presaleModeRawData
+        );
+        const rawPrice = qPriceToPrice(fixedPricePresaleHandler.qPrice);
         return rawPrice
           .mul(this.baseLamportToUiMultiplierFactor)
           .div(this.quoteLamportToUiMultiplierFactor)
@@ -207,7 +211,7 @@ export class PresaleRegistryWrapper implements IPresaleRegistryWrapper {
   public getTotalBaseTokenSold(): BN {
     const presaleHandler = getPresaleHandler(
       this.presaleMode,
-      this.presaleQPrice
+      this.presaleModeRawData
     );
     return presaleHandler.getRegistryTotalBaseTokenSold(this);
   }

@@ -3,6 +3,7 @@ import fs from "fs";
 import os from "os";
 import Presale from "../src/presale";
 import { BN } from "bn.js";
+import { getOnChainTimestamp } from "../src";
 
 async function showEscrowDetails(
   connection: Connection,
@@ -35,7 +36,10 @@ async function showEscrowDetails(
     );
     console.log(
       "Pending claimable amount:",
-      escrow.getPendingClaimableUiAmount(presaleWrapper)
+      escrow.getPendingClaimableUiAmount(
+        presaleWrapper,
+        await getOnChainTimestamp(connection).then((ts) => Number(ts))
+      )
     );
     console.log("Claimed amount", escrow.getClaimedUiAmount());
     console.log("Individual cap:", escrow.getIndividualDepositUiCap());

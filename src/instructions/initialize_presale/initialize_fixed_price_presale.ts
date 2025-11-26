@@ -5,7 +5,12 @@ import {
   SystemProgram,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { ICreateInitializePresaleIxParams } from ".";
+import {
+  ICreateInitializePresaleIxParams,
+  INITIALIZE_PRESALE_PARAMS_PADDING,
+  toIdlLockedVestingParams,
+  toIdlPresaleParams,
+} from ".";
 import {
   deriveFixedPricePresaleExtraArgs,
   derivePresale,
@@ -29,6 +34,7 @@ interface ICreateInitializeFixedPricePresaleArgsIxParams {
   ownerPubkey: PublicKey;
   feePayerPubkey: PublicKey;
   qPrice: BN;
+  disableWithdraw: boolean;
 }
 
 /**
@@ -52,6 +58,7 @@ export async function createInitializeFixedPricePresaleArgsIx(
     ownerPubkey,
     feePayerPubkey,
     qPrice,
+    disableWithdraw,
   } = params;
 
   const presale = derivePresale(
@@ -69,7 +76,7 @@ export async function createInitializeFixedPricePresaleArgsIx(
   const ix = await program.methods
     .initializeFixedPricePresaleArgs({
       presale,
-      padding0: 0,
+      disableWithdraw: Number(disableWithdraw),
       qPrice,
       padding1: new Array(8).fill(new BN(0)),
     })
@@ -142,23 +149,9 @@ export async function createInitializeFixedPricePresaleIx(
     .initializePresale(
       // @ts-expect-error
       {
-        presaleParams: {
-          ...presaleArgs,
-          presaleMode: PresaleMode.FixedPrice,
-          padding: new Array(4).fill(new BN(0)),
-        },
-        lockedVestingParams: lockedVestingArgs
-          ? {
-              ...lockedVestingArgs,
-              padding: new Array(4).fill(new BN(0)),
-            }
-          : {
-              immediatelyReleaseBps: 0,
-              lockDuration: new BN(0),
-              vestDuration: new BN(0),
-              padding: new Array(4).fill(new BN(0)),
-            },
-        padding: new Array(4).fill(new BN(0)),
+        presaleParams: toIdlPresaleParams(presaleArgs, PresaleMode.FixedPrice),
+        lockedVestingParams: toIdlLockedVestingParams(lockedVestingArgs),
+        padding: INITIALIZE_PRESALE_PARAMS_PADDING,
         presaleRegistries,
       },
       {

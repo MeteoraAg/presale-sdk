@@ -1,15 +1,18 @@
 import BN from "bn.js";
-import {
-  getBaseTokenSoldByDynamicPrice,
-  getPresaleRemainingDepositQuota,
-  PresaleHandler,
-} from ".";
+import { getBaseTokenSoldByDynamicPrice, PresaleHandler } from ".";
 import { IPresaleRegistryWrapper } from "../accounts/presale_registry_wrapper";
 import { IPresaleWrapper } from "../accounts/presale_wrapper";
 import { U64_MAX } from "../type";
 
 export class ProrataHandler implements PresaleHandler {
-  getRemainingDepositQuota(presaleWrapper: IPresaleWrapper): BN {
+  getRemainingDepositQuota(_presaleWrapper: IPresaleWrapper): BN {
+    return U64_MAX;
+  }
+
+  getRegistryRemainingDepositQuota(
+    _presaleWrapper: IPresaleWrapper,
+    _registryIndex: BN
+  ): BN {
     return U64_MAX;
   }
 
@@ -36,5 +39,9 @@ export class ProrataHandler implements PresaleHandler {
 
   suggestWithdrawAmount(maxAmount: BN): BN {
     return maxAmount;
+  }
+
+  earlierEndOnceCapReached(): boolean {
+    return false;
   }
 }
