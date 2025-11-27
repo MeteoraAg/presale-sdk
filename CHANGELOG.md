@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## presale [0.0.7] [PR #11](https://github.com/MeteoraAg/presale-sdk/pull/11)
+
+### Fixed
+
+- `getPendingClaimableRawAmount` need to check for timings
+
 ## presale [0.0.6] [PR #9](https://github.com/MeteoraAg/presale-sdk/pull/9)
 
 ### Added
