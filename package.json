@@ -1,6 +1,6 @@
 {
   "name": "@meteora-ag/presale",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Presale client for Meteora AG",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -12,8 +12,8 @@
   "scripts": {
     "build": "rm -rf dist && tsup",
     "test": "ts-mocha -p tsconfig.json 'tests/**/*.ts'",
-    "publish-pre-release": "npm publish --tag next",
-    "publish": "npm publish --access public",
+    "prelease": "npm publish --tag next",
+    "release": "npm publish --access public",
     "start-validator": "rm -rf test-ledger && solana-test-validator --bpf-program presSVxnf9UU8jMxhgSMqaRwNiT36qeBdNeTRKjTdbj ./tests/fixtures/presale.so --reset"
   },
   "devDependencies": {
