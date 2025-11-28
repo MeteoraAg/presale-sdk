@@ -16,31 +16,33 @@ import {
   Transaction,
 } from "@solana/web3.js";
 import BN from "bn.js";
+import { expect } from "chai";
 import Decimal from "decimal.js";
 import { WhitelistedWallet } from "../libs/merkle_tree";
-import { ILockedVestingArgs, Presale, Rounding } from "../src";
 import {
-  claim,
-  closeEscrow,
+  getOnChainTimestamp,
+  ILockedVestingArgs,
+  Presale,
+  Rounding,
+} from "../src";
+import {
   createEscrowWithProof,
   deposit,
   initializeMerkleRootConfigs,
   initPermissionedMerkleTreeFixedPricePresale,
-  performUnsoldBaseTokenAction,
   presaleProgramId,
   waitUntilTimestamp,
-  withdraw,
 } from "./utils";
 
 const connection = new Connection("http://127.0.0.1:8899", "processed");
 
-describe("Full Flow Tests", () => {
+describe("SDK test", () => {
   let userKeypair: Keypair;
   let tokenMint: PublicKey;
 
   const baseDecimals = 9;
 
-  beforeEach(async () => {
+  before(async () => {
     userKeypair = Keypair.generate();
     let txSig = await connection.requestAirdrop(userKeypair.publicKey, 100e9);
     await connection.confirmTransaction(txSig, connection.commitment);
@@ -110,15 +112,20 @@ describe("Full Flow Tests", () => {
     await connection.confirmTransaction(txSig, connection.commitment);
   });
 
-  describe("Fixed price permissioned presale (merkle tree)", () => {
-    it("full flow succeeds", async () => {
+  // TODO: test each functions in the SDK
+
+  describe("Pending claimable", () => {
+    let escrowAddress: PublicKey;
+    let presaleAddress: PublicKey;
+
+    before(async () => {
       // Timings
       const presaleStartTime = new Date().getTime() / 1000;
       const presaleEndTime = presaleStartTime + 60; // 60 seconds duration
       const lockedVestingArgs: ILockedVestingArgs = {
-        immediateReleaseBps: new BN(9000),
-        vestDuration: new BN(5),
-        lockDuration: new BN(0),
+        immediateReleaseBps: new BN(0),
+        vestDuration: new BN(0),
+        lockDuration: new BN(5), // 5 seconds lock
         immediateReleaseTimestamp: new BN(presaleEndTime),
       };
 
@@ -141,7 +148,7 @@ describe("Full Flow Tests", () => {
         },
       ];
 
-      const presaleAddress = await initPermissionedMerkleTreeFixedPricePresale(
+      presaleAddress = await initPermissionedMerkleTreeFixedPricePresale(
         connection,
         presaleMinimumCap,
         presaleMaximumCap,
@@ -179,7 +186,7 @@ describe("Full Flow Tests", () => {
 
       console.log("Presale started, create escrow...");
 
-      const escrowAddress = await createEscrowWithProof(
+      escrowAddress = await createEscrowWithProof(
         connection,
         presale,
         presaleAddress,
@@ -192,22 +199,6 @@ describe("Full Flow Tests", () => {
       await deposit(
         presale,
         userKeypair,
-        presale.presaleAccount.presaleMaximumCap.divn(2),
-        connection
-      );
-
-      await withdraw(
-        presale,
-        userKeypair,
-        presale.presaleAccount.presaleMaximumCap.divn(4),
-        connection
-      );
-
-      console.log("Deposit with max cap");
-
-      await deposit(
-        presale,
-        userKeypair,
         presale.presaleAccount.presaleMaximumCap,
         connection
       );
@@ -216,19 +207,46 @@ describe("Full Flow Tests", () => {
         connection,
         presale.presaleAccount.presaleEndTime.toNumber()
       );
+    });
 
-      await performUnsoldBaseTokenAction(presale, userKeypair, connection);
-
-      await claim(presale, userKeypair, connection);
-
-      await waitUntilTimestamp(
+    it("Calculate pending claimable amount correctly", async () => {
+      const presale = await Presale.create(
         connection,
-        presale.presaleAccount.vestingEndTime.toNumber()
+        presaleAddress,
+        presaleProgramId
       );
 
-      await claim(presale, userKeypair, connection);
+      const escrow = await presale
+        .getPresaleEscrowByOwner(userKeypair.publicKey)
+        .then((e) => e[0]);
 
-      await closeEscrow(presale, userKeypair, connection);
+      let timestamp = await getOnChainTimestamp(connection);
+
+      let claimableAmount = escrow.getPendingClaimableRawAmount(
+        presale.getParsedPresale(),
+        Number(timestamp.toString())
+      );
+
+      expect(claimableAmount.eq(new BN(0))).to.be.true;
+
+      console.log("Waiting for lock period to end...");
+      await waitUntilTimestamp(
+        connection,
+        presale.presaleAccount.vestingStartTime.toNumber() + 1
+      );
+
+      timestamp = await getOnChainTimestamp(connection);
+
+      claimableAmount = escrow.getPendingClaimableRawAmount(
+        presale.getParsedPresale(),
+        Number(timestamp.toString())
+      );
+
+      console.log(
+        "Claimable amount after lock period:",
+        claimableAmount.toString()
+      );
+      expect(claimableAmount.gt(new BN(0))).to.be.true;
     }).timeout(1000 * 120); // 2 minutes timeout
   });
 });

@@ -150,24 +150,40 @@ export class EscrowWrapper implements IEscrowWrapper {
         new BN(presaleAccount.immediateReleaseBps)
       );
 
-    const userImmediateReleaseToken = immediateReleasedAmount
+    const availableImmediateReleaseAmount =
+      currentTimestamp >= presaleAccount.immediateReleaseTimestamp.toNumber()
+        ? immediateReleasedAmount
+        : new BN(0);
+
+    const userImmediateReleaseToken = availableImmediateReleaseAmount
       .mul(this.escrowAccount.totalDeposit)
       .div(presaleRegistry.getTotalDepositRawAmount());
 
-    const elapsedSeconds = Math.min(
-      currentTimestamp - presaleAccount.vestingStartTime.toNumber(),
-      presaleAccount.vestDuration.toNumber()
-    );
+    const calculateUserDrippedToken = () => {
+      if (currentTimestamp < presaleAccount.vestingStartTime.toNumber()) {
+        return new BN(0);
+      }
 
-    const drippedToken = presaleAccount.vestDuration.isZero()
-      ? vestedAmount
-      : vestedAmount
-          .mul(new BN(elapsedSeconds))
-          .div(presaleAccount.vestDuration);
+      let elapsedSeconds =
+        currentTimestamp - presaleAccount.vestingStartTime.toNumber();
 
-    const userDrippedToken = drippedToken
-      .mul(this.escrowAccount.totalDeposit)
-      .div(presaleAccount.totalDeposit);
+      elapsedSeconds = Math.min(
+        elapsedSeconds,
+        presaleAccount.vestDuration.toNumber()
+      );
+
+      const drippedToken = presaleAccount.vestDuration.isZero()
+        ? vestedAmount
+        : vestedAmount
+            .mul(new BN(elapsedSeconds))
+            .div(presaleAccount.vestDuration);
+
+      return drippedToken
+        .mul(this.escrowAccount.totalDeposit)
+        .div(presaleAccount.totalDeposit);
+    };
+
+    const userDrippedToken = calculateUserDrippedToken();
 
     const cumulativeClaimableAmount =
       userImmediateReleaseToken.add(userDrippedToken);
