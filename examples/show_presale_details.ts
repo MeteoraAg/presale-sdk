@@ -102,10 +102,10 @@ async function showPresaleDetails(
   }
 }
 
-const connection = new Connection(clusterApiUrl("devnet"));
+const connection = new Connection("http://127.0.0.1:8899");
 
 const presaleAddress = new PublicKey(
-  "4RJGBQxnADpKj3mLo99Lw16RuXaPAAtsh35GVMn4zBPt"
+  "QcDiC9npE4JgZf7eXEyQ2AZ7zna7FbRGtyNY5UBNE4V"
 );
 
 showPresaleDetails(connection, presaleAddress);
