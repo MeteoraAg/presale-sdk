@@ -313,55 +313,6 @@ async function main() {
   console.log("Presale0 pubkey", presale0Pubkey.toBase58());
   console.log("Presale1 pubkey", presale1Pubkey.toBase58());
   console.log("Presale2 pubkey", presale2Pubkey.toBase58());
-
-  // Some testing ...
-  const [presale0, presale1, presale2] = await Promise.all(
-    [presale0Pubkey, presale1Pubkey, presale2Pubkey].map((presalePubkey) => {
-      return Presale.create(connection, presalePubkey, PRESALE_PROGRAM_ID);
-    })
-  );
-
-  for (const presaleInstance of [presale0, presale1, presale2]) {
-    const initMerkleProofTx = await presaleInstance
-      .createMerkleRootConfigFromAddresses({
-        creator: keypair.publicKey,
-        whitelistWallets: [
-          {
-            account: keypair.publicKey,
-            registryIndex: new BN(0),
-            depositCap: presaleMaximumCap,
-          },
-        ],
-      })
-      .then((txs) => txs[0]);
-
-    initMerkleProofTx.sign(keypair);
-    txSig = await connection.sendRawTransaction(initMerkleProofTx.serialize());
-    console.log("Initialized merkle proof. Tx Sig:", txSig);
-    await connection.confirmTransaction({
-      signature: txSig,
-      blockhash: initMerkleProofTx.recentBlockhash,
-      lastValidBlockHeight: initMerkleProofTx.lastValidBlockHeight,
-    });
-
-    const initPermissionedServerMetadataTx =
-      await presaleInstance.createPermissionedServerMetadata({
-        owner: keypair.publicKey,
-        serverUrl: "http://localhost:8080/merkle-proof",
-      });
-
-    initPermissionedServerMetadataTx.sign(keypair);
-    txSig = await connection.sendRawTransaction(
-      initPermissionedServerMetadataTx.serialize()
-    );
-    console.log("Initialized permissioned server metadata. Tx Sig:", txSig);
-    await connection.confirmTransaction({
-      signature: txSig,
-      blockhash: initPermissionedServerMetadataTx.recentBlockhash,
-      lastValidBlockHeight:
-        initPermissionedServerMetadataTx.lastValidBlockHeight,
-    });
-  }
 }
 
 function loadKeypairFromFile(filePath: string) {

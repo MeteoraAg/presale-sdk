@@ -7,7 +7,7 @@ import { WhitelistedWallet } from "../../libs/merkle_tree";
 import { PRESALE_PROGRAM_ID } from "../../src";
 import Presale from "../../src/presale";
 
-const connection = new Connection("http://127.0.0.1:8899");
+const connection = new Connection(clusterApiUrl("devnet"));
 
 async function depositWithMerkleProof(
   connection: Connection,
@@ -26,14 +26,12 @@ async function depositWithMerkleProof(
   const depositTxs = await Promise.allSettled(
     presaleRegistries.map((reg) => {
       return presaleInstance.deposit({
-        amount: reg.getBuyerMaximumRawDepositCap(),
+        amount: new BN(10000000),
         owner: keypair.publicKey,
         registryIndex: new BN(reg.getRegistryIndex()),
       });
     })
   );
-
-  console.log(depositTxs);
 
   const whitelistedDepositTxs = depositTxs
     .filter((res) => res.status === "fulfilled")
@@ -55,8 +53,6 @@ async function depositWithMerkleProof(
       );
     })
   );
-
-  console.log("Deposit with Merkle proof completed.");
 }
 
 async function startMerkleProofServer(
@@ -115,21 +111,26 @@ const userKeypair = Keypair.fromSecretKey(
 );
 
 const presaleAddress = new PublicKey(
-  "598seKhU8Yue2zo5rLsU4na5GviPF9CpSFR4KpACKhuw"
+  "FoAYfXZ8Pn2Gre4wctdGrRLkzj4xyNHda9mVVSVkXSrp"
 );
 const whitelistedAddresses: WhitelistedWallet[] = [
   {
     account: keypair.publicKey,
     registryIndex: new BN(0),
-    depositCap: new BN(100).mul(new BN(10).pow(new BN(9))),
+    depositCap: new BN(1000000000),
+  },
+  {
+    account: userKeypair.publicKey,
+    registryIndex: new BN(1),
+    depositCap: new BN(500000000),
   },
 ];
-
 const app = express();
 
 startMerkleProofServer(presaleAddress, whitelistedAddresses, app).then(
   async () => {
     await depositWithMerkleProof(connection, keypair, presaleAddress);
+    await depositWithMerkleProof(connection, userKeypair, presaleAddress);
     process.exit(process.exitCode);
   }
 );
