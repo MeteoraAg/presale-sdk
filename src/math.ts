@@ -3,6 +3,8 @@ import { Rounding, U128_MAX, U64_MAX } from "./type";
 import { BN } from "@coral-xyz/anchor";
 import invariant from "tiny-invariant";
 
+const SCALE_MULTIPLIER = new BN(2).pow(new BN(64));
+
 export function uiPriceToQPrice(
   price: number,
   baseTokenDecimal: number,
@@ -100,8 +102,49 @@ export function calculateMinimumQuoteAmountForBaseLamport(
     rounding
   );
 
-  const scaleMultiplier = new BN(2).pow(new BN(64));
-  return qPrice.add(scaleMultiplier).sub(new BN(1)).div(scaleMultiplier);
+  return qPrice.add(SCALE_MULTIPLIER).sub(new BN(1)).div(SCALE_MULTIPLIER);
+}
+
+export function calculateMaximumQuoteAmountForPresaleSupply(
+  uiPrice: Decimal,
+  baseDecimal: BN,
+  quoteDecimal: BN,
+  presaleSupply: BN,
+  rounding: Rounding
+): {
+  maxPresaleCap: BN;
+  remainingPresaleSupply: BN;
+} {
+  const qPrice = uiPriceToQPrice(
+    uiPrice.toNumber(),
+    baseDecimal.toNumber(),
+    quoteDecimal.toNumber(),
+    rounding
+  );
+
+  let maxPresaleCap = presaleSupply
+    .mul(qPrice)
+    .add(SCALE_MULTIPLIER.sub(new BN(1)))
+    .div(SCALE_MULTIPLIER);
+
+  let maxPresaleSupplyBought = maxPresaleCap.mul(SCALE_MULTIPLIER).div(qPrice);
+
+  // Due to maxPresaleCap round up, if the price is < 1, the extra lamport rounded can buy more than presale supply
+  // Eg: price: 0.05
+  // presaleSupply: 111
+  // maxPresaleCap: price * presaleSupply = 5.55 -> rounded up to 6
+  // maxPresaleSupplyBought: maxPresaleCap / price = 6 / 0.05 = 120 > presaleSupply
+  if (maxPresaleSupplyBought.gt(presaleSupply)) {
+    maxPresaleCap = maxPresaleCap.sub(new BN(1));
+  }
+
+  maxPresaleSupplyBought = maxPresaleCap.mul(SCALE_MULTIPLIER).div(qPrice);
+  const remainingPresaleSupply = presaleSupply.sub(maxPresaleSupplyBought);
+
+  return {
+    maxPresaleCap,
+    remainingPresaleSupply,
+  };
 }
 
 export function calculateDepositFeeIncludedAmount(
