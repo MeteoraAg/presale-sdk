@@ -10,7 +10,7 @@ import Decimal from "decimal.js";
 import { BN } from "bn.js";
 import { expect } from "chai";
 
-describe.only("Miscellaneous Tests", () => {
+describe("Miscellaneous Tests", () => {
   it("uiPriceToQPrice should not causes BN assertion fail", () => {
     fc.assert(
       fc.property(
