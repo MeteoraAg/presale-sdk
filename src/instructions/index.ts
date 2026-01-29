@@ -14,3 +14,4 @@ export * from "./refresh_escrow";
 export * from "./creator_withdraw";
 export * from "./creator_collect_fee";
 export * from "./close_merkle_root_config";
+export * from "./deposit";
