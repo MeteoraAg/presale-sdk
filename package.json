@@ -1,6 +1,6 @@
 {
   "name": "@meteora-ag/presale",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Presale client for Meteora AG",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
