@@ -9,6 +9,8 @@ import {
 import Decimal from "decimal.js";
 import { BN } from "bn.js";
 import { expect } from "chai";
+import { PresaleWrapper } from "../src/accounts/presale_wrapper";
+import { IPresaleRegistryWrapper } from "../src/accounts/presale_registry_wrapper";
 
 describe("Miscellaneous Tests", () => {
   it("uiPriceToQPrice should not causes BN assertion fail", () => {
@@ -73,5 +75,23 @@ describe("Miscellaneous Tests", () => {
         }
       )
     );
+  });
+
+  it("getAverageTokenPrice returns weighted UI price when token decimals differ", () => {
+    const wrapper = new PresaleWrapper({} as any, 9, 6);
+    const registries = [
+      {
+        getTokenPrice: () => 354.7,
+        getPresaleRawSupply: () => new BN("100000000000"),
+      },
+      {
+        getTokenPrice: () => 384.26,
+        getPresaleRawSupply: () => new BN("300000000000"),
+      },
+    ] as IPresaleRegistryWrapper[];
+
+    wrapper.getAllPresaleRegistries = () => registries;
+
+    expect(wrapper.getAverageTokenPrice()).to.equal(376.87);
   });
 });

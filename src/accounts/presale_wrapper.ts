@@ -395,7 +395,6 @@ export class PresaleWrapper implements IPresaleWrapper {
 
     return totalWeightedTokenPrice
       .div(new Decimal(totalEffectivePresaleSupply.toString()))
-      .mul(new Decimal(10).pow(this.baseDecimals - this.quoteDecimals))
       .toNumber();
   }
 
