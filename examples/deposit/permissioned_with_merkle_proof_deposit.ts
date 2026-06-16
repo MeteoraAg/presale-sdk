@@ -125,7 +125,6 @@ const whitelistedAddresses: WhitelistedWallet[] = [
     depositCap: new BN(500000000),
   },
 ];
-
 const app = express();
 
 startMerkleProofServer(presaleAddress, whitelistedAddresses, app).then(
