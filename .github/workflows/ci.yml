@@ -1,0 +1,19 @@
+name: CI
+
+# Runs on every PR, whatever the base branch: new advisories are published against
+# dependencies that are already in the lockfile
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # advisories of the published dependencies, ignored ones are in pnpm-workspace.yaml
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+      - run: pnpm audit --prod
+        shell: bash
